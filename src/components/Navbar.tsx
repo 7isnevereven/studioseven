@@ -2,69 +2,73 @@
 
 import { useState, useEffect } from 'react'
 
+interface NavBarProps {
+  currentView: string;
+  setCurrentView: (view: 'home' | 'projects' | 'artists' | 'newsroom' | 'about') => void;
+}
+
 const NAV_LINKS = [
-  { label: 'Home',     href: '#home' },
-  { label: 'Newsroom', href: '#newsroom' },
-  { label: 'Artists',  href: '#artists' },
-  { label: 'Projects', href: '#projects' },
-  { label: 'About',    href: '#about' },
-]
+  { label: 'Home',     id: 'home' },
+  { label: 'Newsroom', id: 'newsroom' },
+  { label: 'Artists',  id: 'artists' },
+  { label: 'Projects', id: 'projects' },
+  { label: 'About',    id: 'about' },
+] as const
 
-export default function Navbar() {
-  const [active, setActive] = useState('home')
+function SunIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> }
+function MoonIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> }
 
-  // Track which section is in view
+export default function Navbar({ currentView, setCurrentView }: NavBarProps) {
+  const [isLight, setIsLight] = useState(false)
+
   useEffect(() => {
-    const sections = NAV_LINKS.map(l => l.href.slice(1))
-    const observers: IntersectionObserver[] = []
-
-    sections.forEach(id => {
-      const el = document.getElementById(id)
-      if (!el) return
-      const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) setActive(id) },
-        { threshold: 0.4 }
-      )
-      obs.observe(el)
-      observers.push(obs)
-    })
-
-    return () => observers.forEach(o => o.disconnect())
+    setIsLight(document.body.classList.contains('light-mode'))
   }, [])
 
-  const handleClick = (href: string) => {
-    const id = href.slice(1)
-    const el = document.getElementById(id)
-    el?.scrollIntoView({ behavior: 'smooth' })
-    setActive(id)
+  const toggleTheme = () => {
+    document.body.classList.toggle('light-mode')
+    setIsLight(!isLight)
   }
 
   return (
-    <nav className="navbar">
-      {/* Logo text - right side of left panel mirrors here */}
-      <span
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 13,
-          fontWeight: 400,
-          color: 'rgba(255,255,255,0.35)',
-          marginRight: 'auto',
-          letterSpacing: '-0.01em',
-        }}
-      >
-        studio<strong style={{ fontWeight: 700 }}>seven</strong>
-      </span>
-
-      {NAV_LINKS.map(link => (
-        <button
-          key={link.href}
-          onClick={() => handleClick(link.href)}
-          className={`navbar-link ${active === link.href.slice(1) ? 'active' : ''}`}
-          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-        >
-          {link.label}
+    <nav 
+      className="navbar" 
+      style={{ 
+        width: '100%', 
+        height: '70px', 
+        minHeight: '70px', /* Forces the minimum height */
+        flexShrink: 0,     /* Prevents flexbox from squishing it */
+        position: 'sticky', 
+        top: 0, 
+        zIndex: 20, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        background: 'var(--modal-overlay)', 
+        backdropFilter: 'blur(30px)', 
+        WebkitBackdropFilter: 'blur(30px)', 
+        borderBottom: '1px solid var(--glass-border-b)' 
+      }}
+    >
+      
+      <div style={{ position: 'absolute', right: '32px' }}>
+        <button onClick={toggleTheme} className="glass-btn glass-icon-sm" style={{ color: 'var(--text-main)' }}>
+          {isLight ? <MoonIcon /> : <SunIcon />}
         </button>
-      ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 12 }}>
+        {NAV_LINKS.map(link => (
+          <button
+            key={link.id}
+            onClick={() => setCurrentView(link.id)}
+            className={`glass-btn glass-pill-sm ${currentView === link.id ? 'active' : ''}`}
+            style={{ letterSpacing: '0.02em', color: currentView === link.id ? 'var(--text-main)' : 'var(--text-muted)' }}
+          >
+            {link.label}
+          </button>
+        ))}
+      </div>
     </nav>
   )
 }
