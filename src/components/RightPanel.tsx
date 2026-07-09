@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { PROJECTS, ARTISTS, NEWS, Project, Artist, getCoverUrl } from '@/data/projects'
+import { PROJECTS, ARTISTS, NEWS, Project, Artist, NewsItem, getCoverUrl, formatTimeAgo } from '@/data/projects'
 import Navbar from '@/components/NavBar'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://YOUR_PROJECT_ID.supabase.co'
@@ -11,14 +11,17 @@ function SpotifyIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" 
 function YouTubeIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg> }
 function RedirectIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg> }
 
-function NewsCard({ item }: { item: any }) {
+function NewsCard({ item, onOpenNews }: { item: NewsItem, onOpenNews: (n: NewsItem) => void }) {
   const project = PROJECTS.find(p => p.id === item.projectId)
   const accent = project?.accentColor ?? '#333'
+  const imageUrl = item.image ? (item.image.startsWith('http') ? item.image : getCoverUrl(item.image)) : (project ? getCoverUrl(project.coverFile) : '')
+  const bgStyle = imageUrl ? `linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 100%), url(${imageUrl}) center/cover no-repeat` : `linear-gradient(to top, ${accent}80 0%, var(--bg-surface) 100%)`
+
   return (
-    <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: 180, background: `linear-gradient(to top, ${accent}80 0%, var(--bg-surface) 100%)` }}>
+    <div className="glass-card" onClick={() => onOpenNews(item)} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: 200, background: bgStyle }}>
       <div style={{ padding: '24px' }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text-main)', marginBottom: 6, lineHeight: 1.2 }}>{item.headline}</h3>
-        <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{item.weeksAgo}w ago</p>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: '#ffffff', marginBottom: 6, lineHeight: 1.2 }}>{item.headline}</h3>
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{item.date} • {formatTimeAgo(item.date)}</p>
       </div>
     </div>
   )
@@ -46,12 +49,8 @@ function ProjectCard({ project, onOpenModal }: { project: Project, onOpenModal: 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 4px' }}>
         <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>{project.title}</h3>
         <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>VEN | {project.releaseLabel}</p>
-        
-        {/* Updated Button Group: Centered, Equal-Sized Icon Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 12 }}>
-          <button className="glass-btn glass-icon-sm" title="Project Details">
-            <RedirectIcon />
-          </button>
+          <button className="glass-btn glass-icon-sm" title="Project Details"><RedirectIcon /></button>
           {project.spotifyUrl && <a href={project.spotifyUrl} onClick={e => e.stopPropagation()} target="_blank" rel="noreferrer" className="glass-btn glass-icon-sm" style={{ color: '#1DB954' }}><SpotifyIcon /></a>}
           {project.youtubeUrl && <a href={project.youtubeUrl} onClick={e => e.stopPropagation()} target="_blank" rel="noreferrer" className="glass-btn glass-icon-sm" style={{ color: '#FF0000' }}><YouTubeIcon /></a>}
         </div>
@@ -60,9 +59,16 @@ function ProjectCard({ project, onOpenModal }: { project: Project, onOpenModal: 
   )
 }
 
-interface RightPanelProps { currentView: 'home' | 'projects' | 'artists' | 'newsroom' | 'about'; setCurrentView: (v: 'home' | 'projects' | 'artists' | 'newsroom' | 'about') => void; onOpenModal: (p: Project) => void; onOpenArtist: (a: Artist) => void; }
+interface RightPanelProps { 
+  currentView: 'home' | 'projects' | 'artists' | 'newsroom' | 'about'; 
+  setCurrentView: (v: 'home' | 'projects' | 'artists' | 'newsroom' | 'about') => void; 
+  onOpenModal: (p: Project) => void; 
+  onOpenArtist: (a: Artist) => void; 
+  onOpenNews: (n: NewsItem) => void;
+  onOpenMenu: () => void;
+}
 
-export default function RightPanel({ currentView, setCurrentView, onOpenModal, onOpenArtist }: RightPanelProps) {
+export default function RightPanel({ currentView, setCurrentView, onOpenModal, onOpenArtist, onOpenNews, onOpenMenu }: RightPanelProps) {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
 
@@ -71,7 +77,7 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
 
   return (
     <div className="right-panel">
-      <Navbar currentView={currentView} setCurrentView={setCurrentView} />
+      <Navbar currentView={currentView} setCurrentView={setCurrentView} onOpenMenu={onOpenMenu} />
       <main className="main-content">
         
         {currentView === 'home' && (
@@ -79,29 +85,31 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
             <section>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 }}>
                 <h2 className="section-title" style={{ margin: 0 }}>Newsroom</h2>
-                <button onClick={() => setCurrentView('newsroom')} className="glass-btn glass-pill-sm">View All</button>
+                <button onClick={() => setCurrentView('newsroom')} className="glass-btn glass-pill-sm desktop-only">View All</button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 24 }}>
-                {NEWS.slice(0, 3).map(item => <NewsCard key={item.id} item={item} />)}
+              <div className="grid-3">
+                {NEWS.slice(0, 3).map(item => <NewsCard key={item.id} item={item} onOpenNews={onOpenNews} />)}
               </div>
+              <button onClick={() => setCurrentView('newsroom')} className="glass-btn glass-pill mobile-only" style={{ width: '100%', marginTop: 24 }}>View All News</button>
             </section>
 
             <section>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 }}>
                 <h2 className="section-title" style={{ margin: 0 }}>Projects</h2>
-                <button onClick={() => setCurrentView('projects')} className="glass-btn glass-pill-sm">View All</button>
+                <button onClick={() => setCurrentView('projects')} className="glass-btn glass-pill-sm desktop-only">View All</button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 24 }}>
+              <div className="grid-4">
                 {PROJECTS.slice(0, 8).map(project => <ProjectCard key={project.id} project={project} onOpenModal={onOpenModal} />)}
               </div>
+              <button onClick={() => setCurrentView('projects')} className="glass-btn glass-pill mobile-only" style={{ width: '100%', marginTop: 24 }}>View All Projects</button>
             </section>
 
             <section>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 }}>
                 <h2 className="section-title" style={{ margin: 0 }}>Artists</h2>
-                <button onClick={() => setCurrentView('artists')} className="glass-btn glass-pill-sm">View All</button>
+                <button onClick={() => setCurrentView('artists')} className="glass-btn glass-pill-sm desktop-only">View All</button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 24 }}>
+              <div className="grid-artists">
                 {ARTISTS.slice(0, 4).map(artist => <ArtistCard key={artist.id} artist={artist} onOpenArtist={onOpenArtist} />)}
               </div>
             </section>
@@ -111,14 +119,14 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
         {currentView === 'projects' && (
           <section className="animate-in">
             <h2 className="section-title">All Projects</h2>
-            <div style={{ display: 'flex', gap: 16, marginBottom: 32 }}>
-              <input type="text" placeholder="Search projects..." value={search} onChange={e => setSearch(e.target.value)} className="glass-pill glass-input" style={{ width: 300 }} />
+            <div className="search-filter-container">
+              <input type="text" placeholder="Search projects..." value={search} onChange={e => setSearch(e.target.value)} className="glass-pill glass-input search-input" />
               <select value={sort} onChange={e => setSort(e.target.value as any)} className="glass-pill glass-input" style={{ cursor: 'pointer' }}>
                 <option value="newest" style={{ background: 'var(--bg-base)' }}>Newest First</option>
                 <option value="oldest" style={{ background: 'var(--bg-base)' }}>Oldest First</option>
               </select>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 24 }}>
+            <div className="grid-4">
               {filteredProjects.map(project => <ProjectCard key={project.id} project={project} onOpenModal={onOpenModal} />)}
             </div>
           </section>
@@ -127,8 +135,8 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
         {currentView === 'newsroom' && (
           <section className="animate-in">
             <h2 className="section-title">Newsroom</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 24 }}>
-              {NEWS.map(item => <NewsCard key={item.id} item={item} />)}
+            <div className="grid-3">
+              {NEWS.map(item => <NewsCard key={item.id} item={item} onOpenNews={onOpenNews} />)}
             </div>
           </section>
         )}
@@ -136,7 +144,7 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
         {currentView === 'artists' && (
           <section className="animate-in">
             <h2 className="section-title">Artists</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 24 }}>
+            <div className="grid-artists">
               {ARTISTS.map(artist => <ArtistCard key={artist.id} artist={artist} onOpenArtist={onOpenArtist} />)}
             </div>
           </section>

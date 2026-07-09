@@ -12,61 +12,64 @@ function Badge({ type }: { type: TrackBadge }) {
   return <span style={{ display: 'inline-flex', padding: '1px 6px', borderRadius: 999, fontSize: 8, fontWeight: 700, background: styles[type].bg, color: styles[type].text }}>{type}</span>
 }
 
-interface LeftPanelProps { project: Project; onOpenModal: () => void; }
+interface LeftPanelProps { project: Project; onOpenModal: () => void; isOpen: boolean; onClose: () => void; }
 
-export default function LeftPanel({ project, onOpenModal }: LeftPanelProps) {
+export default function LeftPanel({ project, onOpenModal, isOpen, onClose }: LeftPanelProps) {
   const coverUrl = getCoverUrl(project.coverFile)
 
   return (
-    <aside className="left-panel" style={{ '--panel-accent': project.accentColor, '--panel-accent-soft': project.accentSoft || `${project.accentColor}80` } as React.CSSProperties}>
-      
-      <div style={{ padding: '32px 32px 16px 32px', flexShrink: 0, zIndex: 2 }}>
-        <img src={LOGO_URL} alt="studioseven" style={{ height: 20, objectFit: 'contain', marginBottom: 20, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, marginBottom: 20, color: 'var(--text-main)' }}>Latest Project</h2>
-
-        <div style={{ width: '100%', aspectRatio: '1', flexShrink: 0, minHeight: 200, borderRadius: 28, overflow: 'hidden', marginBottom: 20, boxShadow: '0 24px 48px var(--shadow-heavy)', border: '1px solid var(--glass-border-t)', backgroundColor: 'var(--bg-surface)' }}>
-          {coverUrl && <img src={coverUrl} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-        </div>
-
-        <div>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, lineHeight: 1.1, color: 'var(--text-main)' }}>{project.title}</h3>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{project.subtitle} | {project.releaseLabel}</p>
-        </div>
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 32px', zIndex: 2 }}>
-        <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, marginTop: 8, color: 'var(--text-main)' }}>Tracks</h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingBottom: 16 }}>
-          {project.tracks.map((track, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
-              <span style={{ fontSize: 11, color: 'var(--text-faint)', width: 16 }}>{i + 1}.</span>
-              <span style={{ fontSize: 12, color: 'var(--text-main)', fontWeight: 500 }}>{track.title}</span>
-              <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
-                {track.badges?.map(b => <Badge key={b} type={b} />)}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ padding: '24px 32px', flexShrink: 0, background: 'linear-gradient(to top, var(--bg-base) 0%, transparent 100%)', zIndex: 2 }}>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-          {project.spotifyUrl && (
-            <a href={project.spotifyUrl} target="_blank" rel="noreferrer" className="glass-btn glass-pill" style={{ flex: 1, gap: 8, color: '#1DB954' }}>
-              <SpotifyIcon /> <span>Spotify</span>
-            </a>
-          )}
-          {project.youtubeUrl && (
-            <a href={project.youtubeUrl} target="_blank" rel="noreferrer" className="glass-btn glass-pill" style={{ flex: 1, gap: 8, color: '#FF0000' }}>
-              <YouTubeIcon /> <span>YouTube</span>
-            </a>
-          )}
-        </div>
+    <>
+      <div className={`mobile-overlay ${isOpen ? 'open' : ''}`} onClick={onClose} />
+      <aside className={`left-panel ${isOpen ? 'mobile-open' : ''}`} style={{ '--panel-accent': project.accentColor, '--panel-accent-soft': project.accentSoft || `${project.accentColor}80` } as React.CSSProperties}>
         
-        <button onClick={onOpenModal} className="glass-btn glass-pill" style={{ width: '100%' }}>
-          View Project Details
-        </button>
-      </div>
-    </aside>
+        <div style={{ padding: '32px 32px 16px 32px', flexShrink: 0, zIndex: 2, position: 'relative' }}>
+          <button onClick={onClose} className="glass-btn glass-icon-sm mobile-only" style={{ position: 'absolute', top: 24, right: 24, zIndex: 10 }}>X</button>
+          <img src={LOGO_URL} alt="studioseven" style={{ height: 20, objectFit: 'contain', marginBottom: 20, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, marginBottom: 20, color: 'var(--text-main)' }}>Latest Project</h2>
+
+          <div style={{ width: '100%', aspectRatio: '1', flexShrink: 0, minHeight: 200, borderRadius: 28, overflow: 'hidden', marginBottom: 20, boxShadow: '0 24px 48px var(--shadow-heavy)', border: '1px solid var(--glass-border-t)', backgroundColor: 'var(--bg-surface)' }}>
+            {coverUrl && <img src={coverUrl} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+          </div>
+
+          <div>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, lineHeight: 1.1, color: 'var(--text-main)' }}>{project.title}</h3>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{project.subtitle} | {project.releaseLabel}</p>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 32px', zIndex: 2 }}>
+          <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, marginTop: 8, color: 'var(--text-main)' }}>Tracks</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingBottom: 16 }}>
+            {project.tracks.map((track, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+                <span style={{ fontSize: 11, color: 'var(--text-faint)', width: 16 }}>{i + 1}.</span>
+                <span style={{ fontSize: 12, color: 'var(--text-main)', fontWeight: 500 }}>{track.title}</span>
+                <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
+                  {track.badges?.map(b => <Badge key={b} type={b} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ padding: '24px 32px', flexShrink: 0, background: 'linear-gradient(to top, var(--bg-base) 0%, transparent 100%)', zIndex: 2 }}>
+          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+            {project.spotifyUrl && (
+              <a href={project.spotifyUrl} target="_blank" rel="noreferrer" className="glass-btn glass-pill" style={{ flex: 1, gap: 8, color: '#1DB954' }}>
+                <SpotifyIcon /> <span>Spotify</span>
+              </a>
+            )}
+            {project.youtubeUrl && (
+              <a href={project.youtubeUrl} target="_blank" rel="noreferrer" className="glass-btn glass-pill" style={{ flex: 1, gap: 8, color: '#FF0000' }}>
+                <YouTubeIcon /> <span>YouTube</span>
+              </a>
+            )}
+          </div>
+          <button onClick={onOpenModal} className="glass-btn glass-pill" style={{ width: '100%' }}>
+            View Project Details
+          </button>
+        </div>
+      </aside>
+    </>
   )
 }
