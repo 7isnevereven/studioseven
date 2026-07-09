@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { PROJECTS, ARTISTS, NEWS, Project, Artist, NewsItem, getCoverUrl, formatTimeAgo } from '@/data/projects'
-import NavBar from '@/components/NavBar'
+import Navbar from '@/components/NavBar'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://YOUR_PROJECT_ID.supabase.co'
 const LOGO_URL = `${SUPABASE_URL.replace(/\/$/, '')}/storage/v1/object/public/misc/ss7.png`
@@ -77,7 +77,7 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
 
   return (
     <div className="right-panel">
-      <NavBar currentView={currentView} setCurrentView={setCurrentView} onOpenMenu={onOpenMenu} />
+      <Navbar currentView={currentView} setCurrentView={setCurrentView} onOpenMenu={onOpenMenu} />
       <main className="main-content">
         
         {currentView === 'home' && (
