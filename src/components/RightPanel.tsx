@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { PROJECTS, ARTISTS, NEWS, Project, Artist, NewsItem, getCoverUrl, formatTimeAgo } from '@/data/projects'
-import Navbar from '@/components/NavBar'
+import Navbar from '@/components/Navbar'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://YOUR_PROJECT_ID.supabase.co'
 const LOGO_URL = `${SUPABASE_URL.replace(/\/$/, '')}/storage/v1/object/public/misc/ss7.png`
