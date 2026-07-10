@@ -13,15 +13,18 @@ function RedirectIcon() { return <svg width="18" height="18" viewBox="0 0 24 24"
 
 function NewsCard({ item, onOpenNews }: { item: NewsItem, onOpenNews: (n: NewsItem) => void }) {
   const project = PROJECTS.find(p => p.id === item.projectId)
-  const accent = project?.accentColor ?? '#333'
   const imageUrl = item.image ? (item.image.startsWith('http') ? item.image : getCoverUrl(item.image)) : (project ? getCoverUrl(project.coverFile) : '')
-  const bgStyle = imageUrl ? `linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 100%), url(${imageUrl}) center/cover no-repeat` : `linear-gradient(to top, ${accent}80 0%, var(--bg-surface) 100%)`
 
   return (
-    <div className="glass-card" onClick={() => onOpenNews(item)} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: 200, background: bgStyle }}>
-      <div style={{ padding: '24px' }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: '#ffffff', marginBottom: 6, lineHeight: 1.2 }}>{item.headline}</h3>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{item.date} • {formatTimeAgo(item.date)}</p>
+    <div className="glass-card" onClick={() => onOpenNews(item)} style={{ display: 'flex', flexDirection: 'column', padding: 16 }}>
+      <div style={{ width: '100%', aspectRatio: '16/9', borderRadius: 20, overflow: 'hidden', backgroundColor: 'var(--bg-surface)', marginBottom: 16, border: '1px solid var(--glass-border-t)', boxShadow: '0 8px 24px var(--shadow-base)' }}>
+        {imageUrl && <img src={imageUrl} alt={item.headline} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 4px' }}>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.2 }}>{item.headline}</h3>
+        <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+          {item.date} • {formatTimeAgo(item.date)}
+        </p>
       </div>
     </div>
   )
@@ -49,8 +52,11 @@ function ProjectCard({ project, onOpenModal }: { project: Project, onOpenModal: 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 4px' }}>
         <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>{project.title}</h3>
         <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>VEN | {project.releaseLabel}</p>
+        
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 12 }}>
-          <button className="glass-btn glass-icon-sm" title="Project Details"><RedirectIcon /></button>
+          <button className="glass-btn glass-icon-sm" title="Project Details">
+            <RedirectIcon />
+          </button>
           {project.spotifyUrl && <a href={project.spotifyUrl} onClick={e => e.stopPropagation()} target="_blank" rel="noreferrer" className="glass-btn glass-icon-sm" style={{ color: '#1DB954' }}><SpotifyIcon /></a>}
           {project.youtubeUrl && <a href={project.youtubeUrl} onClick={e => e.stopPropagation()} target="_blank" rel="noreferrer" className="glass-btn glass-icon-sm" style={{ color: '#FF0000' }}><YouTubeIcon /></a>}
         </div>
