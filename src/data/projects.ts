@@ -2,7 +2,6 @@ import { supabase } from '../utils/supabase'
 
 export type TrackBadge = 'LEAD' | 'SINGLE' | 'DELUXE' | 'BONUS' | 'POEM'
 
-/* Added the optional content property for poems */
 export interface Track { title: string; badges?: TrackBadge[]; content?: string; }
 export interface HistorySection { heading: string; body: string }
 export interface Artist { id: string; name: string; image: string; spotifyUrl?: string; youtubeUrl?: string; bio?: string }
@@ -10,7 +9,7 @@ export interface Artist { id: string; name: string; image: string; spotifyUrl?: 
 export interface Project {
   id: string; title: string; subtitle: string; releasedAt: string; releaseLabel: string;
   artistId: string; coverFile: string; accentColor: string; accentSoft: string;
-  tracks: Track[]; spotifyUrl?: string; appleMusicUrl?: string; youtubeUrl?: string; leadTrack?: string;
+  tracks: Track[]; spotifyUrl?: string; youtubeUrl?: string; leadTrack?: string;
   history: HistorySection[]; featured?: boolean; type?: 'project' | 'soundtrack' | 'special' | 'final'
 }
 
@@ -69,14 +68,14 @@ export const ARTISTS: Artist[] = [
 
 export const PROJECTS: Project[] = [
   {
-    id: 'sendoff', title: 'SENDOFF', subtitle: 'The Final Project', releasedAt: '2026-05-29', releaseLabel: 'Released May 29, 2026', artistId: 'ven', coverFile: 'sendoff1.png', accentColor: '#3b1f5e', accentSoft: 'rgba(59, 31, 94, 0.40)', leadTrack: 'Bondi', type: 'final', featured: true, youtubeUrl: 'https://www.youtube.com/playlist?list=PLzGyT2iTgExANe62FnaNsXrYHpshYbP2X', appleMusicUrl: 'https://music.apple.com',
+    id: 'sendoff', title: 'SENDOFF', subtitle: 'The Final Project', releasedAt: '2026-05-29', releaseLabel: 'Released May 29, 2026', artistId: 'ven', coverFile: 'sendoff1.png', accentColor: '#3b1f5e', accentSoft: 'rgba(59, 31, 94, 0.40)', leadTrack: 'Bondi', type: 'final', featured: true, youtubeUrl: 'https://www.youtube.com/playlist?list=PLzGyT2iTgExANe62FnaNsXrYHpshYbP2X',
     tracks: [
       { title: 'Overturn' }, { title: '05170319 (Stranger)' }, { title: 'Hera' }, { title: 'Satellite' }, { title: 'Something' }, { title: 'Idle' }, { title: 'Crimson Red' }, { title: 'Andromeda' }, { title: 'In The Quiet Of The Night' }, { title: 'Heaven-sent' }, { title: 'The Good One' }, { title: 'Real Form' }, { title: 'Keep It' }, { title: 'The Greatest Heist In History' }, { title: 'Chances' }, { title: 'The Gecko' }, { title: 'The Video' },
     ],
     history: [ { heading: 'Before Release', body: 'More content will be added soon.' }, { heading: 'Official Release', body: 'More content will be added soon.' }, { heading: 'After Release', body: 'More content will be added soon.' } ],
   },
   {
-    id: 'what-do-you-know', title: 'What Do You Know?', subtitle: 'The 7th Project', releasedAt: '2026-04-08', releaseLabel: 'Released Apr 8, 2026', artistId: 'ven', coverFile: 'whatdoyouknow.jpg', accentColor: '#1a2a3a', accentSoft: 'rgba(26, 42, 58, 0.40)', leadTrack: 'The Video', type: 'project', spotifyUrl: 'https://open.spotify.com/album/2EYPKI5RNAOFfUE4Qie9vi', appleMusicUrl: 'https://music.apple.com', youtubeUrl: 'https://www.youtube.com/playlist?list=PLzGyT2iTgExANe62FnaNsXrYHpshYbP2X',
+    id: 'what-do-you-know', title: 'What Do You Know?', subtitle: 'The 7th Project', releasedAt: '2026-04-08', releaseLabel: 'Released Apr 8, 2026', artistId: 'ven', coverFile: 'whatdoyouknow.jpg', accentColor: '#1a2a3a', accentSoft: 'rgba(26, 42, 58, 0.40)', leadTrack: 'The Video', type: 'project', spotifyUrl: 'https://open.spotify.com/album/2EYPKI5RNAOFfUE4Qie9vi', youtubeUrl: 'https://www.youtube.com/playlist?list=PLzGyT2iTgExANe62FnaNsXrYHpshYbP2X',
     tracks: [
       { title: 'In a Row', badges: ['POEM'], content: `Everything could’ve been simple\nIf you had said it sooner\nNo quiet guesses,\nNo questions left to linger\n\nChances were there for the taking\nYou held each one without a word\nLike they meant something\nThen turned away from what they were for\n\nThere will always be things I’ll never know\nPieces you chose not to show\nPieces you kept from being known\nWhile this situation pulled me to my lowest low\n\nAnd as I watch you close the door, I know you know\nThere are things about you that he’ll never know\nSilences he will never hear\nTruths I carried alone\n\nAnd the one you destroyed for the second time in a row.` }, 
       { title: 'Where Does This Bring Me?', badges: ['POEM'], content: `I saw the weapons laid out like warnings\nI heard every committed crime dressed up as honesty\nStill, I won’t lie\nThe blindfold fit me better than the truth ever did.\n\nSoft.\nFamiliar.\nComfortable.\n\nI wore it with pride\nLet it shield me from the fallout\nFrom the meteor shower of almosts\nAnd the bullets of “what are we?”\n\nAnd when the air finally left my lungs\nI stood there breathless and bare\nI knew.\n\nI, yes I was,\nThe one, the only who kept the knot intact,\nThe one who kept it tight,\nThe one who chose not to see\nBecause love felt safer \nThan asking “where does this bring me?”` }, 
@@ -99,7 +98,7 @@ export const PROJECTS: Project[] = [
     history: [ { heading: 'Before Release', body: 'As part of the Multimedia Arts course at the Polytechnic University of the Philippines – Quezon City, junior students were tasked with creating a short film. VEN served as the sound director for NAMUJANE Studios, conceptualizing an album dedicated to the film. Three tracks were drawn from previous projects; three were new compositions.' }, { heading: 'Official Release', body: 'As part of the Multimedia Arts course at the Polytechnic University of the Philippines – Quezon City, junior students were tasked with creating a short film. VEN served as the sound director for NAMUJANE Studios, conceptualizing an album dedicated to the film. Three tracks were drawn from previous projects; three were new compositions.' } ],
   },
   {
-    id: 'cicatrix', title: 'CICATRIX', subtitle: 'The 6th Project – Deluxe', releasedAt: '2025-12-17', releaseLabel: 'Released Dec 17, 2025', artistId: 'ven', coverFile: 'cicatrix.png', accentColor: '#3a1a1a', accentSoft: 'rgba(58, 26, 26, 0.40)', leadTrack: 'The Gecko', type: 'project', spotifyUrl: 'https://open.spotify.com/album/2N3nb2GfkHySKNSqcJxM16', appleMusicUrl: 'https://music.apple.com', youtubeUrl: 'https://www.youtube.com/watch?v=uWQR4ILCLWA&list=PLzGyT2iTgExCzTiK2Ccd7ez_L4Ai7wmG5',
+    id: 'cicatrix', title: 'CICATRIX', subtitle: 'The 6th Project – Deluxe', releasedAt: '2025-12-17', releaseLabel: 'Released Dec 17, 2025', artistId: 'ven', coverFile: 'cicatrix.png', accentColor: '#3a1a1a', accentSoft: 'rgba(58, 26, 26, 0.40)', leadTrack: 'The Gecko', type: 'project', spotifyUrl: 'https://open.spotify.com/album/2N3nb2GfkHySKNSqcJxM16', youtubeUrl: 'https://www.youtube.com/watch?v=uWQR4ILCLWA&list=PLzGyT2iTgExCzTiK2Ccd7ez_L4Ai7wmG5',
     tracks: [
       { title: 'Cuts' }, { title: 'Chances' }, { title: 'The Greatest Heist In History' }, { title: 'Cut!' }, { title: 'Young Again' }, { title: 'Brighter Days' }, { title: 'Fits Right' }, { title: 'The Gecko', badges: ['LEAD', 'SINGLE'] }, { title: 'Chances (Sped Up)'}, { title: 'The Greatest Heist In History (Sped Up)' }, { title: 'Brighter Days (Sped Up)' }, { title: 'Young Again (Sped Up)' }, { title: 'Fits Right (Sped Up)' }, { title: 'The Gecko (Sped Up)' }, { title: 'The Gecko (Instrumental)' }, { title: 'The Gecko (ft. 13)', badges: ['SINGLE', 'DELUXE'] },
     ],
