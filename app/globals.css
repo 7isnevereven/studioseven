@@ -144,9 +144,39 @@ body.light-mode .left-panel::before {
 }
 .glass-input:focus { border-bottom-color: var(--glass-border-t); background: var(--glass-hover); }
 
-/* Hover effects for clickable tracks */
-.hoverable-track { transition: background-color 0.2s ease, border-color 0.2s ease; cursor: pointer; }
-.hoverable-track:hover { background-color: var(--glass-hover); border-color: var(--glass-border-t); }
+/* ─── UPGRADED CLICKABLE TRACK STYLES (LIQUID GLASS AESTHETIC) ─── */
+.hoverable-track { 
+  cursor: pointer; 
+  background: var(--glass-base) !important;
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid transparent !important;
+  border-top-color: var(--glass-border-t) !important; 
+  border-left-color: var(--glass-border-l) !important;
+  border-bottom-color: var(--glass-border-b) !important; 
+  border-right-color: var(--glass-border-r) !important;
+  box-shadow: 0 4px 16px var(--shadow-base), inset -1px -1px 2px var(--shadow-base) !important;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: center left; 
+}
+.hoverable-track:hover { 
+  background: var(--glass-hover) !important; 
+  transform: translateY(-2px) scale(1.01); 
+  border-top-color: var(--glass-border-b) !important; 
+  border-left-color: var(--glass-border-b) !important;
+  border-bottom-color: var(--glass-border-t) !important; 
+  border-right-color: var(--glass-border-l) !important;
+  box-shadow: 0 12px 24px var(--shadow-heavy), inset 1px 1px 3px var(--glass-border-l) !important;
+}
+
+/* ─── THE PADDING BUBBLE ─── */
+/* Creates 24px of invisible safety room on all 4 sides inside scroll containers */
+.scroll-fade {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+  padding: 24px;
+  margin: -24px;
+}
 
 /* ─── MODALS ────────────────────────────── */
 .modal-overlay {
@@ -163,7 +193,6 @@ body.light-mode .left-panel::before {
   box-shadow: 0 0 80px -10px var(--modal-accent, transparent), 0 40px 100px var(--modal-shadow), inset -1px -1px 3px var(--shadow-base);
   animation: scaleUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   
-  /* CRITICAL SCROLL FIX: Force container to strictly hide overflow and define layout */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -193,16 +222,27 @@ body.light-mode .left-panel::before {
 .search-filter-container { display: flex; gap: 16px; margin-bottom: 32px; }
 .search-input { width: 300px; }
 
-/* CRITICAL SCROLL FIXES IN MODAL CONTENT */
+/* ─── MODAL CONTENT BOUNDARIES ─── */
 .modal-content { 
-  display: flex; flex-direction: row; gap: 40px; padding: 32px 8px 32px 32px; 
-  flex: 1; overflow: hidden; /* Constrain the children */
+  display: flex; flex-direction: row; 
+  gap: 0px; 
+  padding: 0px; 
+  flex: 1; overflow: hidden; 
 }
-.modal-left { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; padding-bottom: 24px; }
-.modal-left.artist-left { width: 260px; }
+.modal-left { 
+  width: 356px; 
+  flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; 
+  overflow-y: auto; overflow-x: hidden; 
+  padding: 32px 24px 32px 32px; 
+}
+.modal-left.artist-left { 
+  width: 316px; 
+}
 .modal-right { 
-  flex: 1; padding-right: 24px; padding-bottom: 24px;
-  overflow-y: auto; /* This strictly allows vertical scrolling */
+  flex: 1; 
+  padding: 32px 32px 32px 24px; 
+  display: flex; flex-direction: column; height: 100%;
+  overflow: hidden; 
 }
 
 .news-content { 
@@ -248,12 +288,21 @@ body.light-mode .left-panel::before {
   .nav-links::-webkit-scrollbar { display: none; }
   .nav-links > button { scroll-snap-align: start; white-space: nowrap; }
   
-  /* Mobile Modal Resizing */
   .modal-overlay { padding: 16px; }
   .modal-container { width: 100% !important; height: 90vh !important; max-height: 90vh !important; }
-  .modal-content { flex-direction: column; gap: 24px; padding: 24px; overflow-y: auto; }
-  .modal-left, .modal-left.artist-left { width: 100%; height: auto; flex-shrink: 0; overflow-y: visible; padding-bottom: 0; }
-  .modal-right { padding-right: 0; overflow-y: visible; padding-bottom: 0; }
+  
+  .modal-content { 
+    flex-direction: column; gap: 24px; padding: 24px; overflow-y: auto; overflow-x: hidden; 
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+  }
+  .scroll-fade {
+    mask-image: none !important; -webkit-mask-image: none !important;
+    padding: 0 !important; margin: 0 !important;
+  }
+
+  .modal-left, .modal-left.artist-left { width: 100%; height: auto; flex-shrink: 0; overflow: visible; padding: 0; }
+  .modal-right { padding: 0; overflow: visible; }
   
   .news-content { padding: 24px; gap: 24px; }
   .news-header { flex-direction: column; align-items: flex-start; gap: 16px; }

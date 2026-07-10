@@ -20,7 +20,19 @@ export interface NewsItem {
 
 export function getCoverUrl(coverFile: string): string {
   if (!coverFile) return ''
+  
+  // ── AUTO-CONVERT GOOGLE DRIVE LINKS TO DIRECT IMAGES ──
+  if (coverFile.includes('drive.google.com')) {
+    // Extracts the unique file ID from any standard Google Drive link
+    const match = coverFile.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      // Uses Google's direct media proxy to bypass HTML redirect pages
+      return `https://lh3.googleusercontent.com/d/${match[1]}`;
+    }
+  }
+  
   if (coverFile.startsWith('http')) return coverFile
+  
   const { data } = supabase.storage.from('album_covers').getPublicUrl(coverFile)
   return data.publicUrl
 }
@@ -153,7 +165,8 @@ export const NEWS: NewsItem[] = [
     body: "SENDOFF marks the culmination of a six-year artistic journey, bringing VEN's monumental discography to an emotional and satisfying close. The project features a massive 17-track setlist that weaves together familiar themes, refined production, and deeply personal storytelling.\n\nThis final project serves as a heartfelt goodbye to the fans and collaborators who have supported studioseven since its inception in 2020. SENDOFF is officially available to stream on all major platforms.", 
     date: 'May 29, 2026', 
     projectId: 'sendoff', 
-    url: 'https://www.instagram.com/studioseven.ofc/p/DZBRUrSE8cz/' 
+    url: 'https://www.instagram.com/studioseven.ofc/p/DZBRUrSE8cz/',
+    image: 'https://drive.google.com/file/d/1ZgGAC8pJmp8Oq9nRUS6bEIP9rtsiU0ve/view?usp=drive_link'
   },
   { 
     id: 'sendoff-announcement', 
@@ -191,7 +204,8 @@ export const NEWS: NewsItem[] = [
     body: "studioseven has officially revealed the contents of the 7th project, 'What Do You Know?'. Unlike previous albums, this project breaks the mold by heavily featuring literary works and spoken-word poetry, rather than a traditional multi-track musical album.\n\nThe content reveal showcases a unique structure centered around a single musical anchor, 'The Video', surrounded by carefully crafted poems. This artistic pivot highlights VEN's versatility and commitment to exploring new mediums of expression.", 
     date: 'March 15, 2026', 
     projectId: 'what-do-you-know', 
-    url: 'https://www.instagram.com/studioseven.ofc/p/DWyM_GHD38t/' 
+    url: 'https://www.instagram.com/studioseven.ofc/p/DWyM_GHD38t/',
+    image: 'https://drive.google.com/file/d/1hVwp02j4SxpXUlFhpmJcUeLai-nSjZsf/view?usp=drive_link'
   },
   { 
     id: 'wdyk-teaser', 
@@ -209,7 +223,8 @@ export const NEWS: NewsItem[] = [
     body: "The CICATRIX saga continues to expand with the announcement of an extended single pack for 'The Gecko', featuring a brand new collaboration with the artist 13. This highly anticipated remix breathes new life into the project's concluding track.\n\nFeaturing 13, this new rendition brings a fresh dynamic through an added rap verse and an extended outro, further enriching the dark and complex themes explored in the original deluxe edition.", 
     date: 'February 10, 2026', 
     projectId: 'cicatrix', 
-    url: 'https://www.instagram.com/studioseven.ofc/p/DTwyvsUD_Qc/' 
+    url: 'https://www.instagram.com/studioseven.ofc/p/DTwyvsUD_Qc/',
+    image: 'https://drive.google.com/file/d/1f0dFwtikwMpqc4uC26vUxcPUXiI7_w2H/view?usp=drive_link'
   },
   { 
     id: 'saccharin-film', 
@@ -304,7 +319,8 @@ export const NEWS: NewsItem[] = [
     body: "A highly anticipated collaboration has finally hit the airwaves. A special version of 'THE GOOD ONE' featuring the artist JHUZZ has been officially released as a lead-up to the full STAR project launch.\n\nJHUZZ brings a distinct vocal flair to the track, elevating its energy and adding a new layer of depth to the song's underlying themes of complex relationships.", 
     date: 'June 10, 2025', 
     projectId: 'star', 
-    url: 'https://www.youtube.com/post/Ugkx6EN9Atg1jALh2urgUhJIbMfU8JCO0zrz' 
+    url: 'https://www.youtube.com/post/Ugkx6EN9Atg1jALh2urgUhJIbMfU8JCO0zrz',
+    image: 'https://drive.google.com/file/d/12OTLEHsNJGnQn7nx-fUvi8Q2GOPkOMim/view?usp=drive_link'
   },
   { 
     id: 'star-announcement', 

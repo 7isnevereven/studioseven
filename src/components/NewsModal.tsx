@@ -20,7 +20,7 @@ export default function NewsModal({ news, onClose }: { news: NewsItem | null, on
   if (!news && !isClosing) return null
 
   const project = PROJECTS.find(p => p.id === news?.projectId)
-  const imageUrl = news?.image ? (news.image.startsWith('http') ? news.image : getCoverUrl(news.image)) : (project ? getCoverUrl(project.coverFile) : '')
+  const imageUrl = news?.image ? getCoverUrl(news.image) : (project ? getCoverUrl(project.coverFile) : '')
 
   return (
     <div className={`modal-overlay ${isClosing ? 'closing' : ''}`} onClick={handleClose}>
