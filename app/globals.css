@@ -144,6 +144,10 @@ body.light-mode .left-panel::before {
 }
 .glass-input:focus { border-bottom-color: var(--glass-border-t); background: var(--glass-hover); }
 
+/* Hover effects for clickable tracks */
+.hoverable-track { transition: background-color 0.2s ease, border-color 0.2s ease; cursor: pointer; }
+.hoverable-track:hover { background-color: var(--glass-hover); border-color: var(--glass-border-t); }
+
 /* ─── MODALS ────────────────────────────── */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 100;
@@ -159,9 +163,10 @@ body.light-mode .left-panel::before {
   box-shadow: 0 0 80px -10px var(--modal-accent, transparent), 0 40px 100px var(--modal-shadow), inset -1px -1px 3px var(--shadow-base);
   animation: scaleUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   
-  /* CRITICAL SCROLL FIX: Force container to be a Flex column */
+  /* CRITICAL SCROLL FIX: Force container to strictly hide overflow and define layout */
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .modal-overlay.closing { animation: fadeOut 0.3s ease-in forwards; }
@@ -190,20 +195,18 @@ body.light-mode .left-panel::before {
 
 /* CRITICAL SCROLL FIXES IN MODAL CONTENT */
 .modal-content { 
-  display: flex; gap: 40px; padding: 32px 8px 32px 32px; 
-  flex: 1; 
-  min-height: 0; /* Forces internal flexboxes to respect max-height boundaries */
+  display: flex; flex-direction: row; gap: 40px; padding: 32px 8px 32px 32px; 
+  flex: 1; overflow: hidden; /* Constrain the children */
 }
-.modal-left { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; }
+.modal-left { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; padding-bottom: 24px; }
 .modal-left.artist-left { width: 260px; }
 .modal-right { 
-  flex: 1; padding-right: 24px; 
-  overflow-y: auto; 
-  min-height: 0; 
+  flex: 1; padding-right: 24px; padding-bottom: 24px;
+  overflow-y: auto; /* This strictly allows vertical scrolling */
 }
 
 .news-content { 
-  overflow-y: auto; flex: 1; min-height: 0; 
+  overflow-y: auto; flex: 1; 
   padding: 48px 24px 48px 48px; display: flex; flex-direction: column; gap: 32px; 
 }
 .news-header { display: flex; gap: 24px; align-items: center; }
@@ -249,8 +252,8 @@ body.light-mode .left-panel::before {
   .modal-overlay { padding: 16px; }
   .modal-container { width: 100% !important; height: 90vh !important; max-height: 90vh !important; }
   .modal-content { flex-direction: column; gap: 24px; padding: 24px; overflow-y: auto; }
-  .modal-left, .modal-left.artist-left { width: 100%; height: auto; flex-shrink: 0; }
-  .modal-right { padding-right: 0; overflow-y: visible; }
+  .modal-left, .modal-left.artist-left { width: 100%; height: auto; flex-shrink: 0; overflow-y: visible; padding-bottom: 0; }
+  .modal-right { padding-right: 0; overflow-y: visible; padding-bottom: 0; }
   
   .news-content { padding: 24px; gap: 24px; }
   .news-header { flex-direction: column; align-items: flex-start; gap: 16px; }
