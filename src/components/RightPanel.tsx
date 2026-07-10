@@ -179,7 +179,15 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
 
       <footer style={{ padding: '64px 32px', textAlign: 'center', color: 'var(--text-faint)', fontSize: 11, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
         <img src={LOGO_URL} alt="studioseven logo" style={{ height: 24, opacity: 0.8 }} />
-        
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
+          <span style={{ fontSize: 14, color: 'var(--text-main)', marginBottom: 2, letterSpacing: '0.02em' }}>
+            studio<strong>se<u style={{ textUnderlineOffset: '2px' }}>ven</u></strong>
+          </span>
+          <p>A sub-brand under Ori</p>
+          <p>2020–2026 · Request for reuse is highly advised.</p>
+        </div>
+
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
           <a href="https://www.facebook.com/share/1c28j8dk1Y/?mibextid=wwXIfr" target="_blank" rel="noreferrer" className="glass-btn glass-icon-sm" style={{ color: 'var(--text-main)' }}>
             <FacebookIcon />
@@ -198,13 +206,6 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
           </a>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-          <span style={{ fontSize: 14, color: 'var(--text-main)', marginBottom: 2, letterSpacing: '0.02em' }}>
-            studio<strong>se<u style={{ textUnderlineOffset: '2px' }}>ven</u></strong>
-          </span>
-          <p>A sub-brand under Ori</p>
-          <p>2020–2026 · Request for reuse is highly advised.</p>
-        </div>
       </footer>
     </div>
   )

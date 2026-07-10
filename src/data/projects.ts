@@ -159,6 +159,17 @@ export const PROJECTS: Project[] = [
 
 export const NEWS: NewsItem[] = [
   { 
+    id: 'ss7ofcsite', 
+    headline: 'Meet the new studioseven Website.', 
+    preview: "New beginnings, and a more polished studioseven Website", 
+    body: "New beginnings, and a more polished studioseven Website. The studioseven Website has been beautifully refined with a sleek, glass aesthetic to give you a smoother, more cinematic browsing experience. Take a closer look at the expansive lore behind our projects, discover more about our featured artists, and and trace our entire journey from 2020 as well as the future endeavours in the Newsroom. Step into the definitive studioseven experience now!", 
+    date: 'July 11, 2026', 
+    projectId: 'sendoff', 
+    url: 'ss7-ofc.vercel.app',
+    image: 'https://drive.google.com/file/d/1LLIybwcV9AH8ar_mTtglpghC4HzmWbQJ/view?usp=drive_link'
+  },
+
+  { 
     id: 'sendoff-out', 
     headline: 'SENDOFF is Out Now', 
     preview: "Every story, every song, every lesson, from every era. SENDOFF is officially out now!", 
