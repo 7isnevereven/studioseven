@@ -136,15 +136,60 @@ body.light-mode .left-panel::before {
 .glass-icon { border-radius: 50%; width: 44px; height: 44px; flex-shrink: 0; }
 .glass-icon-sm { border-radius: 50%; width: 36px; height: 36px; flex-shrink: 0; }
 
+/* ─── UPGRADED LIQUID GLASS INPUTS ─── */
 .glass-input {
-  background: var(--glass-base); backdrop-filter: blur(20px); border: 1px solid transparent;
-  border-top-color: var(--glass-border-b); border-left-color: var(--glass-border-r);
-  border-bottom-color: var(--glass-border-t); border-right-color: var(--glass-border-l);
-  box-shadow: inset 2px 2px 8px var(--shadow-base); color: var(--text-main); transition: all 0.3s ease; outline: none;
+  background: var(--glass-base); 
+  backdrop-filter: blur(20px) saturate(200%); 
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid transparent; 
+  border-top-color: var(--glass-border-t); 
+  border-left-color: var(--glass-border-l);
+  border-bottom-color: var(--glass-border-b); 
+  border-right-color: var(--glass-border-r);
+  box-shadow: 0 4px 16px var(--shadow-base), inset -1px -1px 2px var(--shadow-base); 
+  color: var(--text-main); 
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); 
+  outline: none;
+  font-family: inherit;
 }
-.glass-input:focus { border-bottom-color: var(--glass-border-t); background: var(--glass-hover); }
+.glass-input:focus, .glass-input:hover { 
+  background: var(--glass-hover); 
+  border-top-color: var(--glass-border-b); 
+  border-left-color: var(--glass-border-b);
+  border-bottom-color: var(--glass-border-t); 
+  border-right-color: var(--glass-border-l);
+  box-shadow: 0 8px 24px var(--shadow-heavy), inset 1px 1px 3px var(--glass-border-l); 
+  transform: translateY(-1px);
+}
+.glass-input::placeholder { color: var(--text-muted); }
 
-/* ─── UPGRADED CLICKABLE TRACK STYLES (LIQUID GLASS AESTHETIC) ─── */
+/* ─── FLAWLESS SELECT DROPDOWN FIX ─── */
+select.glass-input {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 48px;
+  /* Layers the custom SVG arrow strictly on top of the glassy gradient base without repeating */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") right 20px center / 16px no-repeat,
+              var(--glass-base) !important;
+}
+
+select.glass-input:hover, select.glass-input:focus {
+  /* Keeps the arrow strictly in place while swapping out to the hover gradient */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") right 20px center / 16px no-repeat,
+              var(--glass-hover) !important;
+}
+
+body.light-mode select.glass-input {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") right 20px center / 16px no-repeat,
+              var(--glass-base) !important;
+}
+
+body.light-mode select.glass-input:hover, body.light-mode select.glass-input:focus {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") right 20px center / 16px no-repeat,
+              var(--glass-hover) !important;
+}
+
+/* ─── UPGRADED CLICKABLE TRACK STYLES ─── */
 .hoverable-track { 
   cursor: pointer; 
   background: var(--glass-base) !important;
@@ -169,8 +214,6 @@ body.light-mode .left-panel::before {
   box-shadow: 0 12px 24px var(--shadow-heavy), inset 1px 1px 3px var(--glass-border-l) !important;
 }
 
-/* ─── THE PADDING BUBBLE ─── */
-/* Creates 24px of invisible safety room on all 4 sides inside scroll containers */
 .scroll-fade {
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
@@ -220,9 +263,7 @@ body.light-mode .left-panel::before {
 .grid-artists { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
 
 .search-filter-container { display: flex; gap: 16px; margin-bottom: 32px; }
-.search-input { width: 300px; }
 
-/* ─── MODAL CONTENT BOUNDARIES ─── */
 .modal-content { 
   display: flex; flex-direction: row; 
   gap: 0px; 
@@ -277,7 +318,6 @@ body.light-mode .left-panel::before {
   .grid-artists { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   
   .search-filter-container { flex-direction: column; gap: 12px; }
-  .search-input { width: 100% !important; }
   
   .nav-links { 
     overflow-x: auto; 
