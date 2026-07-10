@@ -164,7 +164,7 @@ export const NEWS: NewsItem[] = [
     preview: "New beginnings, and a more polished studioseven Website", 
     body: "New beginnings, and a more polished studioseven Website.\n\nTake a closer look at the expansive lore behind our projects, discover more about our featured artists, and trace our entire journey since 2020. Plus, catch a glimpse of our future endeavors in the Newsroom. Step into a more refined studioseven experience now!", 
     date: 'July 11, 2026', 
-    projectId: 'sendoff', 
+    projectId: 'what-do-you-know', 
     url: 'ss7-ofc.vercel.app',
     image: 'https://drive.google.com/file/d/1LLIybwcV9AH8ar_mTtglpghC4HzmWbQJ/view?usp=drive_link'
   },
