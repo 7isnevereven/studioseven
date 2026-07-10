@@ -58,6 +58,12 @@ export const ARTISTS: Artist[] = [
     image: 'star.jpg', 
     bio: 'JHUZZ is a featured artist who collaborated closely with VEN during the highly upbeat and energetic STAR era.\n\nLending a distinct, dynamic vocal flair to the track "THE GOOD ONE", her contribution provided a crucial new layer of depth and emotional resonance to the 5th project.' 
   },
+  { 
+    id: '13', 
+    name: '13', 
+    image: 'cicatrix.png', 
+    bio: '13 is a featured artist who collaborated with VEN on the deluxe expansion project, CICATRIX.\n\nThey are officially featured on the reimagined track "The Gecko (ft. 13)", providing a fresh, dynamic rap verse and an extended outro that brilliantly enriches the dark and complex themes of the album.' 
+  },
 ]
 
 export const PROJECTS: Project[] = [
