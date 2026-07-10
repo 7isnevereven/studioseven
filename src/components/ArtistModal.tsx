@@ -24,7 +24,11 @@ export default function ArtistModal({ artist, onClose, onOpenProject }: ArtistMo
   if (!artist && !isClosing) return null
 
   const profileUrl = artist ? getCoverUrl(artist.image) : ''
-  const artistProjects = artist?.id === 'jhuzz' ? PROJECTS.filter(p => p.id === 'star') : PROJECTS.filter(p => p.artistId === artist?.id)
+  const artistProjects = artist?.id === 'jhuzz' 
+    ? PROJECTS.filter(p => p.id === 'star') 
+    : artist?.id === '13'
+    ? PROJECTS.filter(p => p.id === 'cicatrix')
+    : PROJECTS.filter(p => p.artistId === artist?.id)
 
   return (
     <div className={`modal-overlay ${isClosing ? 'closing' : ''}`} onClick={handleClose}>
