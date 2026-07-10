@@ -171,7 +171,7 @@ export const NEWS: NewsItem[] = [
 
   { 
     id: 'sendoff-out', 
-    headline: 'SENDOFF is Out Now', 
+    headline: 'SENDOFF is out now!', 
     preview: "Every story, every song, every lesson, from every era. SENDOFF is officially out now!", 
     body: "Every story, every song, every lesson, from every era. SENDOFF is officially out now!\n\nSENDOFF marks the culmination of a six-year artistic journey, bringing VEN's discography in a condensed single project. The project features a massive 17-track setlist from his previous projects.\n\nThis compilation project serves as a celebration for the listeners and collaborators who have supported this journey since its inception in 2020. SENDOFF is officially available to stream on all major platforms.", 
     date: 'May 29, 2026', 
@@ -181,7 +181,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'sendoff-announcement', 
-    headline: 'SENDOFF - The Best Project', 
+    headline: 'Every mixtape, every sound, every era. SENDOFF - The Best Project', 
     preview: "The best project, SENDOFF, is soon approaching.", 
     body: "The best project, SENDOFF, is soon approaching.\n\nThe conclusion of an era is rapidly approaching. The curtain has been officially pulled back for SENDOFF, marking it as VEN's best and compilation project. The announcement signals the closure of a 6-year creative chapter of artistic reinventions.", 
     date: 'May 1, 2026', 
@@ -248,7 +248,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'gecko-13', 
-    headline: 'The Gecko (ft. 13) is out', 
+    headline: 'VEN and 13 for the extended cut of "The Gecko", out now!', 
     preview: "Dont keep the lights out! The extended cut of The Gecko is out.", 
     body: "The CICATRIX saga continues to expand with the announcement of an extended single pack for 'The Gecko', featuring a collaboration with the artist 13.\n\nFeaturing 13, this new rendition brings a fresh dynamic through an added rap verse and an extended outro, which enriched the dark and complex themes explored in the original deluxe edition.", 
     date: 'February 10, 2026', 
@@ -258,7 +258,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'saccharin-film', 
-    headline: 'Watch SACCHARIN Official Film', 
+    headline: "NAMUJANE Studios and studioseven presents the official short film 'SACCHARIN'.", 
     preview: "NAMUJANE Studios and studioseven presents the official short film 'SACCHARIN'.", 
     body: "The short film 'SACCHARIN', produced by NAMUJANE Studios, is officially available to watch on studioseven YouTube channel. The film stands out as a remarkable collaborative achievement, blending compelling visual storytelling with an impactful auditory experience. The original soundtrack seamlessly integrates with the on-screen tension.", 
     date: 'January 21, 2026', 
@@ -268,7 +268,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'saccharin-poster', 
-    headline: 'SACCHARIN Movie Poster Revealed', 
+    headline: 'Life is bitter. The cure is SACCHARIN. Movie Poster Revealed', 
     preview: "The official poster for the upcoming film SACCHARIN has been revealed.", 
     body: "The visual identity of 'SACCHARIN' comes into focus with the reveal of its official movie poster. Made by Ralph Gerard Duenas, the artwork perfectly encapsulates the tension, mystery, and dramatic flair that the film promises to deliver to its audience.\n\nThe poster also officially highlights the collaboration with studioseven, crediting VEN and studioseven for the film's comprehensive sound design and original motion picture soundtrack.", 
     date: 'January 10, 2026', 
@@ -278,7 +278,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'cicatrix-out', 
-    headline: 'CICATRIX is Out Now', 
+    headline: 'CICATRIX is out now!', 
     preview: "You are what you destroyed. The deluxe expansion to cuts and chances is officially out now.", 
     body: "The deluxe expansion to the critically acclaimed 'cuts and chances' project, officially titled CICATRIX, is out now. This expansive release brings a darker, more reflective conclusion to the era, serving as the literal and metaphorical 'scars' left behind.\n\nCICATRIX dramatically recontextualizes the original album, introducing a new track, sped-up renditions, and a shifting conceptual focus that turns the lens inward toward the person seeking to be loved.", 
     date: 'December 17, 2025', 
@@ -287,7 +287,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'cicatrix-announcement', 
-    headline: 'cuts, chances, and CICATRIX', 
+    headline: 'cuts, chances, and CICATRIX.', 
     preview: "See the expanded world with the upcoming deluxe project: CICATRIX.", 
     body: "Following the success of the 6th project, VEN and studioseven have officially announced the upcoming deluxe edition, titled CICATRIX. \n\nThis deluxe edition promises to dive deeper into the emotional aftermath of the original tracklist, introducing a brand new song and explores the lasting impact of the project's core themes.", 
     date: 'December 1, 2025', 
@@ -296,7 +296,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'chances-lyric', 
-    headline: 'Chances (Lyric Video) is out', 
+    headline: 'Chances (Lyric Video) is out!', 
     preview: "Sing along with the official lyric video for 'Chances'.", 
     body: "The minimalist visual approach of \"Chances\" allows the raw, vulnerable songwriting to take center stage, creating an intimate connection with the listener.\n\nThe lyric video provides a focused look at the intricate narrative throughout the 'cuts and chances' project.", 
     date: 'August 7, 2025', 
@@ -306,7 +306,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'heist-mv', 
-    headline: 'The Greatest Heist In History (Music Video) is out', 
+    headline: 'The Greatest Heist In History (Music Video) is out!', 
     preview: "The music video's here and we love it!", 
     body: "The music video for 'The Greatest Heist In History' launches 2 days before the 6th project, delivering a cinematic experience of VEN's life during the time of when the project was conceptualized and produced.", 
     date: 'August 6, 2025', 
@@ -335,7 +335,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'star-trailer', 
-    headline: 'STAR (Project Trailer) is out', 
+    headline: 'STAR (Project Trailer) is out!', 
     preview: "The trailer for the STAR project has officially dropped.", 
     body: "The 5th project kicks into high gear with the release of the official STAR project trailer. The trailer captures the upbeat, vibrant, and condensed energy that defines this new musical era.\n\nServing as a stark contrast to previous releases, the trailer highlights a shift toward more dynamic production and a highly stylized aesthetic that perfectly complements the project's sonic direction.", 
     date: 'June 15, 2025', 
@@ -355,7 +355,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'star-announcement', 
-    headline: 'STAR Project Announcement', 
+    headline: 'STAR, The 5th Project.', 
     preview: "Announcing STAR, the 5th project.", 
     body: "VEN and studioseven have officially pulled back the curtain on STAR, the 5th major project in VEN's catalog. After a period of creative restructuring, the project has been refined into a focused collection of five highly upbeat and energetic tracks.\n\nThis announcement marks a significant pivot in sound and artistic direction, trading sweeping melancholy for sharper, more immediate pop-centric production.", 
     date: 'June 1, 2025', 
@@ -394,7 +394,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'something-mv', 
-    headline: 'Something (Music Video) is out', 
+    headline: 'Something (Music Video) is out!', 
     preview: "The visual experience for 'Something' is finally here.", 
     body: "VEN's cryptic project launches with the release of the official music video for 'Something'. The video serves as the visual centerpiece of the 3rd project.", 
     date: 'August 1, 2023', 
@@ -404,7 +404,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'hera-mv', 
-    headline: "'HERA' Official Music Video is out!", 
+    headline: "Watch the official music video for HERA, the lead single from BUBBLE.", 
     preview: "Watch the official music video for HERA, the lead single from BUBBLE.", 
     body: "The BUBBLE era officially takes flight with the release of the 'HERA' music video. Accompanying the launch of the 2nd project, this video represents a leap forward in studioseven's visual production.", 
     date: 'November 21, 2022', 
@@ -414,7 +414,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'bubble-trailer', 
-    headline: 'BUBBLE (Project Trailer) is out!', 
+    headline: 'The official project trailer for BUBBLE is out now!', 
     preview: "The official project trailer for BUBBLE is out now.", 
     body: "Get ready to enter the cinematic universe of the 2nd project. The official trailer for BUBBLE has just dropped, hinting a tantalizing glimpse into the sonic and visual landscape of the upcoming release.\n\nThis trailer not only introduces the project's sleek aesthetic and brand new logo, but it also features snippets of highly anticipated tracks, setting the stage for what promises to be a massive era.", 
     date: 'October 21, 2022', 
