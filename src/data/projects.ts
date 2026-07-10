@@ -162,7 +162,7 @@ export const NEWS: NewsItem[] = [
     id: 'ss7ofcsite', 
     headline: 'Meet the new studioseven Website.', 
     preview: "New beginnings, and a more polished studioseven Website", 
-    body: "New beginnings, and a more polished studioseven Website. The studioseven Website has been beautifully refined with a sleek, glass aesthetic to give you a smoother, more cinematic browsing experience. Take a closer look at the expansive lore behind our projects, discover more about our featured artists, and and trace our entire journey from 2020 as well as the future endeavours in the Newsroom. Step into the definitive studioseven experience now!", 
+    body: "New beginnings, and a more polished studioseven Website.\n\nTake a closer look at the expansive lore behind our projects, discover more about our featured artists, and trace our entire journey since 2020. Plus, catch a glimpse of our future endeavors in the Newsroom. Step into a more refined studioseven experience now!", 
     date: 'July 11, 2026', 
     projectId: 'sendoff', 
     url: 'ss7-ofc.vercel.app',
@@ -173,26 +173,27 @@ export const NEWS: NewsItem[] = [
     id: 'sendoff-out', 
     headline: 'SENDOFF is Out Now', 
     preview: "Every story, every song, every lesson, from every era. SENDOFF is officially out now!", 
-    body: "SENDOFF marks the culmination of a six-year artistic journey, bringing VEN's discography in a condensed single project. The project features a massive 17-track setlist from his previous projects.\n\nThis best project serves as a celebration for the listeners and collaborators who have supported this journey since its inception in 2020. SENDOFF is officially available to stream on all major platforms.", 
+    body: "Every story, every song, every lesson, from every era. SENDOFF is officially out now!\n\nSENDOFF marks the culmination of a six-year artistic journey, bringing VEN's discography in a condensed single project. The project features a massive 17-track setlist from his previous projects.\n\nThis compilation project serves as a celebration for the listeners and collaborators who have supported this journey since its inception in 2020. SENDOFF is officially available to stream on all major platforms.", 
     date: 'May 29, 2026', 
     projectId: 'sendoff', 
     url: 'https://www.instagram.com/studioseven.ofc/p/DZBRUrSE8cz/',
-    image: 'https://drive.google.com/file/d/1ZgGAC8pJmp8Oq9nRUS6bEIP9rtsiU0ve/view?usp=drive_link'
+    image: 'https://drive.google.com/file/d/1TWNMUdeem0RVzWf7desMQUl02g-J7zxp/view?usp=drive_link'
   },
   { 
     id: 'sendoff-announcement', 
     headline: 'SENDOFF - The Best Project', 
     preview: "The best project, SENDOFF, is soon approaching.", 
-    body: "The conclusion of an era is rapidly approaching. VEN has officially pulled back the curtain to announce SENDOFF, marking it as VEN's best project. The announcement carries a heavy emotional weight, signaling the closure of a 6-year creative chapter of artistic reinventions.", 
+    body: "The best project, SENDOFF, is soon approaching.\n\nThe conclusion of an era is rapidly approaching. The curtain has been officially pulled back for SENDOFF, marking it as VEN's best and compilation project. The announcement signals the closure of a 6-year creative chapter of artistic reinventions.", 
     date: 'May 1, 2026', 
     projectId: 'sendoff', 
-    url: 'https://www.instagram.com/studioseven.ofc/p/DY3j5eTj-GJ/' 
+    url: 'https://www.instagram.com/studioseven.ofc/p/DY3j5eTj-GJ/',
+    image:'https://drive.google.com/file/d/1ZgGAC8pJmp8Oq9nRUS6bEIP9rtsiU0ve/view?usp=drive_link'
   },
   { 
     id: 'the-video-lyric', 
     headline: 'The Video (Extended) Lyric Video is out!', 
     preview: "You haven't seen everythign yet. But even with more details, we may still never know.", 
-    body: "Discover more wordplays on the 7th project with the official lyric video for the extended cut of 'The Video'. This new release extends the original's narrative flow and the dense, poetic structure of the lyrics.\n\nThe lyric video is now streaming exclusively on the studioseven YouTube channel.", 
+    body: "You haven't seen everythign yet. But even with more details, we may still never know.\n\nUncover more wordplays on the 7th project with the official lyric video for the extended cut of 'The Video'. This new release extends the original's narrative flow and the dense, poetic structure of the lyrics.\n\nThe lyric video is now streaming exclusively on the studioseven YouTube channel.", 
     date: 'April 9, 2026', 
     projectId: 'what-do-you-know', 
     url: 'https://www.youtube.com/watch?v=QBDklz7FMBU', 
@@ -202,7 +203,7 @@ export const NEWS: NewsItem[] = [
     id: 'the-video-mv', 
     headline: 'The Video (Music Video) is out!', 
     preview: "I keep on replaying the video, hoping it will finally explain what happened — but every replay only proves how much I’ll never fully know.", 
-    body: "The official music video for 'The Video', the lead and sole track of the 7th project, What Do You Know?, is out now!\n\nAs the sole musical track of the 'What Do You Know?' project, this music video carries the entirety of the project's sonic identity and bridges the gap between the album's spoken-word poetry and its musical ambitions.", 
+    body: "I keep on replaying the video, hoping it will finally explain what happened — but every replay only proves how much I’ll never fully know.\n\nThe official music video for 'The Video', the lead and sole track of the 7th project, What Do You Know?, is out now!\n\nAs the sole musical track of the 'What Do You Know?' project, this music video carries the entirety of the project's sonic identity and bridges the gap between the album's spoken-word poetry and its musical ambitions.", 
     date: 'April 8, 2026', 
     projectId: 'what-do-you-know', 
     url: 'https://www.youtube.com/watch?v=SYLboWk7EE0', 
@@ -213,19 +214,37 @@ export const NEWS: NewsItem[] = [
     headline: 'What do you know about "What Do You Know?"', 
     preview: "The official tracklist and contents for 'What Do You Know?' have been unveiled.", 
     body: "Unlike previous albums, this project breaks the mold by heavily featuring literary works and spoken-word poetry, rather than a traditional multi-track musical album.\n\nThe content reveal showcases a unique structure centered around a single musical anchor, 'The Video', surrounded by emotional poems.", 
-    date: 'March 15, 2026', 
+    date: 'April 7, 2026', 
     projectId: 'what-do-you-know', 
     url: 'https://www.instagram.com/studioseven.ofc/p/DWyM_GHD38t/',
     image: 'https://drive.google.com/file/d/1hVwp02j4SxpXUlFhpmJcUeLai-nSjZsf/view?usp=drive_link'
   },
   { 
     id: 'wdyk-teaser', 
-    headline: 'What Do You Know? - The 7th Project', 
+    headline: 'In every tear behind the flowers, What Do You Know?', 
     preview: "In every tear behind the flowers, what do you know?", 
     body: "A poetic and cryptic teaser gave the listeners their first taste of the monochromatic world that encompasses this era.\n\nThe teaser hinted the departure from traditional musical releases in favor of something far more experimental and was never done before by VEN.", 
-    date: 'February 14, 2026', 
+    date: 'April 6, 2026', 
     projectId: 'what-do-you-know', 
     url: 'https://www.instagram.com/studioseven.ofc/p/DWxxe_ZD1fa/' 
+  },
+  { 
+    id: 'siklaw-copa-sampaguita', 
+    headline: 'studioseven as a Music Partner for COPA SAMPAGUITA', 
+    preview: "studioseven as a Music Partner for COPA SAMPAGUITA", 
+    body: "Another beautiful chapter in the studioseven journey.\n\nThank you to the organizers of 𝗖𝗢𝗣𝗔 𝗦𝗔𝗠𝗣𝗔𝗚𝗨𝗜𝗧𝗔 for having us as your official Music Partner. We loved providing the soundtrack for this incredible event. Congratulations on a massively successful run, and cheers to our fellow partners for making it all happen!", 
+    date: 'March 27, 2026', 
+    url: 'https://www.facebook.com/photo/?fbid=1260099726234289&set=a.412189177692019',
+    image: 'https://drive.google.com/file/d/16WOlvfBNRYiPBEUEnfgHM-POkFM9gxQP/view?usp=drive_link'
+  },
+  { 
+    id: 'ven-workshop-oca', 
+    headline: 'DEEP DIVE: Audio Production Seminar and Workshop', 
+    preview: "DEEP DIVE: Audio Production Seminar and Workshop", 
+    body: "Step into the world of sound and creativity as we present 𝐃𝐄𝐄𝐏 𝐃𝐈𝐕𝐄: 𝐀𝐮𝐝𝐢𝐨 𝐏𝐫𝐨𝐝𝐮𝐜𝐭𝐢𝐨𝐧 𝐒𝐞𝐦𝐢𝐧𝐚𝐫 𝐚𝐧𝐝 𝐖𝐨𝐫𝐤𝐬𝐡𝐨𝐩. 🎶 This event aims to provide participants with valuable knowledge and practical insights into the art of audio production—from understanding sound fundamentals 🎛️ to enhancing production techniques 🎚️. It’s a great opportunity to learn how quality audio plays an important role in media and content creation. 🎥✨\n\nJoin us on 𝐌𝐚𝐫𝐜𝐡 𝟏𝟎, 𝟐𝟎𝟐𝟔, 𝐟𝐫𝐨𝐦 𝟏:𝟑𝟎 𝐏𝐌 𝐭𝐨 𝟒:𝟑𝟎 𝐏𝐌 𝐚𝐭 𝐭𝐡𝐞 𝐀𝐕𝐑 for an engaging and informative session. We are honored to have 𝐆𝐮𝐞𝐬𝐭 𝐒𝐩𝐞𝐚𝐤𝐞𝐫: 𝐕𝐞𝐧 𝐕𝐢𝐧𝐥𝐮𝐚𝐧, who will be sharing expertise, experiences, and helpful tips about the field of audio production. 🎧💡\n\nDon’t miss this chance to learn, discover new skills, and deepen your understanding of sound production. See you at the seminar! 🎤🔊🎵\n\n#PUPQCOCA\n#officeoftheculturalaffairs\n#OCA\n\n Caption from Office of the Cultural Affairs - PUPQC.", 
+    date: 'March 9, 2026', 
+    url: 'https://www.facebook.com/PUPQCPAGEANT/posts/pfbid0Ps7mo9HUbiayAyaiZdP4cWQc51JUaQHcLs1LAbWNA8n5m13WpwHUFuLbeuM6y8JMl',
+    image: 'https://drive.google.com/file/d/1_TI3eCZSV4O1T6g3HRkzE6CiMzlEs18t/view?usp=drive_link'
   },
   { 
     id: 'gecko-13', 
@@ -239,7 +258,7 @@ export const NEWS: NewsItem[] = [
   },
   { 
     id: 'saccharin-film', 
-    headline: 'SACCHARIN Official Film', 
+    headline: 'Watch SACCHARIN Official Film', 
     preview: "NAMUJANE Studios and studioseven presents the official short film 'SACCHARIN'.", 
     body: "The short film 'SACCHARIN', produced by NAMUJANE Studios, is officially available to watch on studioseven YouTube channel. The film stands out as a remarkable collaborative achievement, blending compelling visual storytelling with an impactful auditory experience. The original soundtrack seamlessly integrates with the on-screen tension.", 
     date: 'January 21, 2026', 
@@ -254,7 +273,8 @@ export const NEWS: NewsItem[] = [
     body: "The visual identity of 'SACCHARIN' comes into focus with the reveal of its official movie poster. Made by Ralph Gerard Duenas, the artwork perfectly encapsulates the tension, mystery, and dramatic flair that the film promises to deliver to its audience.\n\nThe poster also officially highlights the collaboration with studioseven, crediting VEN and studioseven for the film's comprehensive sound design and original motion picture soundtrack.", 
     date: 'January 10, 2026', 
     projectId: 'saccharin', 
-    url: 'https://www.youtube.com/post/UgkxIa0bnyiWr1cmuz2Yn7zZZP96MLSpbV1f' 
+    url: 'https://www.youtube.com/post/UgkxIa0bnyiWr1cmuz2Yn7zZZP96MLSpbV1f',
+    image: 'https://drive.google.com/file/d/1cjt1MCSWhZJK_0OaGi8mLqj0dRUZcliB/view?usp=drive_link'
   },
   { 
     id: 'cicatrix-out', 
