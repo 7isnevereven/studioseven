@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PROJECTS, ARTISTS, NEWS, Project, Artist, NewsItem, getCoverUrl, formatTimeAgo } from '@/data/projects'
 import Navbar from '@/components/Navbar'
+import { supabase } from '../utils/supabase'
 
 const LOGO_URL = 'https://flrwvmfjjuyoyjeeosls.supabase.co/storage/v1/object/public/misc/ss7.png'
 
@@ -14,13 +15,21 @@ function InstagramIcon() { return <svg width="18" height="18" viewBox="0 0 24 24
 function MailIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> }
 function SearchIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> }
 
+function StarIcon({ filled, size = 12 }: { filled: boolean, size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "#eab308" : "none"} stroke={filled ? "#eab308" : "var(--text-faint)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+    </svg>
+  )
+}
+
 function NewsCard({ item, onOpenNews }: { item: NewsItem, onOpenNews: (n: NewsItem) => void }) {
   const project = PROJECTS.find(p => p.id === item.projectId)
   const imageUrl = item.image ? getCoverUrl(item.image) : (project ? getCoverUrl(project.coverFile) : '')
 
   return (
     <div className="glass-card" onClick={() => onOpenNews(item)} style={{ display: 'flex', flexDirection: 'column', padding: 16 }}>
-      <div style={{ width: '100%', aspectRatio: '16/9', borderRadius: 20, overflow: 'hidden', backgroundColor: 'var(--bg-surface)', marginBottom: 16, border: '1px solid var(--glass-border-t)', boxShadow: '0 8px 24px var(--shadow-base)' }}>
+      <div style={{ width: '100%', aspectRatio: '16/9', borderRadius: 20, overflow: 'hidden', backgroundColor: 'var(--bg-surface)', marginBottom: 16, border: '1px solid var(--glass-border-t)' }}>
         {imageUrl && <img src={imageUrl} alt={item.headline} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 4px' }}>
@@ -37,7 +46,7 @@ function ArtistCard({ artist, onOpenArtist }: { artist: Artist, onOpenArtist: (a
   const imgUrl = getCoverUrl(artist.image)
   return (
     <div className="glass-card" onClick={() => onOpenArtist(artist)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '32px 16px' }}>
-      <div style={{ width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--glass-border-t)', boxShadow: '0 10px 20px var(--shadow-base)', backgroundColor: 'var(--bg-surface)' }}>
+      <div style={{ width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--glass-border-t)', backgroundColor: 'var(--bg-surface)' }}>
         {imgUrl && <img src={imgUrl} alt={artist.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
       </div>
       <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--text-main)' }}>{artist.name}</span>
@@ -45,15 +54,26 @@ function ArtistCard({ artist, onOpenArtist }: { artist: Artist, onOpenArtist: (a
   )
 }
 
-function ProjectCard({ project, onOpenModal }: { project: Project, onOpenModal: (p: Project) => void }) {
+function ProjectCard({ project, onOpenModal, avgRating, reviewCount }: { project: Project, onOpenModal: (p: Project) => void, avgRating?: number, reviewCount?: number }) {
   const coverUrl = getCoverUrl(project.coverFile)
   return (
     <div className="glass-card" onClick={() => onOpenModal(project)} style={{ display: 'flex', flexDirection: 'column', padding: 16 }}>
-      <div style={{ width: '100%', aspectRatio: '1', borderRadius: 20, overflow: 'hidden', backgroundColor: 'var(--bg-surface)', marginBottom: 16, border: '1px solid var(--glass-border-t)', boxShadow: '0 8px 24px var(--shadow-base)' }}>
+      <div style={{ width: '100%', aspectRatio: '1', borderRadius: 20, overflow: 'hidden', backgroundColor: 'var(--bg-surface)', marginBottom: 16, border: '1px solid var(--glass-border-t)' }}>
         {coverUrl && <img src={coverUrl} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 4px' }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>{project.title}</h3>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.2 }}>{project.title}</h3>
+          
+          {avgRating && avgRating > 0 ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'var(--bg-surface)', padding: '2px 8px', borderRadius: 99, border: '1px solid var(--glass-border-t)' }}>
+              <StarIcon filled={true} size={10} />
+              <span style={{ fontSize: 11, color: 'var(--text-main)', fontWeight: 700 }}>{avgRating.toFixed(1)}</span>
+            </div>
+          ) : null}
+        </div>
+
         <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{project.subtitle} | {project.releaseLabel}</p>
         
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 12 }}>
@@ -80,12 +100,49 @@ interface RightPanelProps {
 export default function RightPanel({ currentView, setCurrentView, onOpenModal, onOpenArtist, onOpenNews, onToggleSidebar }: RightPanelProps) {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
+  const [ratingsMap, setRatingsMap] = useState<Record<string, { avg: number, count: number }>>({})
+
+  useEffect(() => {
+    async function fetchAllRatings() {
+      const { data, error } = await supabase.from('ratings').select('project_id, rating').is('track_title', null)
+      if (!error && data) {
+        const grouped = data.reduce((acc, curr) => {
+          if(!acc[curr.project_id]) acc[curr.project_id] = { sum: 0, count: 0 };
+          acc[curr.project_id].sum += curr.rating;
+          acc[curr.project_id].count += 1;
+          return acc;
+        }, {} as Record<string, { sum: number, count: number }>)
+        
+        const finalData: Record<string, {avg: number, count: number}> = {}
+        Object.keys(grouped).forEach(key => {
+          finalData[key] = {
+            avg: grouped[key].sum / grouped[key].count,
+            count: grouped[key].count
+          }
+        })
+        setRatingsMap(finalData)
+      }
+    }
+
+    fetchAllRatings()
+
+    const channel = supabase.channel('public:ratings')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ratings' }, () => {
+        fetchAllRatings() 
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
 
   const filteredProjects = PROJECTS.filter(p => p.title.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => sort === 'newest' ? new Date(b.releasedAt).getTime() - new Date(a.releasedAt).getTime() : new Date(a.releasedAt).getTime() - new Date(b.releasedAt).getTime())
 
   return (
     <div className="right-panel">
+
       <Navbar currentView={currentView} setCurrentView={setCurrentView} onToggleSidebar={onToggleSidebar} />
       
       <main className="main-content" style={{ paddingTop: 0 }}>
@@ -109,7 +166,15 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
                 <button onClick={() => setCurrentView('projects')} className="glass-btn glass-pill-sm desktop-only">View All</button>
               </div>
               <div className="grid-4">
-                {PROJECTS.slice(0, 16).map(project => <ProjectCard key={project.id} project={project} onOpenModal={onOpenModal} />)}
+                {PROJECTS.slice(0, 16).map(project => (
+                  <ProjectCard 
+                    key={project.id} 
+                    project={project} 
+                    onOpenModal={onOpenModal} 
+                    avgRating={ratingsMap[project.id]?.avg} 
+                    reviewCount={ratingsMap[project.id]?.count} 
+                  />
+                ))}
               </div>
               <button onClick={() => setCurrentView('projects')} className="glass-btn glass-pill mobile-only" style={{ width: '100%', marginTop: 24 }}>View All Projects</button>
             </section>
@@ -151,7 +216,15 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
             </div>
 
             <div className="grid-4">
-              {filteredProjects.map(project => <ProjectCard key={project.id} project={project} onOpenModal={onOpenModal} />)}
+              {filteredProjects.map(project => (
+                <ProjectCard 
+                  key={project.id} 
+                  project={project} 
+                  onOpenModal={onOpenModal} 
+                  avgRating={ratingsMap[project.id]?.avg} 
+                  reviewCount={ratingsMap[project.id]?.count} 
+                />
+              ))}
             </div>
           </section>
         )}

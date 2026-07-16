@@ -34,10 +34,9 @@ export default function Navbar({ currentView, setCurrentView, onToggleSidebar }:
   }
 
   return (
-    <nav className="navbar nav-progressive-blur">
+    <nav className="navbar">
       
-      {/* Sidebar Toggle & Smart Hiding Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0, minWidth: 100 }}>
         <button onClick={onToggleSidebar} className="glass-btn glass-icon-sm" style={{ color: 'var(--text-main)' }}>
           <SidebarIcon />
         </button>
@@ -59,7 +58,7 @@ export default function Navbar({ currentView, setCurrentView, onToggleSidebar }:
         ))}
       </div>
 
-      <div style={{ width: 44, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+      <div style={{ minWidth: 100, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
         <button onClick={toggleTheme} className="glass-btn glass-icon-sm" style={{ color: 'var(--text-main)' }}>
           {isLight ? <MoonIcon /> : <SunIcon />}
         </button>

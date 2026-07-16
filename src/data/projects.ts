@@ -6,6 +6,17 @@ export interface Track { title: string; badges?: TrackBadge[]; content?: string;
 export interface HistorySection { heading: string; body: string }
 export interface Artist { id: string; name: string; image: string; spotifyUrl?: string; youtubeUrl?: string; bio?: string }
 
+/* ── UPDATED RATING INTERFACE ── */
+export interface ProjectRating {
+  id: string;
+  project_id: string;
+  track_title?: string;
+  rating: number;
+  name: string;
+  description: string;
+  created_at: string;
+}
+
 export interface Project {
   id: string; title: string; subtitle: string; releasedAt: string; releaseLabel: string;
   artistId: string; coverFile: string; accentColor: string; accentSoft: string;

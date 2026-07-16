@@ -44,12 +44,21 @@ export default function ArtistModal({ artist, onClose, onOpenProject }: ArtistMo
 
         <div className="modal-content">
           <div className="modal-left artist-left">
-            <div style={{ width: '100%', aspectRatio: '1', borderRadius: 32, overflow: 'hidden', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--glass-border-t)', boxShadow: '0 20px 40px var(--shadow-base)' }}>
+            <div className="project-cover">
               {profileUrl && <img src={profileUrl} alt={artist?.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
             </div>
             
+            <div className="mobile-only" style={{ flexDirection: 'column', padding: '0 8px' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 800, color: 'var(--text-main)', lineHeight: 1, marginBottom: 4, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
+                {artist?.name}
+              </h2>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>
+                {artistProjects.length} {artistProjects.length === 1 ? 'Project' : 'Projects'}
+              </p>
+            </div>
+
             <div style={{ padding: '0 8px' }}>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text-main)', marginBottom: 12 }}>About</h3>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text-main)', marginBottom: 8 }}>About</h3>
               <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                 {artist?.bio}
               </p>
@@ -57,31 +66,35 @@ export default function ArtistModal({ artist, onClose, onOpenProject }: ArtistMo
           </div>
 
           <div className="modal-right">
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 48, fontWeight: 800, color: 'var(--text-main)', lineHeight: 1, marginBottom: 8, letterSpacing: '-0.03em', textTransform: 'uppercase' }}>
-              {artist?.name}
-            </h2>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 40, fontWeight: 500 }}>
-              {artistProjects.length} {artistProjects.length === 1 ? 'Project' : 'Projects'}
-            </p>
+            
+            <div className="desktop-only" style={{ flexDirection: 'column', marginBottom: 16 }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 48, fontWeight: 800, color: 'var(--text-main)', lineHeight: 1, marginBottom: 8, letterSpacing: '-0.03em', textTransform: 'uppercase' }}>
+                {artist?.name}
+              </h2>
+              <p style={{ fontSize: 14, color: 'var(--text-muted)', fontWeight: 500 }}>
+                {artistProjects.length} {artistProjects.length === 1 ? 'Project' : 'Projects'}
+              </p>
+            </div>
 
-            <div className="animate-in">
-              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, color: 'var(--text-main)' }}>
+            <div className="animate-in" style={{ flex: 1, overflowY: 'auto', paddingBottom: 32 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: 'var(--text-main)' }}>
                 {artist?.id === 'jhuzz' ? 'Featured On' : 'Projects'}
               </h3>
               
-              <div className="grid-3">
+              {/* Added alignContent: 'flex-start' to permanently stop rows from stretching vertically! */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', gap: '20px 16px' }}>
                 {artistProjects.map(project => {
                   const cover = getCoverUrl(project.coverFile)
                   return (
                     <div 
                       key={project.id} 
                       onClick={() => { onOpenProject(project); handleClose(); }}
-                      style={{ display: 'flex', flexDirection: 'column', gap: 12, cursor: 'pointer' }}
+                      style={{ display: 'flex', flexDirection: 'column', gap: 12, cursor: 'pointer', width: 'calc(33.333% - 16px)', minWidth: 160, maxWidth: 220 }}
                     >
                       <div 
-                        style={{ width: '100%', aspectRatio: '1', borderRadius: 16, overflow: 'hidden', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--glass-border-t)', transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)' }}
-                        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.borderColor = 'var(--glass-border-b)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.borderColor = 'var(--glass-border-t)'; }}
+                        style={{ width: '100%', aspectRatio: '1', borderRadius: 16, overflow: 'hidden', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--glass-border-t)', transition: 'all 0.2s ease' }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--glass-border-b)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--glass-border-t)'; }}
                       >
                         {cover && <img src={cover} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                       </div>
