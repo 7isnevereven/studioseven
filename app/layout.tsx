@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'studioseven',
-  description: 'A sub-brand under Ori · 2020–2026',
+  description: 'A sub-brand under team7 · 2020–2026',
 }
 
 export default function RootLayout({

@@ -4,8 +4,7 @@ import { useState } from 'react'
 import { PROJECTS, ARTISTS, NEWS, Project, Artist, NewsItem, getCoverUrl, formatTimeAgo } from '@/data/projects'
 import Navbar from '@/components/Navbar'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://YOUR_PROJECT_ID.supabase.co'
-const LOGO_URL = `${SUPABASE_URL.replace(/\/$/, '')}/storage/v1/object/public/misc/ss7.png`
+const LOGO_URL = 'https://flrwvmfjjuyoyjeeosls.supabase.co/storage/v1/object/public/misc/ss7.png'
 
 function SpotifyIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg> }
 function YouTubeIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg> }
@@ -55,7 +54,7 @@ function ProjectCard({ project, onOpenModal }: { project: Project, onOpenModal: 
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 4px' }}>
         <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>{project.title}</h3>
-        <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>VEN | {project.releaseLabel}</p>
+        <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{project.subtitle} | {project.releaseLabel}</p>
         
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 12 }}>
           <button className="glass-btn glass-icon-sm" title="Project Details">
@@ -75,10 +74,10 @@ interface RightPanelProps {
   onOpenModal: (p: Project) => void; 
   onOpenArtist: (a: Artist) => void; 
   onOpenNews: (n: NewsItem) => void;
-  onOpenMenu: () => void;
+  onToggleSidebar: () => void;
 }
 
-export default function RightPanel({ currentView, setCurrentView, onOpenModal, onOpenArtist, onOpenNews, onOpenMenu }: RightPanelProps) {
+export default function RightPanel({ currentView, setCurrentView, onOpenModal, onOpenArtist, onOpenNews, onToggleSidebar }: RightPanelProps) {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
 
@@ -87,8 +86,9 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
 
   return (
     <div className="right-panel">
-      <Navbar currentView={currentView} setCurrentView={setCurrentView} onOpenMenu={onOpenMenu} />
-      <main className="main-content">
+      <Navbar currentView={currentView} setCurrentView={setCurrentView} onToggleSidebar={onToggleSidebar} />
+      
+      <main className="main-content" style={{ paddingTop: 0 }}>
         
         {currentView === 'home' && (
           <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
@@ -98,7 +98,7 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
                 <button onClick={() => setCurrentView('newsroom')} className="glass-btn glass-pill-sm desktop-only">View All</button>
               </div>
               <div className="grid-3">
-                {NEWS.slice(0, 3).map(item => <NewsCard key={item.id} item={item} onOpenNews={onOpenNews} />)}
+                {NEWS.slice(0, 8).map(item => <NewsCard key={item.id} item={item} onOpenNews={onOpenNews} />)}
               </div>
               <button onClick={() => setCurrentView('newsroom')} className="glass-btn glass-pill mobile-only" style={{ width: '100%', marginTop: 24 }}>View All News</button>
             </section>
@@ -109,7 +109,7 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
                 <button onClick={() => setCurrentView('projects')} className="glass-btn glass-pill-sm desktop-only">View All</button>
               </div>
               <div className="grid-4">
-                {PROJECTS.slice(0, 8).map(project => <ProjectCard key={project.id} project={project} onOpenModal={onOpenModal} />)}
+                {PROJECTS.slice(0, 16).map(project => <ProjectCard key={project.id} project={project} onOpenModal={onOpenModal} />)}
               </div>
               <button onClick={() => setCurrentView('projects')} className="glass-btn glass-pill mobile-only" style={{ width: '100%', marginTop: 24 }}>View All Projects</button>
             </section>
@@ -120,7 +120,7 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
                 <button onClick={() => setCurrentView('artists')} className="glass-btn glass-pill-sm desktop-only">View All</button>
               </div>
               <div className="grid-artists">
-                {ARTISTS.slice(0, 4).map(artist => <ArtistCard key={artist.id} artist={artist} onOpenArtist={onOpenArtist} />)}
+                {ARTISTS.slice(0, 8).map(artist => <ArtistCard key={artist.id} artist={artist} onOpenArtist={onOpenArtist} />)}
               </div>
             </section>
           </div>
@@ -130,7 +130,6 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
           <section className="animate-in">
             <h2 className="section-title">All Projects</h2>
             
-            {/* ── UPGRADED SEARCH & FILTER BAR ── */}
             <div className="search-filter-container">
               <div style={{ position: 'relative', flex: 1, maxWidth: 300 }}>
                 <div style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none', display: 'flex' }}>
@@ -178,13 +177,10 @@ export default function RightPanel({ currentView, setCurrentView, onOpenModal, o
       </main>
 
       <footer style={{ padding: '64px 32px', textAlign: 'center', color: 'var(--text-faint)', fontSize: 11, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-        <img src={LOGO_URL} alt="studioseven logo" style={{ height: 24, opacity: 0.8 }} />
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-          <span style={{ fontSize: 14, color: 'var(--text-main)', marginBottom: 2, letterSpacing: '0.02em' }}>
-            studio<strong>se<u style={{ textUnderlineOffset: '2px' }}>ven</u></strong>
-          </span>
-          <p>A sub-brand under Ori</p>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
+          <img src={LOGO_URL} alt="studioseven logo" style={{ height: 18, opacity: 0.8, marginBottom: 8, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
+          <p>A sub-brand under team7</p>
           <p>2020–2026 · Request for reuse is highly advised.</p>
         </div>
 

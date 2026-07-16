@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import LeftPanel from '@/components/LeftPanel'
 import RightPanel from '@/components/RightPanel'
 import ProjectModal from '@/components/ProjectModal'
@@ -13,20 +13,30 @@ export default function Home() {
   
   // App Routing State
   const [currentView, setCurrentView] = useState<'home' | 'projects' | 'artists' | 'newsroom' | 'about'>('home')
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  
+  // Dynamic Sidebar State (Defaults to true on desktop)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+
+  // Auto-collapse sidebar on mobile devices during initial load
+  useEffect(() => {
+    if (window.innerWidth <= 768) {
+      setIsSidebarOpen(false)
+    }
+  }, [])
 
   // Modal States
   const [modalProject, setModalProject] = useState<Project | null>(null)
   const [modalArtist, setModalArtist] = useState<Artist | null>(null)
   const [modalNews, setModalNews] = useState<NewsItem | null>(null)
 
+  const toggleSidebar = () => setIsSidebarOpen(prev => !prev)
+
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
       <LeftPanel 
         project={featuredProject} 
-        onOpenModal={() => { setModalProject(featuredProject); setIsMobileMenuOpen(false); }} 
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
+        onOpenModal={() => { setModalProject(featuredProject); setIsSidebarOpen(false); }} 
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       <RightPanel 
@@ -35,7 +45,7 @@ export default function Home() {
         onOpenModal={setModalProject} 
         onOpenArtist={setModalArtist}
         onOpenNews={setModalNews}
-        onOpenMenu={() => setIsMobileMenuOpen(true)}
+        onToggleSidebar={toggleSidebar}
       />
 
       <NewsModal news={modalNews} onClose={() => setModalNews(null)} />
