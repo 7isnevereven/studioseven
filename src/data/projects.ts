@@ -172,6 +172,17 @@ export const PROJECTS: Project[] = [
 
 export const NEWS: NewsItem[] = [
   { 
+    id: 'leaveitbehind_teaser', 
+    headline: 'the yellow and the blue. the curse and the chaos.', 
+    preview: "the yellow and the blue. the curse and the chaos.", 
+    body: "We thought the contrast would balance us, but perhaps the light was just too bright. When a spark of yellow collides with the boundaries of blue, the result does not illuminate. It is overwhelming. It got us blinded on both ends, stripped away our vision and left nothing but a silhouette of what we tried to build.\n\nThe collision left debris and I realized, all of those glass shards were part of me before I even recognized the breakage, before everything got ruined, and these fragments are just some of the consequences of trying to hold two incompatible frequencies together.\n\nAnd in everything that remains, the question remains to linger. Was what we had a simple dream, an illusion of violent opposites that could never align? Or was it, from the very moment yellow first bled into blue, nothing more than a slow, inevitable farewell? \n\nSome things are simply just a dangerous mix, a forbidden combination, a curse of chaos destined only to leave a permanent decay.\n\n#studioseven\n#hmssiwsicliab", 
+    date: 'July 22, 2026', 
+    projectId: 'what-do-you-know', 
+    url: 'https://ss7-ofc.vercel.app',
+    image: 'https://drive.google.com/file/d/1-SQyUcIskp3SOaJgvWIXQM1CukxfEXij/view?usp=drive_link'
+  },
+
+  { 
     id: '07w201', 
     headline: 'studioseven Feature Drop 07W201: A Seamless New Listening Experience', 
     preview: "studioseven Feature Drop 07W201: A Seamless New Listening Experience", 
