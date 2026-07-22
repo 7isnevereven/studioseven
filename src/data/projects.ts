@@ -91,6 +91,19 @@ export const ARTISTS: Artist[] = [
 
 export const PROJECTS: Project[] = [
   {
+    id: 'leaveitbehind', title: 'how many songs should i write so i can leave it all behind?', subtitle: 'The 8th Project', releasedAt: '2026-07-24', releaseLabel: 'Released Jul 24, 2026', artistId: 'ven', coverFile: 'https://drive.google.com/file/d/1rvU-HWfotgFAWTOYnWo15Sd79k5ER7eS/view?usp=drive_link', accentColor: '#eed04c', accentSoft: 'rgba(31, 37, 94, 0.4)', type: 'project', featured: true,
+    tracks: [
+      { title: 'long enough', badges: ['SINGLE'], content: `I did what I had to do\nLived in my own bubble\nThere were something everyone believe to be nothing at first\nThe cuts are some of the few things I had no choice to give in\nAnd the chances where nothing at first\n\nTook you long enough to realize\nThat everything's just a phase\nA way to look back on the memories\nI once wish to throw to waste\n\nBut all of those glass shards were part of me\nThan I was their part at first\nAnd as I pace the door in newer light\nThe past is what I am living on` }, 
+      { title: 'good', badges: ['SINGLE'], content: `I don\'t know\nWe could be the greatest in every dimension \nI hope not\nThe end was the last time we looked at each other\n\nDo all things have to be\nThrown away to say we'll never be \nI don't want to reach that\nThe time when we don't even know each other\n\nCause you know we could've been good\nBut i guess some things have to end\nMaybe the light was just too bright\nAnd got us blinded on both ends\n\nIf we just see the same light someday\nI'd be the first to reach on you\nAnd if you still see me as your good home\nJust come in, and be as good as before\n\nDid I do too much, did I leave you on strings strangled\nOr was I too much, cause all of these just feel like begging\nI know that I loved you first, and I'm more certain I liked you more\nBut do all of these have to end in void?\n\nCause you know we could've been good\nBut i guess some things have to end\nMaybe the light was just too bright\nAnd got us blinded on both ends\n\nIf we just see the same light someday\nI'd be the first to reach on you\nAnd if you still see me as your good home\nJust come in, let's be as good as before\n\nI don't know\nWe could be the greatest in every dimension` }, 
+      { title: 'settle for something', badges: ['POEM'], content: `you were the stars on the dark, pitch black sky\nwe both looked up, then i looked right in your eyes\na familiar flush of warmth and hurt gushed in my perplexed mind\nshould i go settle for what\’s good or what\’s right\n\nthen you took my hand\nhanded me a letter and said\n“you made my night”\nthen you decided to walk home alone\n\nleft me on my own\nbut i have always known\nthat to be loved is something\nand this is just a game we\’re playing on\n\nmaybe this is better now\nbut i do wish that you know more that i want something\nmore than what we are on\nand what's now\nmaybe i\'m just foolish\nand my heart's just helpless\nto go in tears cause \ni made me go settle for something less\n\nwas what we had a simple dream or a farewell?\nhave I taken your loneliness you got from hell?\nwas i dumb and fucked enough to not be well\non what we said we\'re having\ngave you what you said you\'ve nothing\nmade me be the one to settle less\n\nmade me something less\n\nmaybe this is better now\nbut i do wish that you know more that i want something\nmore than what we are on\nand what's now\nmaybe i\'m just foolish\nand my heart's just helpless\nto go in tears cause \ni made me go settle for something less\n\nmade me something less\nfoolish and helpless\n\nyou were the stars on the dark, pitch black sky` }, 
+      { title: 'how many songs should i write so i can leave it all behind?', badges: ['POEM'], content: `i live more in papers and ink than i do in real life\nmy mind spin thoughts quicker than when you left me behind\nand sometimes, deep at night, the questions hit me like a knife\nlike, "how many songs should i write so i can leave it all behind?"\n\ntell me all the things you hated\ntell me all the things i did that made you sad\ntell me all the secrets you were hiding all this time\ntell me how i can just fix all of that\ntell me what to do to make it all go right\ntell me everything so i can leave these songs behind\n\nhow many songs should i write so i can leave it all behind?` }, 
+    ],
+    history: [ { heading: 'Before Release', body: 'To be released soon.' }, 
+      { heading: 'Official Release', body: 'To be released soon.' }, 
+      { heading: 'After Release', body: 'To be released soon.' } ],
+  },
+
+  {
     id: 'sendoff', title: 'SENDOFF', subtitle: 'The Best Project', releasedAt: '2026-05-29', releaseLabel: 'Released May 29, 2026', artistId: 'ven', coverFile: 'sendoff1.png', accentColor: '#3b1f5e', accentSoft: 'rgba(59, 31, 94, 0.40)', leadTrack: 'Bondi', type: 'final', featured: true, youtubeUrl: 'https://youtube.com/playlist?list=OLAK5uy_lw7W5lv8Uz9vZUA6mtJsVxqQNBHId-vPo&si=N43hFixeT54F_sBJ', spotifyUrl: 'https://open.spotify.com/album/4RhuwNQZJIvs8LkzlOvrqE?si=fGzFH5sJRTGWe6_D95UmTQ&utm_source=copy-link',
     tracks: [
       { title: 'Overturn' }, { title: '05170319 (Stranger)' }, { title: 'Hera' }, { title: 'Satellite' }, { title: 'Something' }, { title: 'Idle' }, { title: 'Crimson Red' }, { title: 'Andromeda' }, { title: 'In The Quiet Of The Night' }, { title: 'Heaven-sent' }, { title: 'The Good One' }, { title: 'Real Form' }, { title: 'Keep It' }, { title: 'The Greatest Heist In History' }, { title: 'Chances' }, { title: 'The Gecko' }, { title: 'The Video' },
@@ -171,6 +184,17 @@ export const PROJECTS: Project[] = [
 ]
 
 export const NEWS: NewsItem[] = [
+  { 
+    id: 'leaveitbehind', 
+    headline: '"how many songs should i write so i can leave it all behind?" out July 24th.', 
+    preview: '"how many songs should i write so i can leave it all behind?" out July 24th.', 
+    body: "you are all alone and have nowhere to go. you decided to visit the same place the two of you used to spend your time. you planned to make that day all your own—read books, watch movies, have snacks, everything but anybody else. then all the memories flashed. everything you look at seems to have a bookmark of the both of you. that tree you\'re currently under, spending your time alone? that was once the tree where both of you used to laugh and steal kisses. that store where you bought your food? that\'s where he used to buy a beverage for the two of you. that cold wind that blows in your face? that is what was left behind after everything that has happened.\n\neverywhere i look, everywhere i go, there is a mark of you. no matter what i do or don\'t do, it all reminds me of you. and as i sit under the tree where we used to hold hands, and as the memories of us turn into chaos and curse my mind, i take a pen and paper and write the clearest thought of mine:\n\nhow many songs should i write so i can leave it all behind?", 
+    date: 'July 22, 2026', 
+    projectId: 'what-do-you-know', 
+    url: 'https://ss7-ofc.vercel.app',
+    image: 'https://drive.google.com/file/d/1rvU-HWfotgFAWTOYnWo15Sd79k5ER7eS/view?usp=drive_link'
+  },
+
   { 
     id: 'leaveitbehind_teaser', 
     headline: 'the yellow and the blue. the curse and the chaos.', 
