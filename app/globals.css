@@ -57,7 +57,7 @@ html, body {
   font-family: 'Inter', sans-serif; overflow: hidden; transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-/* ─── SCROLLBARS (HIDDEN FOR PURE GLASS AESTHETIC) ─── */
+/* ─── SCROLLBARS ─── */
 ::-webkit-scrollbar { display: none; width: 0; height: 0; }
 * { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -84,7 +84,7 @@ html, body {
 .sidebar-open .navbar-logo-container { opacity: 0; pointer-events: none; transform: translateX(-10px); }
 .sidebar-closed .navbar-logo-container { opacity: 1; pointer-events: auto; transform: translateX(0); }
 
-/* ─── PERFECT NAVBAR (NO LINES, NO CLIPPING) ─── */
+/* ─── NAVBAR ─── */
 .navbar {
   position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between;
   padding: 24px 48px; background: linear-gradient(to bottom, var(--bg-base) 20%, transparent 100%);
@@ -104,8 +104,7 @@ html, body {
   content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, var(--glass-border-l), transparent 70%); opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
 }
 .glass-card:hover {
-  background: var(--glass-hover); 
-  transform: translateY(-2px) scale(1.01); /* Subtle Scaling Restored */
+  background: var(--glass-hover); transform: translateY(-2px) scale(1.01);
   border-top-color: var(--glass-border-b); border-left-color: var(--glass-border-b);
   border-bottom-color: var(--glass-border-t); border-right-color: var(--glass-border-l);
   box-shadow: 0 30px 60px var(--shadow-heavy), inset 1px 1px 3px var(--glass-border-l);
@@ -118,8 +117,7 @@ html, body {
   color: var(--text-main); cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; outline: none;
 }
 .glass-btn:hover, .glass-btn.active {
-  background: var(--glass-hover); 
-  transform: translateY(-2px) scale(1.01); /* Subtle Scaling Restored */
+  background: var(--glass-hover); transform: translateY(-1px) scale(1.01); 
   border-top-color: var(--glass-border-b); border-left-color: var(--glass-border-b); border-bottom-color: var(--glass-border-t); border-right-color: var(--glass-border-l); box-shadow: inset 1px 1px 3px var(--glass-border-l);
 }
 .glass-btn:active { opacity: 0.8; transform: translateY(0) scale(0.99); } 
@@ -140,8 +138,6 @@ textarea.glass-input { resize: vertical; min-height: 100px; padding: 16px 20px; 
 
 select.glass-input { appearance: none; -webkit-appearance: none; padding-right: 48px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") right 20px center / 16px no-repeat, var(--glass-base) !important; }
 select.glass-input:hover, select.glass-input:focus { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") right 20px center / 16px no-repeat, var(--glass-hover) !important; }
-body.light-mode select.glass-input { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") right 20px center / 16px no-repeat, var(--glass-base) !important; }
-body.light-mode select.glass-input:hover, body.light-mode select.glass-input:focus { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") right 20px center / 16px no-repeat, var(--glass-hover) !important; }
 
 .hoverable-track { 
   cursor: pointer; background: var(--glass-base) !important;
@@ -151,8 +147,7 @@ body.light-mode select.glass-input:hover, body.light-mode select.glass-input:foc
   transition: all 0.2s ease; transform-origin: center left; 
 }
 .hoverable-track:hover { 
-  background: var(--glass-hover) !important; 
-  transform: translateX(4px) scale(1.01); /* Subtle Scaling Restored */
+  background: var(--glass-hover) !important; transform: translateX(4px) scale(1.01); 
   border-top-color: var(--glass-border-b) !important; border-left-color: var(--glass-border-b) !important; border-bottom-color: var(--glass-border-t) !important; border-right-color: var(--glass-border-l) !important;
   box-shadow: 0 12px 24px var(--shadow-heavy), inset 1px 1px 3px var(--glass-border-l) !important;
 }
@@ -178,8 +173,19 @@ body.light-mode select.glass-input:hover, body.light-mode select.glass-input:foc
 @keyframes scaleDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(10px); } }
 .animate-in { animation: fadeIn 0.4s ease forwards; }
 
-/* Modal specific layouts (Shadow clipping completely prevented) */
-.project-cover { width: 100%; aspect-ratio: 1; border-radius: 24px; overflow: hidden; background-color: var(--bg-surface); border: 1px solid var(--glass-border-t); box-shadow: 0 12px 32px rgba(0,0,0,0.5); flex-shrink: 0; }
+/* ─── MODAL SPECIFIC LAYOUTS ─── */
+.project-cover { width: 100%; aspect-ratio: 1; border-radius: 24px; overflow: hidden; background-color: var(--bg-surface); border: 1px solid var(--glass-border-t); box-shadow: 0 20px 40px var(--shadow-base); flex-shrink: 0; }
+
+.modal-content { display: flex; flex-direction: row; gap: 0px; padding: 0px; flex: 1; overflow: hidden; }
+.modal-left { width: 356px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; overflow-x: hidden; padding: 32px 24px 32px 32px; }
+.modal-left.artist-left { width: 316px; }
+.modal-right { flex: 1; padding: 32px 32px 32px 24px; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+/* ─── NEW: RESPONSIVE NEWS MODAL ─── */
+.news-modal-content { display: flex; flex-direction: row; flex: 1; overflow: hidden; }
+.news-modal-left { width: 55%; flex-shrink: 0; padding: 48px 32px 48px 48px; overflow-y: auto; display: flex; flex-direction: column; }
+.news-modal-right { flex: 1; padding: 48px 48px 48px 16px; overflow-y: auto; display: flex; flex-direction: column; }
+
 
 /* ─── DYNAMIC RESPONSIVE RIGHT PANEL ─── */
 .right-panel { margin-left: var(--left-width); flex: 1; background-color: transparent; overflow-y: auto; overflow-x: hidden; position: relative; z-index: 5; display: flex; flex-direction: column; min-height: 0; transition: margin-left 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -191,21 +197,8 @@ body.light-mode select.glass-input:hover, body.light-mode select.glass-input:foc
 .grid-artists { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px; }
 
 .search-filter-container { display: flex; gap: 16px; margin-bottom: 32px; }
-
-.modal-content { display: flex; flex-direction: row; gap: 0px; padding: 0px; flex: 1; overflow: hidden; }
-
-/* Padding safely locked at 32px on all sides to prevent edge clipping */
-.modal-left { width: 356px; flex-shrink: 0; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; overflow-x: hidden; padding: 32px; }
-.modal-left.artist-left { width: 316px; }
-.modal-right { flex: 1; padding: 32px 32px 32px 24px; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-
-.news-content { overflow-y: auto; flex: 1; padding: 48px 24px 48px 48px; display: flex; flex-direction: column; gap: 32px; }
-.news-header { display: flex; gap: 24px; align-items: center; }
-
 .mobile-only { display: none !important; }
 .desktop-only { display: flex !important; }
-
-/* Default Nav Links logic for Desktop */
 .nav-links { display: flex; gap: 12px; }
 
 /* ─── MOBILE RESPONSIVENESS (MAX-WIDTH 768px) ─── */
@@ -227,30 +220,35 @@ body.light-mode select.glass-input:hover, body.light-mode select.glass-input:foc
   .grid-artists { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   .search-filter-container { flex-direction: column; gap: 12px; }
   
-  .nav-links { 
-    overflow-x: auto; 
-    max-width: calc(100vw - 120px); 
-    padding: 4px 16px; 
-    scroll-snap-type: x mandatory; 
-  }
+  .nav-links { overflow-x: auto; max-width: calc(100vw - 120px); padding: 4px 16px; scroll-snap-type: x mandatory; }
   .nav-links > button { scroll-snap-align: start; white-space: nowrap; }
 
-  /* Mobile Project Modal UI */
+  /* Project Modal Mobile CSS */
   .project-cover { max-width: 220px; margin: 0 auto; }
-  .mobile-tabs { 
-    display: flex; flex-direction: row; gap: 8px; overflow-x: auto; 
-    padding: 4px 0px 16px 0px; 
-  }
+  .mobile-tabs { display: flex; flex-direction: row; gap: 8px; overflow-x: auto; padding: 4px 0px 16px 0px; }
   .mobile-tabs > button { flex: 1; white-space: nowrap; }
   
   .modal-overlay { padding: 16px; }
   .modal-container { width: 100% !important; height: 90vh !important; max-height: 90vh !important; }
+  
+  /* Shared Mobile Modal Stacking */
   .modal-content { flex-direction: column; gap: 24px; padding: 24px; overflow-y: auto; overflow-x: hidden; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%); }
-  .scroll-fade { mask-image: none !important; -webkit-mask-image: none !important; padding: 0 !important; margin: 0 !important; }
   .modal-left, .modal-left.artist-left { width: 100%; height: auto; flex-shrink: 0; overflow: visible; padding: 0; }
   .modal-right { padding: 0; overflow: visible; }
-  .news-content { padding: 24px; gap: 24px; }
-  .news-header { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .section-title { font-size: 26px; }
+  
+  /* NEWS MODAL MOBILE OVERRIDES */
+  .news-modal-content { 
+    flex-direction: column; 
+    padding: 80px 24px 32px 24px; /* 80px top padding ensures headline clears the X button */
+    gap: 40px; 
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%); 
+    mask-image: linear-gradient(to bottom, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%); 
+  }
+  .news-modal-left { width: 100%; padding: 0; overflow: visible; height: auto; }
+  .news-modal-right { padding: 0; overflow: visible; }
+
+  .scroll-fade { mask-image: none !important; -webkit-mask-image: none !important; padding: 0 !important; margin: 0 !important; }
   h2 { font-size: 28px !important; }
 }
