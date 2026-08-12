@@ -767,7 +767,7 @@ export const NEWS: NewsItem[] = [
     id: 'declassified-collectible', 
     headline: 'declassified: Virtual Project Collectible is available now!', 
     preview: 'declassified: Virtual Project Collectible is available now!', 
-    body: "Claim your piece of the archives.\n\nIn celebration of the 1st Anniversary of 'cuts and chances: declassified', we are proud to introduce the Virtual Project Collectible.\n\nThis new interactive experience allows you to make your unique, digital piece of the project directly and exclusively on the studioseven Website. Select your defining track, choose the lyric that resonates the most, and wrap it in the colors of the declassified era, fully customizable with your name and authenticated by studioseven & team7 with a unique reference number.\n\nThe archives are waiting. Create, customize, and share yours now!",
+    body: "Claim your piece of the archives.\n\nIn celebration of the 1st Anniversary of 'cuts and chances', we are proud to introduce the Virtual Project Collectible.\n\nThis new interactive experience allows you to make your unique, digital piece of the project directly and exclusively on the studioseven Website. Select your defining track, choose the lyric that resonates the most, and wrap it in the colors of the declassified era, fully customizable with your name and authenticated by studioseven & team7 with a unique reference number.\n\nThe archives are waiting. Create, customize, and share yours now!",
     date: 'August 12, 2026', 
     projectId: 'declassified', 
     url: 'https://ss7-ofc.vercel.app',
