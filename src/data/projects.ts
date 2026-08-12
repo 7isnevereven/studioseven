@@ -146,13 +146,12 @@ export const PROJECTS: Project[] = [
     type: 'project',
     featured: true,
     tracks: [
-      { title: "What is 'Cuts'?" },
-      { title: "What is 'chances'?" },
-      { title: "Chances (declassified)" },
-      { title: "What is 'the greatest heist in history?'" },
+      { title: "What is 'cuts and chances'?" },
+      { title: "Chances (Declassified)" },
+      { title: "What is 'The Greatest Heist in History'?" },
       { title: "The Greatest Heist in History (declassified)" },
       { title: "Brighter Days, Young Again, Fits Right Medley (declassified)" },
-      { title: "Half a Lie?" },
+      { title: "The Greatest Heist in History Part II: Half a Lie?" },
       { title: "Half a Lie (The Greatest Heist in History pt.2)", badges: ['LEAD', 'SINGLE'] }
     ],
     history: [
