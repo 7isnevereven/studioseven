@@ -157,15 +157,15 @@ export const PROJECTS: Project[] = [
     history: [
       { 
         heading: 'Before Release', 
-        body: 'Conceived as a highly intimate 1-year anniversary celebration of the original "cuts and chances" album, this declassified edition was built to uncover the hidden stories, original voice memos, and raw emotions that shaped the 6th project.' 
+        body: 'Conceived as a 1-year anniversary celebration of the original "cuts and chances" project, this declassified edition was built to uncover the hidden stories, original memos and plans, and unfiltered emotions that shaped the 6th project.' 
       },
       { 
         heading: 'Official Release', 
-        body: 'Released during the week of August 10-16, 2026, exactly one year after the original project. It introduces "Half a Lie", a direct sequel and missing piece to the acclaimed "The Greatest Heist in History".' 
+        body: 'Released during the week of August 10-16, 2026, exactly one year after the original project. It introduces "Half a Lie", a direct response and missing piece to the acclaimed "The Greatest Heist in History".' 
       },
       { 
         heading: 'After Release', 
-        body: 'The declassified versions and medleys provided listeners with a deeply personal, behind-the-scenes auditory experience, bridging the gap between the past and present.' 
+        body: 'The declassified versions and medleys provides a deeply personal, behind-the-scenes auditory experience that bridges the gap between the past and present versions of the project.' 
       }
     ]
   },
