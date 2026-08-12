@@ -129,10 +129,51 @@ They are officially featured on the reimagined track "The Gecko (ft. 13)", provi
   },
 ]
 
+// ... (keep your existing imports and interfaces at the top)
+
 export const PROJECTS: Project[] = [
+  // ── NEW ANNIVERSARY PROJECT ──
+  {
+    id: 'cuts-chances-declassified',
+    title: 'cuts and chances: declassified',
+    subtitle: '6th Project - 1st Anniversary Edition',
+    releasedAt: '2026-08-16', // Chronological sorting anchor
+    releaseLabel: 'Released Aug 10-16, 2026',
+    artistId: 'ven',
+    coverFile: 'https://drive.google.com/file/d/1IYhSXHn-LldqT_g8qVpyTHDdlxLsWCtH/view?usp=drive_link',
+    accentColor: '#1a465a', 
+    accentSoft: 'rgba(26, 67, 90, 0.4)',
+    type: 'project',
+    featured: true,
+    tracks: [
+      { title: "What is 'Cuts'?" },
+      { title: "What is 'chances'?" },
+      { title: "Chances (declassified)" },
+      { title: "What is 'the greatest heist in history?'" },
+      { title: "The Greatest Heist in History (declassified)" },
+      { title: "Brighter Days, Young Again, Fits Right Medley (declassified)" },
+      { title: "Half a Lie?" },
+      { title: "Half a Lie (The Greatest Heist in History pt.2)", badges: ['LEAD', 'SINGLE'] }
+    ],
+    history: [
+      { 
+        heading: 'Before Release', 
+        body: 'Conceived as a highly intimate 1-year anniversary celebration of the original "cuts and chances" album, this declassified edition was built to uncover the hidden stories, original voice memos, and raw emotions that shaped the 6th project.' 
+      },
+      { 
+        heading: 'Official Release', 
+        body: 'Released during the week of August 10-16, 2026, exactly one year after the original project. It introduces "Half a Lie", a direct sequel and missing piece to the acclaimed "The Greatest Heist in History".' 
+      },
+      { 
+        heading: 'After Release', 
+        body: 'The declassified versions and medleys provided listeners with a deeply personal, behind-the-scenes auditory experience, bridging the gap between the past and present.' 
+      }
+    ]
+  },
+  
   {
     id: 'good',
-    title: 'good',
+    title: 'good and long enough (singles)',
     subtitle: 'Single',
     releasedAt: '2026-07-24',
     releaseLabel: 'Released Jul 24, 2026',
@@ -141,7 +182,6 @@ export const PROJECTS: Project[] = [
     accentColor: '#eed04c',
     accentSoft: 'rgba(31, 37, 94, 0.4)',
     type: 'project',
-    featured: true,
     youtubeUrl: 'https://youtu.be/RoPRHudvDCo?si=rbvVdlgxAPNYT2_a',
     tracks: [
       { 
@@ -184,36 +224,7 @@ Just come in, let's be as good as before
 
 I don't know
 We could be the greatest in every dimension` 
-      }
-    ],
-      history: [
-        { 
-          heading: 'Before Release', 
-          body: 'Hinted at through the "curse and the chaos" lore posted on July 22, 2026, the thematic core of "good" explores the idea of a light being "just too bright," ultimately blinding both sides of a connection before it could truly thrive.' 
-        }, 
-        { 
-          heading: 'Official Release', 
-          body: 'The single officially dropped on July 24, 2026. Serving as an emotional anchor, the track highlights the tragic realization of what "could\'ve been" if two incompatible forces had aligned differently.' 
-        }, 
-        { 
-          heading: 'After Release', 
-          body: 'In the days following its release, "good" cemented itself as one of the most vulnerable pieces of lyricism in the catalog. The track serves as a quiet reflection on outgrown promises and the inevitability of a slow farewell.' 
-        }
-      ]
-  },
-  {
-    id: 'long-enough',
-    title: 'long enough',
-    subtitle: 'Single',
-    releasedAt: '2026-07-24',
-    releaseLabel: 'Released Jul 24, 2026',
-    artistId: 'ven',
-    coverFile: 'https://drive.google.com/file/d/1rvU-HWfotgFAWTOYnWo15Sd79k5ER7eS/view?usp=drive_link',
-    accentColor: '#eed04c',
-    accentSoft: 'rgba(31, 37, 94, 0.4)',
-    type: 'project',
-    youtubeUrl: 'https://youtu.be/A09pRY_1TlA?si=xtTfbL46MaZASlrN',
-    tracks: [
+      },
       { 
         title: 'long enough', 
         badges: ['SINGLE'], 
@@ -234,21 +245,22 @@ And as I pace the door in newer light
 The past is what I am living on` 
       }
     ],
-    history: [
-      { 
-        heading: 'Before Release', 
-        body: 'The track was first teased on July 22, 2026, accompanied by cryptic promotional material referencing "the yellow and the blue" and the realization of incompatible frequencies. It set the tone for a narrative about acknowledging the damage left behind.' 
-      }, 
-      { 
-        heading: 'Official Release', 
-        body: 'On July 24, 2026, "long enough" was officially released as a single. The track carries the heavy thematic weight of moving forward while accepting the "glass shards" of the past as a permanent part of one\'s identity.' 
-      }, 
-      { 
-        heading: 'After Release', 
-        body: 'Following its release, the track stands as a bittersweet anthem of acceptance. It firmly establishes a fresh, highly emotional chapter in the discography, shifting the focus toward internal realization rather than external blame.' 
-      }
-    ]
+      history: [
+        { 
+          heading: 'Before Release', 
+          body: 'Hinted at through the "curse and the chaos" lore posted on July 22, 2026, the thematic core of "good" explores the idea of a light being "just too bright," ultimately blinding both sides of a connection before it could truly thrive.' 
+        }, 
+        { 
+          heading: 'Official Release', 
+          body: 'The single officially dropped on July 24, 2026. Serving as an emotional anchor, the track highlights the tragic realization of what "could\'ve been" if two incompatible forces had aligned differently.' 
+        }, 
+        { 
+          heading: 'After Release', 
+          body: 'In the days following its release, "good" cemented itself as one of the most vulnerable pieces of lyricism in the catalog. The track serves as a quiet reflection on outgrown promises and the inevitability of a slow farewell.' 
+        }
+      ]
   },
+
   {
     id: 'sendoff', 
     title: 'SENDOFF', 
@@ -752,6 +764,26 @@ What do you know?`
 ]
 
 export const NEWS: NewsItem[] = [
+  { 
+    id: 'declassified-collectible', 
+    headline: 'declassified: Virtual Project Collectible is available now!', 
+    preview: 'declassified: Virtual Project Collectible is available now!', 
+    body: "Claim your piece of the archives.\n\nIn celebration of the 1st Anniversary of 'cuts and chances: declassified', we are proud to introduce the Virtual Project Collectible.\n\nThis new interactive experience allows you to make your unique, digital piece of the project directly and exclusively on the studioseven Website. Select your defining track, choose the lyric that resonates the most, and wrap it in the colors of the declassified era, fully customizable with your name and authenticated by studioseven & team7 with a unique reference number.\n\nThe archives are waiting. Create, customize, and share yours now!",
+    date: 'August 12, 2026', 
+    projectId: 'declassified', 
+    url: 'https://ss7-ofc.vercel.app',
+    image: 'https://drive.google.com/file/d/1bs0pk7AR04f73rxeOjFIOPGuuHSJQDQt/view?usp=drive_link'
+  },
+  { 
+    id: 'declassified', 
+    headline: 'a year of cuts and chances, and a lot of things ready to be declassified.', 
+    preview: 'a year of cuts and chances, and a lot of things ready to be declassified.', 
+    body: "‘cuts and chances: declassified’ features an in-depth look at the behind-the-scenes production and development of the sixth project, the first docuseries podcast on studioseven, an exclusive digital project experience on the studioseven website, live versions of the tracks from the project, and the second part of the lead single ‘The Greatest Heist in History,’ titled ‘Half a Lie,’ accompanied by its own music video. all are out first on the studioseven website starting this week. \n\nmore details out soon! ",
+    date: 'August 10, 2026', 
+    projectId: 'declassified', 
+    url: 'https://ss7-ofc.vercel.app',
+    image: 'https://drive.google.com/file/d/1IYhSXHn-LldqT_g8qVpyTHDdlxLsWCtH/view?usp=drive_link'
+  },
   { 
     id: 'leaveitbehind', 
     headline: 'singles "long enough" and "good" out July 24th.', 

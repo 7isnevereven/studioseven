@@ -56,6 +56,7 @@ function ArtistCard({ artist, onOpenArtist }: { artist: Artist, onOpenArtist: (a
 
 function ProjectCard({ project, onOpenModal, avgRating, reviewCount }: { project: Project, onOpenModal: (p: Project) => void, avgRating?: number, reviewCount?: number }) {
   const coverUrl = getCoverUrl(project.coverFile)
+
   return (
     <div className="glass-card" onClick={() => onOpenModal(project)} style={{ display: 'flex', flexDirection: 'column', padding: 16 }}>
       <div style={{ width: '100%', aspectRatio: '1', borderRadius: 20, overflow: 'hidden', backgroundColor: 'var(--bg-surface)', marginBottom: 16, border: '1px solid var(--glass-border-t)' }}>

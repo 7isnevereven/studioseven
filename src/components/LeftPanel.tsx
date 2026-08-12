@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Project, TrackBadge } from '@/data/projects'
+import { Project, TrackBadge, getCoverUrl } from '@/data/projects'
 
 const LOGO_URL = 'https://flrwvmfjjuyoyjeeosls.supabase.co/storage/v1/object/public/misc/ss7.png'
 
@@ -59,8 +59,8 @@ export default function LeftPanel({ project, onOpenModal, onClose }: LeftPanelPr
           </div>
 
           <div style={{ padding: '0 32px', marginBottom: 20, flexShrink: 0 }}>
-            {embedUrl && (
-              <div className="glass-card" style={{ width: '100%', height: 220, borderRadius: 20, padding: 0, overflow: 'hidden', boxShadow: '0 16px 40px var(--shadow-heavy)' }}>
+            <div className="glass-card" style={{ width: '100%', height: 220, borderRadius: 20, padding: 0, overflow: 'hidden', boxShadow: '0 16px 40px var(--shadow-heavy)' }}>
+              {embedUrl ? (
                 <iframe 
                   key={embedUrl}
                   width="100%" height="100%" 
@@ -71,8 +71,14 @@ export default function LeftPanel({ project, onOpenModal, onClose }: LeftPanelPr
                   allowFullScreen
                   style={{ display: 'block', backgroundColor: 'var(--bg-surface)' }}
                 />
-              </div>
-            )}
+              ) : (
+                <img 
+                  src={getCoverUrl('https://drive.google.com/file/d/1IYhSXHn-LldqT_g8qVpyTHDdlxLsWCtH/view?usp=drive_link')} 
+                  alt="Project Cover Preview" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', backgroundColor: 'var(--bg-surface)' }} 
+                />
+              )}
+            </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 6, padding: '0 32px', marginBottom: 32 }}>
