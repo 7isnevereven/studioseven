@@ -1,56 +1,34 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import LeftPanel from '@/components/LeftPanel'
-import RightPanel from '@/components/RightPanel'
-import ProjectModal from '@/components/ProjectModal'
-import ArtistModal from '@/components/ArtistModal'
-import NewsModal from '@/components/NewsModal'
-import { getFeaturedProject, Project, Artist, NewsItem } from '@/data/projects'
-
-export default function Home() {
-  const featuredProject = getFeaturedProject()
-  
-  // App Routing State
-  const [currentView, setCurrentView] = useState<'home' | 'projects' | 'artists' | 'newsroom' | 'about'>('home')
-  
-  // Dynamic Sidebar State (Defaults to true on desktop)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-
-  // Auto-collapse sidebar on mobile devices during initial load
-  useEffect(() => {
-    if (window.innerWidth <= 768) {
-      setIsSidebarOpen(false)
-    }
-  }, [])
-
-  // Modal States
-  const [modalProject, setModalProject] = useState<Project | null>(null)
-  const [modalArtist, setModalArtist] = useState<Artist | null>(null)
-  const [modalNews, setModalNews] = useState<NewsItem | null>(null)
-
-  const toggleSidebar = () => setIsSidebarOpen(prev => !prev)
-
+export default function Page() {
   return (
-    <div className={`app-shell ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-      <LeftPanel 
-        project={featuredProject} 
-        onOpenModal={() => { setModalProject(featuredProject); setIsSidebarOpen(false); }} 
-        onClose={() => setIsSidebarOpen(false)}
+    <main 
+      style={{
+        position: 'fixed',
+        inset: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#000000',
+        color: '#ffffff',
+        textAlign: 'center',
+        padding: '24px',
+        zIndex: 999999
+      }}
+    >
+      <img 
+        src="https://flrwvmfjjuyoyjeeosls.supabase.co/storage/v1/object/public/misc/ss7.png" 
+        alt="studioseven logo" 
+        style={{ height: '32px', opacity: 0.9, marginBottom: '32px' }} 
       />
-
-      <RightPanel 
-        currentView={currentView} 
-        setCurrentView={setCurrentView} 
-        onOpenModal={setModalProject} 
-        onOpenArtist={setModalArtist}
-        onOpenNews={setModalNews}
-        onToggleSidebar={toggleSidebar}
-      />
-
-      <NewsModal news={modalNews} onClose={() => setModalNews(null)} />
-      <ArtistModal artist={modalArtist} onClose={() => setModalArtist(null)} onOpenProject={setModalProject} />
-      <ProjectModal project={modalProject} onClose={() => setModalProject(null)} />
-    </div>
-  )
+      
+      <div style={{ maxWidth: '500px' }}>
+        <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: '32px', fontWeight: 700, margin: '0 0 16px 0', letterSpacing: '-0.02em' }}>
+          Sorry.
+        </h1>
+        <p style={{ fontSize: '16px', lineHeight: '1.6', color: '#a1a1aa', margin: 0 }}>
+          There are internal changes currently happening on studioseven and team7. We are sorry for the inconvenience.
+        </p>
+      </div>
+    </main>
+  );
 }
