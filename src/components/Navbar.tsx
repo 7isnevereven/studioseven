@@ -1,27 +1,47 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 
 const LOGO_URL = 'https://flrwvmfjjuyoyjeeosls.supabase.co/storage/v1/object/public/misc/ss7.png'
 
 interface NavBarProps {
-  currentView: string;
-  setCurrentView: (view: 'home' | 'projects' | 'artists' | 'newsroom' | 'about') => void;
-  onToggleSidebar: () => void;
+  currentView?: string
+  setCurrentView?: (view: 'home' | 'projects' | 'artists' | 'newsroom' | 'about') => void
 }
 
 const NAV_LINKS = [
-  { label: 'Home',     id: 'home' },
-  { label: 'Newsroom', id: 'newsroom' },
-  { label: 'Projects', id: 'projects' },
-  { label: 'Artists',  id: 'artists' },
+  { label: 'Home',     id: 'home',     href: '/' },
+  { label: 'Newsroom', id: 'newsroom', href: '/#newsroom' },
+  { label: 'Projects', id: 'projects', href: '/#projects' },
+  { label: 'Artists',  id: 'artists',  href: '/#artists' },
 ] as const
 
-function SunIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> }
-function MoonIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> }
-function SidebarIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg> }
+function SunIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  )
+}
 
-export default function Navbar({ currentView, setCurrentView, onToggleSidebar }: NavBarProps) {
+function MoonIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  )
+}
+
+export default function Navbar({ currentView = 'home', setCurrentView }: NavBarProps) {
   const [isLight, setIsLight] = useState(false)
 
   useEffect(() => {
@@ -29,41 +49,92 @@ export default function Navbar({ currentView, setCurrentView, onToggleSidebar }:
   }, [])
 
   const toggleTheme = () => {
-    document.body.classList.toggle('light-mode')
-    setIsLight(!isLight)
+    const nextIsLight = !isLight
+    setIsLight(nextIsLight)
+    if (nextIsLight) {
+      document.body.classList.add('light-mode')
+    } else {
+      document.body.classList.remove('light-mode')
+    }
+  }
+
+  const handleNavClick = (id: 'home' | 'projects' | 'artists' | 'newsroom' | 'about') => {
+    if (setCurrentView) {
+      setCurrentView(id)
+    }
   }
 
   return (
-    <nav className="navbar">
+    <header className="navbar-wrapper">
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0, minWidth: 100 }}>
-        <button onClick={onToggleSidebar} className="glass-btn glass-icon-sm" style={{ color: 'var(--text-main)' }}>
-          <SidebarIcon />
-        </button>
-        <div className="navbar-logo-container desktop-only">
-          <img src={LOGO_URL} alt="studioseven" style={{ height: 18, objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
-        </div>
+      {/* Brand Logo only (no text next to it) */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }} title="studioseven">
+          <img
+            src={LOGO_URL}
+            alt="studioseven"
+            className="brand-logo-img"
+          />
+        </Link>
       </div>
 
-      <div className="nav-links" style={{ margin: '0 auto' }}>
-        {NAV_LINKS.map(link => (
-          <button
-            key={link.id}
-            onClick={() => setCurrentView(link.id)}
-            className={`glass-btn glass-pill-sm ${currentView === link.id ? 'active' : ''}`}
-            style={{ letterSpacing: '0.02em', color: currentView === link.id ? 'var(--text-main)' : 'var(--text-muted)' }}
-          >
-            {link.label}
-          </button>
-        ))}
-      </div>
+      {/* Floating Center Dock */}
+      <nav className="liquid-dock nav-links">
+        {NAV_LINKS.map(link => {
+          const isActive = currentView === link.id
+          if (setCurrentView) {
+            return (
+              <button
+                key={link.id}
+                onClick={() => handleNavClick(link.id)}
+                className={`liquid-btn liquid-pill-sm ${isActive ? 'active' : ''}`}
+                style={{
+                  border: 'none',
+                  background: isActive ? 'var(--liquid-glass-active)' : 'transparent',
+                  boxShadow: isActive ? 'var(--liquid-inner-rim-hover), 0 3px 12px rgba(0,0,0,0.18)' : 'none',
+                  color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: 12.5,
+                }}
+              >
+                {link.label}
+              </button>
+            )
+          }
 
-      <div style={{ minWidth: 100, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
-        <button onClick={toggleTheme} className="glass-btn glass-icon-sm" style={{ color: 'var(--text-main)' }}>
+          return (
+            <Link
+              key={link.id}
+              href={link.href}
+              className={`liquid-btn liquid-pill-sm ${isActive ? 'active' : ''}`}
+              style={{
+                border: 'none',
+                textDecoration: 'none',
+                background: isActive ? 'var(--liquid-glass-active)' : 'transparent',
+                boxShadow: isActive ? 'var(--liquid-inner-rim-hover), 0 3px 12px rgba(0,0,0,0.18)' : 'none',
+                color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                fontWeight: isActive ? 700 : 500,
+                fontSize: 12.5,
+              }}
+            >
+              {link.label}
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Theme Toggle */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <button
+          onClick={toggleTheme}
+          className="liquid-btn liquid-icon-sm"
+          title={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+          aria-label="Toggle theme"
+        >
           {isLight ? <MoonIcon /> : <SunIcon />}
         </button>
       </div>
 
-    </nav>
+    </header>
   )
 }
