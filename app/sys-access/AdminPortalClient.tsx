@@ -122,6 +122,8 @@ export default function AdminPortalClient() {
   const [originalProjectId, setOriginalProjectId] = useState<string | null>(null)
   const [projectEditorTab, setProjectEditorTab] = useState<'details' | 'links' | 'tracks' | 'credits' | 'history' | 'showcase'>('details')
   const [savingProject, setSavingProject] = useState(false)
+  const [isCustomArtist, setIsCustomArtist] = useState(false)
+  const [customArtistName, setCustomArtistName] = useState('')
 
   // Artist Editor Modal
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null)
@@ -389,18 +391,49 @@ export default function AdminPortalClient() {
 
     setSavingProject(true)
 
+    let projectToSave = { ...editingProject }
+
+    // If a new custom artist was entered, ensure they are registered and saved to Supabase
+    if (isCustomArtist && customArtistName.trim()) {
+      const trimmedName = customArtistName.trim()
+      const existing = artistsList.find(a => 
+        a.name.toLowerCase() === trimmedName.toLowerCase() || 
+        a.id.toLowerCase() === trimmedName.toLowerCase()
+      )
+
+      if (existing) {
+        projectToSave.artistId = existing.id
+      } else {
+        const newArtistSlug = trimmedName.toLowerCase().replace(/[^a-z0-9_-]/g, '-') || `artist-${Date.now()}`
+        const newArtistObj: Artist = {
+          id: newArtistSlug,
+          name: trimmedName,
+          image: 'ss7.png',
+          bio: '',
+        }
+        await saveArtist(newArtistObj)
+        projectToSave.artistId = newArtistObj.id
+        setArtistsList(prev => {
+          if (prev.some(a => a.id === newArtistObj.id)) return prev
+          return [...prev, newArtistObj].sort((a, b) => a.name.localeCompare(b.name))
+        })
+      }
+    }
+
     // If ID was modified, delete the old ID record first
-    if (originalProjectId && originalProjectId !== editingProject.id) {
+    if (originalProjectId && originalProjectId !== projectToSave.id) {
       await deleteProject(originalProjectId)
     }
 
-    const { error } = await saveProject(editingProject)
+    const { error } = await saveProject(projectToSave)
     if (error) {
       showToast(`Failed to save project: ${error.message}`, 'error')
     } else {
-      showToast(`"${editingProject.title}" saved to Supabase!`)
+      showToast(`"${projectToSave.title}" saved to Supabase!`)
       setEditingProject(null)
       setOriginalProjectId(null)
+      setIsCustomArtist(false)
+      setCustomArtistName('')
       loadContent()
     }
     setSavingProject(false)
@@ -418,11 +451,18 @@ export default function AdminPortalClient() {
       await deleteArtist(originalArtistId)
     }
 
-    const { error } = await saveArtist(editingArtist)
+    const cleanedArtist: Artist = {
+      ...editingArtist,
+      name: editingArtist.name.trim() || 'Unnamed Artist',
+      id: editingArtist.id.trim() || `artist-${Date.now()}`,
+      image: editingArtist.image?.trim() || 'ss7.png'
+    }
+
+    const { error } = await saveArtist(cleanedArtist)
     if (error) {
       showToast(`Failed to save artist: ${error.message}`, 'error')
     } else {
-      showToast(`Artist "${editingArtist.name}" saved to Supabase!`)
+      showToast(`Artist "${cleanedArtist.name}" saved to Supabase!`)
       setEditingArtist(null)
       setOriginalArtistId(null)
       loadContent()
@@ -1056,6 +1096,8 @@ export default function AdminPortalClient() {
                   const newId = `project-${Date.now()}`
                   const defaultCreds = getDefaultProjectCredits({ id: newId, artistId: artistsList[0]?.id || 'ven' })
                   setOriginalProjectId(null)
+                  setIsCustomArtist(false)
+                  setCustomArtistName('')
                   setEditingProject({
                     id: newId,
                     title: '',
@@ -1200,6 +1242,14 @@ export default function AdminPortalClient() {
                           type="button"
                           onClick={() => {
                             setOriginalProjectId(project.id)
+                            const found = artistsList.some(a => a.id.toLowerCase() === project.artistId?.toLowerCase())
+                            if (!found && project.artistId) {
+                              setIsCustomArtist(true)
+                              setCustomArtistName(project.artistId)
+                            } else {
+                              setIsCustomArtist(false)
+                              setCustomArtistName('')
+                            }
                             setEditingProject({
                               ...project,
                               credits: project.credits || getDefaultProjectCredits(project)
@@ -2075,17 +2125,74 @@ export default function AdminPortalClient() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Artist</label>
-                      <select
-                        value={editingProject.artistId}
-                        onChange={e => setEditingProject({ ...editingProject, artistId: e.target.value })}
-                        className="material-input"
-                        style={{ width: '100%', height: 42, padding: '0 16px', borderRadius: 999 }}
-                      >
-                        {artistsList.map(a => (
-                          <option key={a.id} value={a.id} style={{ background: 'var(--bg-surface)' }}>{a.name}</option>
-                        ))}
-                      </select>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Artist</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = !isCustomArtist
+                            setIsCustomArtist(next)
+                            if (next) {
+                              setCustomArtistName('')
+                            } else {
+                              setEditingProject({ ...editingProject, artistId: artistsList[0]?.id || 'ven' })
+                            }
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#38bdf8',
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                        >
+                          {isCustomArtist ? '← Choose Existing' : '+ Enter New Artist'}
+                        </button>
+                      </div>
+
+                      {isCustomArtist ? (
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <input
+                            type="text"
+                            autoFocus
+                            value={customArtistName}
+                            onChange={e => {
+                              const val = e.target.value
+                              setCustomArtistName(val)
+                              setEditingProject({
+                                ...editingProject,
+                                artistId: val.toLowerCase().replace(/[^a-z0-9_-]/g, '-') || 'ven'
+                              })
+                            }}
+                            className="material-input"
+                            style={{ width: '100%', height: 42, padding: '0 16px', borderRadius: 999 }}
+                            placeholder="Enter new artist name..."
+                          />
+                        </div>
+                      ) : (
+                        <select
+                          value={editingProject.artistId}
+                          onChange={e => {
+                            if (e.target.value === '__custom__') {
+                              setIsCustomArtist(true)
+                              setCustomArtistName('')
+                            } else {
+                              setEditingProject({ ...editingProject, artistId: e.target.value })
+                            }
+                          }}
+                          className="material-input"
+                          style={{ width: '100%', height: 42, padding: '0 16px', borderRadius: 999 }}
+                        >
+                          {artistsList.map(a => (
+                            <option key={a.id} value={a.id} style={{ background: 'var(--bg-surface)' }}>{a.name}</option>
+                          ))}
+                          <option value="__custom__" style={{ background: 'var(--bg-surface)', color: '#38bdf8', fontWeight: 700 }}>
+                            + Enter New Artist...
+                          </option>
+                        </select>
+                      )}
                     </div>
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Project Category Type</label>
@@ -2981,16 +3088,15 @@ export default function AdminPortalClient() {
 
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                  Avatar Image File or URL *
+                  Avatar Image File or URL (Optional)
                 </label>
                 <input
                   type="text"
-                  required
                   value={editingArtist.image}
                   onChange={e => setEditingArtist({ ...editingArtist, image: e.target.value })}
                   className="material-input"
                   style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
-                  placeholder="e.g. ven.png, star.jpg, or external URL"
+                  placeholder="e.g. ven.png, or URL (defaults to ss7.png)"
                 />
               </div>
 
