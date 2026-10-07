@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { Project, Track, TrackBadge, getCoverUrl, ProjectRating } from '@/data/projects'
+import { Project, Track, TrackBadge, getCoverUrl, ProjectRating, getReadableAccent, getDefaultProjectCredits, getDefaultTrackCredits, formatTrackCreditsSummary } from '@/data/projects'
 import { supabase } from '../utils/supabase'
 import CollectibleWizard from './CollectibleWizard'
 import VerifyCollectibleModal from './VerifyCollectibleModal'
@@ -114,9 +114,10 @@ export default function ProjectModal({
   onClose: () => void
   onPlayProject?: (p: Project) => void
 }) {
-  const [tab, setTab] = useState<'tracklist' | 'history' | 'ratings'>('tracklist')
+  const [tab, setTab] = useState<'tracklist' | 'history' | 'credits' | 'ratings'>('tracklist')
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
   const [isClosing, setIsClosing] = useState(false)
+  const projectCredits = project ? (project.credits || getDefaultProjectCredits(project)) : undefined
   
   // Collectible Wizard Modal States
   const [showCollectibleWizard, setShowCollectibleWizard] = useState(false)
@@ -432,6 +433,13 @@ export default function ProjectModal({
                   History
                 </button>
                 <button
+                  onClick={() => { setTab('credits'); setSelectedTrack(null); resetForm(); }}
+                  className={`liquid-btn liquid-pill-sm ${tab === 'credits' && !selectedTrack ? 'active' : ''}`}
+                  style={{ flex: 1 }}
+                >
+                  Credits
+                </button>
+                <button
                   onClick={() => { setTab('ratings'); setSelectedTrack(null); resetForm(); }}
                   className={`liquid-btn liquid-pill-sm ${tab === 'ratings' && !selectedTrack ? 'active' : ''}`}
                   style={{ flex: 1 }}
@@ -454,6 +462,13 @@ export default function ProjectModal({
                   style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 20px' }}
                 >
                   History
+                </button>
+                <button
+                  onClick={() => { setTab('credits'); setSelectedTrack(null); resetForm(); }}
+                  className={`liquid-btn liquid-pill ${tab === 'credits' && !selectedTrack ? 'active' : ''}`}
+                  style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 20px' }}
+                >
+                  Credits
                 </button>
                 <button
                   onClick={() => { setTab('ratings'); setSelectedTrack(null); resetForm(); }}
@@ -483,6 +498,30 @@ export default function ProjectModal({
                     <h3 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-main)', marginBottom: 6, letterSpacing: '-0.025em' }}>
                       {selectedTrack.title}
                     </h3>
+
+                    {/* Track Credits */}
+                    {(() => {
+                      const trackCredits = selectedTrack.credits || getDefaultTrackCredits(selectedTrack.title, projectCredits)
+                      return (
+                        <div style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: 12,
+                          padding: '10px 14px',
+                          borderRadius: 14,
+                          background: 'var(--bg-surface-variant)',
+                          border: '1px solid var(--border-subtle)',
+                          marginBottom: 16,
+                          fontSize: 12,
+                          color: 'var(--text-muted)'
+                        }}>
+                          {trackCredits.writtenBy && <div><strong>Written:</strong> {trackCredits.writtenBy}</div>}
+                          {trackCredits.producedBy && <div><strong>Produced:</strong> {trackCredits.producedBy}</div>}
+                          {trackCredits.featuredArtists && <div><strong>Feat:</strong> {trackCredits.featuredArtists}</div>}
+                          {trackCredits.additionalCredits && <div>{trackCredits.additionalCredits}</div>}
+                        </div>
+                      )
+                    })()}
 
                     {avgRating > 0 && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
@@ -540,9 +579,14 @@ export default function ProjectModal({
                                 <span style={{ fontSize: 12, color: 'var(--text-faint)', width: 22, fontWeight: 500 }}>
                                   {i + 1}
                                 </span>
-                                <span style={{ fontSize: 14, color: 'var(--text-main)', fontWeight: 600, letterSpacing: '-0.01em' }}>
-                                  {track.title}
-                                </span>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                  <span style={{ fontSize: 14, color: 'var(--text-main)', fontWeight: 600, letterSpacing: '-0.01em' }}>
+                                    {track.title}
+                                  </span>
+                                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                                    {formatTrackCreditsSummary(track, projectCredits)}
+                                  </span>
+                                </div>
                                 
                                 {trackAvg > 0 && (
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8 }}>
@@ -577,6 +621,72 @@ export default function ProjectModal({
                             </p>
                           </div>
                         ))}
+                        <div style={{ height: 40, width: '100%', flexShrink: 0 }} />
+                      </div>
+                    )}
+
+                    {tab === 'credits' && projectCredits && (
+                      <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        <div className="liquid-glass-card" style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                          <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-main)' }}>
+                            Executive Credits
+                          </h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, fontSize: 13 }}>
+                            <div>
+                              <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block' }}>Written By</span>
+                              <strong style={{ color: 'var(--text-main)' }}>{projectCredits.writtenBy || 'VEN'}</strong>
+                            </div>
+                            <div>
+                              <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block' }}>Produced By</span>
+                              <strong style={{ color: 'var(--text-main)' }}>{projectCredits.producedBy || 'VEN'}</strong>
+                            </div>
+                            <div>
+                              <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block' }}>Released Under</span>
+                              <strong style={{ color: 'var(--text-main)' }}>{projectCredits.releasedUnder || 'studioseven'}</strong>
+                            </div>
+                            {projectCredits.collaboration && (
+                              <div>
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block' }}>Collaboration</span>
+                                <strong style={{ color: 'var(--accent-color)' }}>{projectCredits.collaboration}</strong>
+                              </div>
+                            )}
+                            {projectCredits.featuredArtists && (
+                              <div>
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block' }}>Featured Artists</span>
+                                <strong style={{ color: 'var(--text-main)' }}>{projectCredits.featuredArtists}</strong>
+                              </div>
+                            )}
+                          </div>
+                          {projectCredits.additionalNotes && (
+                            <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6, paddingTop: 12, borderTop: '1px solid var(--border-subtle)', margin: 0 }}>
+                              {projectCredits.additionalNotes}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            Individual Track Credits
+                          </h4>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {project?.tracks.map((track, i) => (
+                              <div
+                                key={i}
+                                onClick={() => { setSelectedTrack(track); resetForm(); }}
+                                className="liquid-glass-card"
+                                style={{ padding: '12px 18px', cursor: 'pointer', borderRadius: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                              >
+                                <div>
+                                  <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-main)' }}>{track.title}</span>
+                                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                                    {formatTrackCreditsSummary(track, projectCredits)}
+                                  </div>
+                                </div>
+                                <span style={{ fontSize: 12, color: 'var(--accent-color)' }}>View →</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                         <div style={{ height: 40, width: '100%', flexShrink: 0 }} />
                       </div>
                     )}

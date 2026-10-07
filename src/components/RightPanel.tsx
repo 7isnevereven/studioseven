@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { PROJECTS, ARTISTS, NEWS, Project, Artist, getCoverUrl, formatTimeAgo, TrackBadge } from '@/data/projects'
+import { ARTISTS, Project, Artist, getCoverUrl, formatTimeAgo, TrackBadge, getReadableAccent } from '@/data/projects'
 import type { NewsItem } from '@/data/projects'
 import Navbar from '@/components/Navbar'
+import { getLiveNews, getLiveProjects, getLiveArtists, sortNewsByDateDesc } from '@/utils/dataStore'
 import { supabase } from '../utils/supabase'
 
 const LOGO_URL = 'https://flrwvmfjjuyoyjeeosls.supabase.co/storage/v1/object/public/misc/ss7.png'
@@ -127,21 +128,21 @@ function Badge({ type }: { type: TrackBadge }) {
 }
 
 /* NEWS CARD */
-function NewsCard({ item }: { item: NewsItem }) {
-  const project = PROJECTS.find(p => p.id === item.projectId)
+function NewsCard({ item, projects = [] }: { item: NewsItem, projects?: Project[] }) {
+  const project = projects.find(p => p.id === item.projectId)
   const imageUrl = item.image ? getCoverUrl(item.image) : (project ? getCoverUrl(project.coverFile) : '')
 
   return (
     <Link href={`/news/${item.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-      <div className="liquid-glass-card" style={{ display: 'flex', flexDirection: 'column', padding: 18, height: '100%' }}>
+      <div className="material-card" style={{ display: 'flex', flexDirection: 'column', padding: 20, height: '100%', borderRadius: 30 }}>
         <div style={{
           width: '100%',
           aspectRatio: '16/9',
-          borderRadius: 16,
+          borderRadius: 22,
           overflow: 'hidden',
           backgroundColor: 'var(--bg-surface-solid)',
           marginBottom: 16,
-          border: '1px solid var(--glass-border-outer)',
+          border: '1px solid var(--border-subtle)',
           position: 'relative'
         }}>
           {imageUrl && (
@@ -164,20 +165,96 @@ function NewsCard({ item }: { item: NewsItem }) {
   )
 }
 
-/* PROJECT CARD */
-function ProjectCard({ project, avgRating }: { project: Project, avgRating?: number }) {
+const DEFAULT_PROJECT_SUBTITLES: Record<string, string> = {
+  'what-do-you-know': 'The 7th Project',
+  'saccharin': 'Official Movie Soundtrack',
+  'cicatrix': 'The 6th Project – Deluxe',
+  'cuts-and-chances': 'The 6th Project',
+  'star': 'The 5th Project',
+  'when-the-night-falls': 'A Tribute to Hiro Jin',
+  'cuts-chances-declassified': 'The 4th Project (Declassified)',
+  'connections': 'The 4th Project',
+  'something': 'The 3rd Project',
+  'bubble': 'The 2nd Project',
+  'beginnings': 'The 1st Project',
+}
+
+function getProjectOwnerName(project: Project, artists: Artist[]): string {
+  const match = artists.find(a => a.id.toLowerCase() === project.artistId?.toLowerCase())
+  if (match) return match.name
+  if (project.credits?.writtenBy) return project.credits.writtenBy
+  if (project.artistId) return project.artistId.toUpperCase()
+  return 'VEN'
+}
+
+function matchesArtist(project: Project, artistId: string, artists: Artist[]): boolean {
+  if (artistId === 'all') return true
+  const lowerId = artistId.toLowerCase().trim()
+  if (project.artistId?.toLowerCase().trim() === lowerId) return true
+
+  // Check collaborations / featured artists
+  if (lowerId === 'jhuzz') {
+    if (project.id === 'star' || project.credits?.featuredArtists?.toLowerCase().includes('jhuzz')) return true
+  }
+  if (lowerId === '13') {
+    if (project.id === 'cicatrix' || project.credits?.featuredArtists?.toLowerCase().includes('13')) return true
+  }
+
+  const artistObj = artists.find(a => a.id.toLowerCase() === lowerId)
+  if (artistObj) {
+    const lowerName = artistObj.name.toLowerCase()
+    if (project.credits?.writtenBy?.toLowerCase().includes(lowerName)) return true
+    if (project.credits?.featuredArtists?.toLowerCase().includes(lowerName)) return true
+  }
+  return false
+}
+
+/* PROJECT CARD — Colors matching the project cover art */
+function ProjectCard({
+  project,
+  avgRating,
+  showArtist = true,
+  artists = []
+}: {
+  project: Project
+  avgRating?: number
+  showArtist?: boolean
+  artists?: Artist[]
+}) {
   const coverUrl = getCoverUrl(project.coverFile)
+  const readableAccent = getReadableAccent(project.accentColor)
+  const subtitle = project.subtitle || DEFAULT_PROJECT_SUBTITLES[project.id]
+  const ownerName = getProjectOwnerName(project, artists)
+
   return (
     <Link href={`/projects/${project.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-      <div className="liquid-glass-card" style={{ display: 'flex', flexDirection: 'column', padding: 16, cursor: 'pointer', height: '100%' }}>
+      <div
+        className="material-card"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          padding: 18,
+          cursor: 'pointer',
+          height: '100%',
+          borderRadius: 30,
+          background: `linear-gradient(165deg, ${readableAccent}18 0%, var(--bg-surface) 65%)`,
+          border: `1px solid ${readableAccent}35`,
+          boxShadow: `0 4px 18px ${readableAccent}12, var(--elevation-1)`,
+        }}
+      >
         <div style={{
-          width: '100%', aspectRatio: '1', borderRadius: 16, overflow: 'hidden',
+          width: '100%', aspectRatio: '1', borderRadius: 22, overflow: 'hidden',
           backgroundColor: 'var(--bg-surface-solid)', marginBottom: 14,
-          border: '1px solid var(--glass-border-outer)'
+          border: `1px solid ${readableAccent}25`
         }}>
           {coverUrl && <img src={coverUrl} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 2px', flex: 1 }}>
+          {subtitle && (
+            <span style={{ fontSize: 11, fontWeight: 700, color: readableAccent, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {subtitle}
+            </span>
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
             <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.25, letterSpacing: '-0.02em' }}>
               {project.title}
@@ -189,7 +266,15 @@ function ProjectCard({ project, avgRating }: { project: Project, avgRating?: num
               </div>
             ) : null}
           </div>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{project.releaseLabel}</p>
+
+          {/* Owner attribution shown on 'All' category; hidden when a specific artist filter is selected */}
+          {showArtist && (
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500, margin: '1px 0 0 0' }}>
+              A project by <strong style={{ color: 'var(--text-main)', fontWeight: 600 }}>{ownerName}</strong>
+            </p>
+          )}
+
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: showArtist ? 0 : 2 }}>{project.releaseLabel}</p>
         </div>
       </div>
     </Link>
@@ -197,18 +282,18 @@ function ProjectCard({ project, avgRating }: { project: Project, avgRating?: num
 }
 
 /* ARTIST CARD */
-function ArtistCard({ artist }: { artist: Artist }) {
+function ArtistCard({ artist, projects = [] }: { artist: Artist, projects?: Project[] }) {
   const imgUrl = getCoverUrl(artist.image)
   const artistProjects = artist.id === 'jhuzz'
-    ? PROJECTS.filter(p => p.id === 'star')
+    ? projects.filter(p => p.id === 'star')
     : artist.id === '13'
-    ? PROJECTS.filter(p => p.id === 'cicatrix')
-    : PROJECTS.filter(p => p.artistId === artist.id)
+    ? projects.filter(p => p.id === 'cicatrix')
+    : projects.filter(p => p.artistId === artist.id)
 
   return (
     <Link href={`/artists/${artist.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-      <div className="liquid-glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '30px 18px', cursor: 'pointer', textAlign: 'center', height: '100%' }}>
-        <div style={{ width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--glass-border-specular-top)', backgroundColor: 'var(--bg-surface-solid)' }}>
+      <div className="material-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '30px 18px', cursor: 'pointer', textAlign: 'center', height: '100%', borderRadius: 30 }}>
+        <div style={{ width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border-default)', backgroundColor: 'var(--bg-surface-solid)' }}>
           {imgUrl && <img src={imgUrl} alt={artist.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -229,14 +314,48 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
   const [view, setView] = useState<'home' | 'projects' | 'artists' | 'newsroom' | 'about'>(currentView)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
+  const [artistFilter, setArtistFilter] = useState<string>('all')
   const [ratingsMap, setRatingsMap] = useState<Record<string, { avg: number, count: number }>>({})
+  const [allProjects, setAllProjects] = useState<Project[]>([])
+  const [allNews, setAllNews] = useState<NewsItem[]>([])
+  const [allArtists, setAllArtists] = useState<Artist[]>(ARTISTS)
+  const [loading, setLoading] = useState(true)
+  const [dbError, setDbError] = useState<string | null>(null)
 
-  // The 3 latest projects
-  const latest3Projects = [
-    PROJECTS.find(p => p.id === 'what-do-you-know')!,
-    PROJECTS.find(p => p.id === 'saccharin')!,
-    PROJECTS.find(p => p.id === 'cicatrix')!,
-  ].filter(Boolean)
+  // Pure Supabase Data Fetching — Shows error message if connection fails
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    setDbError(null)
+    const [projRes, newsRes, artistsRes] = await Promise.all([
+      getLiveProjects(),
+      getLiveNews(),
+      getLiveArtists(),
+    ])
+    if (projRes.error || newsRes.error) {
+      setDbError(projRes.error || newsRes.error)
+    } else {
+      setAllProjects(projRes.data)
+      setAllNews(newsRes.data)
+      if (artistsRes.data && artistsRes.data.length > 0) {
+        setAllArtists(artistsRes.data)
+      }
+    }
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  // Homescreen Showcase Projects: priority to projects marked as featured by admin, sorted strictly by showcaseOrder
+  const featuredProjects = allProjects
+    .filter(p => p.featured)
+    .sort((a, b) => (a.showcaseOrder ?? 999) - (b.showcaseOrder ?? 999))
+  const latest3Projects = featuredProjects.length >= 3
+    ? featuredProjects.slice(0, 3)
+    : (featuredProjects.length > 0
+        ? [...featuredProjects, ...allProjects.filter(p => !p.featured)].slice(0, 3)
+        : allProjects.slice(0, 3))
 
   const [activeIdx, setActiveIdx] = useState(0)
   const [progress, setProgress] = useState(0)
@@ -310,14 +429,19 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
     return () => { supabase.removeChannel(channel) }
   }, [])
 
-  const filteredProjects = PROJECTS.filter(p => p.title.toLowerCase().includes(search.toLowerCase()))
+  const filteredProjects = allProjects
+    .filter(p => {
+      const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase())
+      const matchesCreator = matchesArtist(p, artistFilter, allArtists)
+      return matchesSearch && matchesCreator
+    })
     .sort((a, b) => sort === 'newest'
       ? new Date(b.releasedAt).getTime() - new Date(a.releasedAt).getTime()
       : new Date(a.releasedAt).getTime() - new Date(b.releasedAt).getTime())
 
   const activeProject = latest3Projects[activeIdx] || latest3Projects[0]
   const titleFontStyle = PROJECT_FONT_STYLES[activeProject?.id] || {}
-  const description = PROJECT_DESCRIPTIONS[activeProject?.id] || ''
+  const description = activeProject?.description || PROJECT_DESCRIPTIONS[activeProject?.id] || ''
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100vh' }}>
@@ -326,6 +450,54 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
       <div className="navbar-spacer" />
 
       <main className="main-wrapper">
+
+        {/* Database Connection Error State */}
+        {dbError && (
+          <div
+            className="material-card animate-in"
+            style={{
+              padding: '36px 32px',
+              borderRadius: 30,
+              textAlign: 'center',
+              border: '1px solid rgba(239, 68, 68, 0.45)',
+              background: 'rgba(239, 68, 68, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 36
+            }}
+          >
+            <div style={{ fontSize: 32 }}>⚠️</div>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#ef4444' }}>
+              Database Connection Error
+            </h3>
+            <p style={{ fontSize: 13.5, color: 'var(--text-muted)', maxWidth: 480, lineHeight: 1.6 }}>
+              Unable to load live releases and news from Supabase ({dbError}).
+            </p>
+            <button
+              onClick={loadData}
+              className="material-btn material-pill"
+              style={{
+                background: 'var(--text-main)',
+                color: 'var(--bg-base)',
+                borderColor: 'var(--text-main)',
+                fontWeight: 700,
+                fontSize: 13,
+                padding: '8px 22px'
+              }}
+            >
+              Retry Connection
+            </button>
+          </div>
+        )}
+
+        {/* Initial Loading Indicator */}
+        {loading && !dbError && (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)', fontSize: 14 }}>
+            Connecting to live studio database...
+          </div>
+        )}
 
         {/* HOME VIEW */}
         {view === 'home' && (
@@ -352,9 +524,15 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
                 </div>
               </div>
 
-              {/* Compact hero banner */}
+              {/* Compact hero banner matching project colors */}
               {activeProject && (
-                <div className="showcase-banner-card">
+                <div
+                  className="showcase-banner-card"
+                  style={{
+                    borderColor: `${activeProject.accentColor || '#333'}55`,
+                    boxShadow: `0 8px 32px ${activeProject.accentColor || '#000'}28, var(--elevation-2)`
+                  }}
+                >
                   {/* Cover art as background */}
                   <img
                     key={activeProject.id}
@@ -364,14 +542,54 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
                     style={{ animation: 'bannerEnter 0.7s cubic-bezier(0.16, 1, 0.3, 1) both' }}
                   />
 
-                  {/* Dual gradient overlay for optimal legibility */}
-                  <div className="showcase-banner-overlay" />
-
-                  {/* Auto-play progress bar */}
+                  {/* Dual gradient overlay infused with project's cover art accentColor */}
                   <div
-                    className="showcase-progress-bar"
-                    style={{ width: `${progress}%`, transition: `width ${TICK}ms linear` }}
+                    className="showcase-banner-overlay"
+                    style={{
+                      background: `linear-gradient(
+                        90deg,
+                        rgba(14, 14, 14, 0.96) 0%,
+                        ${activeProject.accentColor}bb 44%,
+                        rgba(14, 14, 14, 0.50) 80%,
+                        rgba(14, 14, 14, 0.75) 100%
+                      ),
+                      linear-gradient(
+                        to top,
+                        rgba(14, 14, 14, 0.88) 0%,
+                        ${activeProject.accentColor}55 50%,
+                        transparent 100%
+                      )`
+                    }}
                   />
+
+                  {/* Minimal Circular Progress Indicator on Top Right */}
+                  <div
+                    className="showcase-progress-ring-wrap"
+                    title={`Slide auto-advancing (${Math.round(progress)}%)`}
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="8.5"
+                        fill="none"
+                        stroke="rgba(255, 255, 255, 0.22)"
+                        strokeWidth="2.2"
+                      />
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="8.5"
+                        fill="none"
+                        stroke="#ffffff"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeDasharray={53.4}
+                        strokeDashoffset={53.4 * (1 - progress / 100)}
+                        style={{ transition: `stroke-dashoffset ${TICK}ms linear` }}
+                      />
+                    </svg>
+                  </div>
 
                   {/* Content area: Left details + Right thumbnail strip */}
                   <div className="showcase-banner-content">
@@ -385,7 +603,7 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
                         letterSpacing: '0.08em',
                         width: 'fit-content'
                       }}>
-                        {activeProject.releaseLabel}
+                        {activeProject.showcaseLabel || activeProject.releaseLabel}
                       </span>
 
                       <h3 style={{
@@ -419,19 +637,16 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                         <Link
                           href={`/projects/${activeProject.id}`}
-                          className="liquid-btn liquid-pill-sm"
+                          className="material-btn material-pill-sm"
                           style={{
-                            background: 'rgba(255,255,255,0.22)',
-                            borderTopColor: 'rgba(255,255,255,0.7)',
-                            borderColor: 'rgba(255,255,255,0.3)',
-                            color: '#fff',
+                            background: 'var(--text-main)',
+                            borderColor: 'var(--text-main)',
+                            color: 'var(--bg-base)',
                             fontWeight: 700,
                             gap: 6,
                             textDecoration: 'none',
-                            backdropFilter: 'blur(16px) saturate(180%)',
-                            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
                             fontSize: 12.5,
-                            padding: '6px 14px',
+                            padding: '8px 16px',
                           }}
                         >
                           <span>Explore Project</span>
@@ -495,7 +710,7 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
                 </button>
               </div>
               <div className="grid-3">
-                {NEWS.slice(0, 6).map(item => <NewsCard key={item.id} item={item} />)}
+                {allNews.slice(0, 6).map(item => <NewsCard key={item.id} item={item} projects={allProjects} />)}
               </div>
               <button onClick={() => handleSetView('newsroom')} className="liquid-btn liquid-pill mobile-only" style={{ width: '100%', marginTop: 20 }}>
                 View All News
@@ -509,16 +724,22 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
                   <h2 className="section-title">Releases</h2>
                 </div>
                 <button onClick={() => handleSetView('projects')} className="liquid-btn liquid-pill-sm desktop-only" style={{ gap: 6 }}>
-                  <span>View All ({PROJECTS.length})</span>
+                  <span>View All ({allProjects.length})</span>
                   <ArrowUpRightIcon />
                 </button>
               </div>
               <div className="grid-4">
-                {PROJECTS.slice(0, 8).map(project => (
-                  <ProjectCard key={project.id} project={project} avgRating={ratingsMap[project.id]?.avg} />
+                {allProjects.slice(0, 5).map(project => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    avgRating={ratingsMap[project.id]?.avg}
+                    showArtist={true}
+                    artists={allArtists}
+                  />
                 ))}
               </div>
-              <button onClick={() => handleSetView('projects')} className="liquid-btn liquid-pill mobile-only" style={{ width: '100%', marginTop: 20 }}>
+              <button onClick={() => handleSetView('projects')} className="material-btn material-pill mobile-only" style={{ width: '100%', marginTop: 20 }}>
                 View All Projects
               </button>
             </section>
@@ -529,13 +750,13 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
                 <div>
                   <h2 className="section-title">Artists & Collective</h2>
                 </div>
-                <button onClick={() => handleSetView('artists')} className="liquid-btn liquid-pill-sm desktop-only" style={{ gap: 6 }}>
+                <button onClick={() => handleSetView('artists')} className="material-btn material-pill-sm desktop-only" style={{ gap: 6 }}>
                   <span>View All</span>
                   <ArrowUpRightIcon />
                 </button>
               </div>
               <div className="grid-artists">
-                {ARTISTS.map(artist => <ArtistCard key={artist.id} artist={artist} />)}
+                {allArtists.map(artist => <ArtistCard key={artist.id} artist={artist} projects={allProjects} />)}
               </div>
             </section>
 
@@ -545,12 +766,15 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
         {/* ALL PROJECTS VIEW */}
         {view === 'projects' && (
           <section className="animate-in">
-            <div style={{ marginBottom: 24 }}>
-              <h2 className="section-title">All Projects</h2>
+            <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
+              <div>
+                <h2 className="section-title">All Projects</h2>
+              </div>
             </div>
-            <div className="search-filter-container">
-              <div style={{ position: 'relative', flex: 1, minWidth: 260, maxWidth: 360 }}>
-                <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', pointerEvents: 'none', display: 'flex' }}>
+
+            <div className="search-filter-container" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ position: 'relative', width: '100%' }}>
+                <div style={{ position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', pointerEvents: 'none', display: 'flex' }}>
                   <SearchIcon />
                 </div>
                 <input
@@ -558,25 +782,126 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
                   placeholder="Search releases..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="liquid-input liquid-pill"
-                  style={{ width: '100%', paddingLeft: 44, height: 42 }}
+                  className="material-input"
+                  style={{ width: '100%', paddingLeft: 48, height: 46, borderRadius: 999 }}
                 />
               </div>
-              <select
-                value={sort}
-                onChange={e => setSort(e.target.value as any)}
-                className="liquid-input liquid-pill"
-                style={{ cursor: 'pointer', height: 42, paddingRight: 32 }}
+
+              {/* Filters row: Artist category dropdown + Sort dropdown */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                  <label htmlFor="artist-filter-select" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>
+                    Creator:
+                  </label>
+                  <select
+                    id="artist-filter-select"
+                    value={artistFilter}
+                    onChange={e => setArtistFilter(e.target.value)}
+                    className="material-input"
+                    style={{
+                      cursor: 'pointer',
+                      height: 40,
+                      paddingRight: 32,
+                      paddingLeft: 16,
+                      borderRadius: 999,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      colorScheme: 'dark'
+                    }}
+                    title="Filter projects by specific artist"
+                  >
+                    <option value="all" style={{ background: 'var(--bg-surface-solid)', color: 'var(--text-main)' }}>
+                      All Projects ({allProjects.length})
+                    </option>
+                    {allArtists.map(artist => {
+                      const count = allProjects.filter(p => matchesArtist(p, artist.id, allArtists)).length
+                      return (
+                        <option
+                          key={artist.id}
+                          value={artist.id}
+                          style={{ background: 'var(--bg-surface-solid)', color: 'var(--text-main)' }}
+                        >
+                          {artist.name} ({count})
+                        </option>
+                      )
+                    })}
+                  </select>
+
+                  {artistFilter !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => setArtistFilter('all')}
+                      className="material-btn material-pill-sm"
+                      style={{ fontSize: 12, padding: '5px 14px', gap: 6 }}
+                    >
+                      <span>Show All</span>
+                      <span style={{ fontSize: 10 }}>✕</span>
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <label htmlFor="sort-filter-select" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>
+                    Sort:
+                  </label>
+                  <select
+                    id="sort-filter-select"
+                    value={sort}
+                    onChange={e => setSort(e.target.value as any)}
+                    className="material-input"
+                    style={{ cursor: 'pointer', height: 40, paddingRight: 32, paddingLeft: 18, borderRadius: 999, fontSize: 13, colorScheme: 'dark' }}
+                  >
+                    <option value="newest" style={{ background: 'var(--bg-surface-solid)', color: 'var(--text-main)' }}>Newest First</option>
+                    <option value="oldest" style={{ background: 'var(--bg-surface-solid)', color: 'var(--text-main)' }}>Oldest First</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {filteredProjects.length === 0 ? (
+              <div
+                className="material-card"
+                style={{
+                  padding: '48px 24px',
+                  borderRadius: 28,
+                  textAlign: 'center',
+                  marginTop: 18,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 12
+                }}
               >
-                <option value="newest" style={{ background: 'var(--bg-surface-solid)', color: 'var(--text-main)' }}>Newest First</option>
-                <option value="oldest" style={{ background: 'var(--bg-surface-solid)', color: 'var(--text-main)' }}>Oldest First</option>
-              </select>
-            </div>
-            <div className="grid-4">
-              {filteredProjects.map(project => (
-                <ProjectCard key={project.id} project={project} avgRating={ratingsMap[project.id]?.avg} />
-              ))}
-            </div>
+                <div style={{ fontSize: 32 }}>🔍</div>
+                <h3 style={{ fontSize: 16, fontWeight: 700 }}>No projects found</h3>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                  No releases match the current filters.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch('')
+                    setArtistFilter('all')
+                  }}
+                  className="material-btn material-pill-sm"
+                  style={{ fontWeight: 700, padding: '7px 18px', marginTop: 4 }}
+                >
+                  Reset All Filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid-4" style={{ marginTop: 8 }}>
+                {filteredProjects.map(project => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    avgRating={ratingsMap[project.id]?.avg}
+                    showArtist={artistFilter === 'all'}
+                    artists={allArtists}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         )}
 
@@ -587,7 +912,7 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
               <h2 className="section-title">Newsroom</h2>
             </div>
             <div className="grid-3">
-              {NEWS.map(item => <NewsCard key={item.id} item={item} />)}
+              {allNews.map(item => <NewsCard key={item.id} item={item} projects={allProjects} />)}
             </div>
           </section>
         )}
@@ -599,7 +924,7 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
               <h2 className="section-title">Artists & Collective</h2>
             </div>
             <div className="grid-artists">
-              {ARTISTS.map(artist => <ArtistCard key={artist.id} artist={artist} />)}
+              {allArtists.map(artist => <ArtistCard key={artist.id} artist={artist} projects={allProjects} />)}
             </div>
           </section>
         )}

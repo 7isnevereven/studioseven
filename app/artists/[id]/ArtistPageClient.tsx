@@ -2,18 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Artist, Project, PROJECTS, getCoverUrl } from '@/data/projects'
+import { Artist, Project, getCoverUrl } from '@/data/projects'
+import { getLiveProjects } from '@/utils/dataStore'
+import Navbar from '@/components/Navbar'
 
 const LOGO_URL = 'https://flrwvmfjjuyoyjeeosls.supabase.co/storage/v1/object/public/misc/ss7.png'
-
-function ArrowLeftIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="19" y1="12" x2="5" y2="12"></line>
-      <polyline points="12 19 5 12 12 5"></polyline>
-    </svg>
-  )
-}
 
 function SpotifyIcon() {
   return (
@@ -31,108 +24,66 @@ function YouTubeIcon() {
   )
 }
 
-function SunIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="5"/>
-      <line x1="12" y1="1" x2="12" y2="3"/>
-      <line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/>
-      <line x1="21" y1="12" x2="23" y2="12"/>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-    </svg>
-  )
-}
-
-function MoonIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>
-  )
-}
-
 export default function ArtistPageClient({ artist }: { artist: Artist }) {
-  const [isLight, setIsLight] = useState(false)
+  const [liveProjects, setLiveProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const [dbError, setDbError] = useState<string | null>(null)
+
+  const loadProjects = async () => {
+    setLoading(true)
+    setDbError(null)
+    const res = await getLiveProjects()
+    if (res.error) {
+      setDbError(res.error)
+    } else {
+      setLiveProjects(res.data)
+    }
+    setLoading(false)
+  }
 
   useEffect(() => {
-    setIsLight(document.body.classList.contains('light-mode'))
+    loadProjects()
   }, [])
-
-  const toggleTheme = () => {
-    const nextIsLight = !isLight
-    setIsLight(nextIsLight)
-    if (nextIsLight) {
-      document.body.classList.add('light-mode')
-    } else {
-      document.body.classList.remove('light-mode')
-    }
-  }
 
   const profileUrl = getCoverUrl(artist.image)
   const artistProjects = artist.id === 'jhuzz' 
-    ? PROJECTS.filter(p => p.id === 'star') 
+    ? liveProjects.filter(p => p.id === 'star') 
     : artist.id === '13'
-    ? PROJECTS.filter(p => p.id === 'cicatrix')
-    : PROJECTS.filter(p => p.artistId === artist.id)
+    ? liveProjects.filter(p => p.id === 'cicatrix')
+    : liveProjects.filter(p => p.artistId === artist.id)
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-base)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column' }}>
       
-      {/* Top Floating Navbar */}
-      <header className="navbar-wrapper">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <Link href="/#artists" className="liquid-btn liquid-pill-sm" style={{ gap: 8, textDecoration: 'none' }}>
-            <ArrowLeftIcon />
-            <span>Artists</span>
-          </Link>
-          <Link href="/" title="studioseven" style={{ display: 'flex', alignItems: 'center' }}>
-            <img src={LOGO_URL} alt="studioseven" className="brand-logo-img" />
-          </Link>
-        </div>
-
-        <nav className="liquid-dock nav-links">
-          <Link href="/" className="liquid-btn liquid-pill-sm" style={{ border: 'none', background: 'transparent' }}>Home</Link>
-          <Link href="/#newsroom" className="liquid-btn liquid-pill-sm" style={{ border: 'none', background: 'transparent' }}>Newsroom</Link>
-          <Link href="/#projects" className="liquid-btn liquid-pill-sm" style={{ border: 'none', background: 'transparent' }}>Projects</Link>
-          <Link href="/#artists" className="liquid-btn liquid-pill-sm active" style={{ border: 'none' }}>Artists</Link>
-        </nav>
-
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <button onClick={toggleTheme} className="liquid-btn liquid-icon-sm" title="Toggle theme">
-            {isLight ? <MoonIcon /> : <SunIcon />}
-          </button>
-        </div>
-      </header>
+      {/* Top Navbar */}
+      <Navbar currentView="artists" backTo={{ href: '/#artists', label: 'Artists' }} />
 
       {/* Navbar spacer for fixed header */}
       <div className="navbar-spacer" />
 
       {/* Main Full-Page Content */}
-      <main style={{ maxWidth: 1140, margin: '0 auto', width: '100%', padding: '24px 28px 80px 28px', display: 'flex', flexDirection: 'column', gap: 48 }}>
+      <main style={{ maxWidth: 1140, margin: '0 auto', width: '100%', padding: '36px 28px 80px 28px', display: 'flex', flexDirection: 'column', gap: 48 }}>
         
         {/* Artist Profile Hero Card */}
         <section
-          className="liquid-glass-card"
+          className="material-card detail-hero-grid"
           style={{
             padding: '40px 48px',
             display: 'grid',
             gridTemplateColumns: '180px 1fr',
             gap: 40,
-            alignItems: 'center'
+            alignItems: 'center',
+            borderRadius: 34,
           }}
         >
-          <div style={{
-            width: 170,
-            height: 170,
+          <div className="detail-hero-avatar-wrap" style={{
+            width: 160,
+            height: 160,
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: 'var(--bg-surface-solid)',
-            border: '2px solid var(--glass-border-specular-top)',
-            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.4), var(--liquid-inner-rim)',
+            border: '2px solid var(--border-default)',
+            boxShadow: 'var(--elevation-2)',
             margin: '0 auto'
           }}>
             {profileUrl && (
@@ -189,7 +140,7 @@ export default function ArtistPageClient({ artist }: { artist: Artist }) {
 
         {/* Biography */}
         {artist.bio && (
-          <section className="liquid-glass-card" style={{ padding: '36px 40px' }}>
+          <section className="material-card" style={{ padding: '36px 40px', borderRadius: 34 }}>
             <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', marginBottom: 14, letterSpacing: '-0.02em' }}>
               About {artist.name}
             </h2>
@@ -212,6 +163,59 @@ export default function ArtistPageClient({ artist }: { artist: Artist }) {
             </span>
           </div>
 
+          {/* Database Connection Error */}
+          {dbError && (
+            <div
+              className="material-card"
+              style={{
+                padding: '28px 24px',
+                borderRadius: 26,
+                border: '1px solid rgba(239, 68, 68, 0.35)',
+                background: 'rgba(239, 68, 68, 0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 12,
+              }}
+            >
+              <div style={{ fontSize: 28 }}>⚠️</div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, color: '#ef4444' }}>
+                Database Connection Error
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', maxWidth: 460 }}>
+                Failed to load live releases from Supabase ({dbError}).
+              </p>
+              <button
+                onClick={loadProjects}
+                className="material-btn material-pill"
+                style={{
+                  background: 'var(--text-main)',
+                  color: 'var(--bg-base)',
+                  borderColor: 'var(--text-main)',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  padding: '6px 20px',
+                }}
+              >
+                Retry Connection
+              </button>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {loading && !dbError && (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: 13 }}>
+              Loading releases from Supabase...
+            </div>
+          )}
+
+          {!loading && !dbError && artistProjects.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-faint)', fontSize: 13 }}>
+              No releases found for this artist in the database.
+            </div>
+          )}
+
           <div className="grid-4">
             {artistProjects.map(project => {
               const cover = getCoverUrl(project.coverFile)
@@ -222,23 +226,24 @@ export default function ArtistPageClient({ artist }: { artist: Artist }) {
                   style={{ textDecoration: 'none', display: 'block' }}
                 >
                   <div
-                    className="liquid-glass-card"
+                    className="material-card"
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
-                      padding: 16,
+                      padding: 18,
                       cursor: 'pointer',
-                      height: '100%'
+                      height: '100%',
+                      borderRadius: 30
                     }}
                   >
                     <div style={{
                       width: '100%',
                       aspectRatio: '1',
-                      borderRadius: 18,
+                      borderRadius: 22,
                       overflow: 'hidden',
                       backgroundColor: 'var(--bg-surface-solid)',
                       marginBottom: 14,
-                      border: '1px solid var(--glass-border-outer)'
+                      border: '1px solid var(--border-default)'
                     }}>
                       {cover && (
                         <img src={cover} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

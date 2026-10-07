@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Artist, Project, PROJECTS, getCoverUrl } from '@/data/projects'
+import { Artist, Project, getCoverUrl } from '@/data/projects'
 
 interface ArtistModalProps {
   artist: Artist | null
+  projects?: Project[]
   onClose: () => void
   onOpenProject: (p: Project) => void
 }
@@ -18,7 +19,7 @@ function CloseIcon() {
   )
 }
 
-export default function ArtistModal({ artist, onClose, onOpenProject }: ArtistModalProps) {
+export default function ArtistModal({ artist, projects = [], onClose, onOpenProject }: ArtistModalProps) {
   const [isClosing, setIsClosing] = useState(false)
 
   useEffect(() => {
@@ -34,10 +35,10 @@ export default function ArtistModal({ artist, onClose, onOpenProject }: ArtistMo
 
   const profileUrl = artist ? getCoverUrl(artist.image) : ''
   const artistProjects = artist?.id === 'jhuzz' 
-    ? PROJECTS.filter(p => p.id === 'star') 
+    ? projects.filter(p => p.id === 'star') 
     : artist?.id === '13'
-    ? PROJECTS.filter(p => p.id === 'cicatrix')
-    : PROJECTS.filter(p => p.artistId === artist?.id)
+    ? projects.filter(p => p.id === 'cicatrix')
+    : projects.filter(p => p.artistId === artist?.id)
 
   return (
     <div className={`modal-overlay ${isClosing ? 'closing' : ''}`} onClick={handleClose}>

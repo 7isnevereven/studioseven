@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { NewsItem, PROJECTS, getCoverUrl, formatTimeAgo } from '@/data/projects'
+import { NewsItem, Project, getCoverUrl, formatTimeAgo } from '@/data/projects'
 import { supabase } from '../utils/supabase'
 
 function RedirectIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg> }
@@ -17,7 +17,7 @@ export interface NewsReaction {
 
 const REACTIONS = ['🔥', '❤️', '🤯', '😢', '👏', '👀']
 
-export default function NewsModal({ news, onClose }: { news: NewsItem | null, onClose: () => void }) {
+export default function NewsModal({ news, projects = [], onClose }: { news: NewsItem | null, projects?: Project[], onClose: () => void }) {
   const [isClosing, setIsClosing] = useState(false)
   
   // Community Interaction States
@@ -91,7 +91,7 @@ export default function NewsModal({ news, onClose }: { news: NewsItem | null, on
 
   if (!news && !isClosing) return null
 
-  const project = PROJECTS.find(p => p.id === news?.projectId)
+  const project = projects.find(p => p.id === news?.projectId)
   const imageUrl = news?.image ? getCoverUrl(news.image) : (project ? getCoverUrl(project.coverFile) : '')
 
   return (

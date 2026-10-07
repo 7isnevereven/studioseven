@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Project, Track, TrackBadge, getCoverUrl, ProjectRating, ARTISTS } from '@/data/projects'
+import { Project, Track, TrackBadge, getCoverUrl, ProjectRating, ARTISTS, getReadableAccent, getDefaultProjectCredits, getDefaultTrackCredits, formatTrackCreditsSummary } from '@/data/projects'
 import { supabase } from '@/utils/supabase'
+import Navbar from '@/components/Navbar'
 import CollectibleWizard from '@/components/CollectibleWizard'
 import VerifyCollectibleModal from '@/components/VerifyCollectibleModal'
 
@@ -60,29 +61,7 @@ function StarIcon({ filled, onClick, onMouseEnter, onMouseLeave, size = 16 }: an
   )
 }
 
-function SunIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="5"/>
-      <line x1="12" y1="1" x2="12" y2="3"/>
-      <line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/>
-      <line x1="21" y1="12" x2="23" y2="12"/>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-    </svg>
-  )
-}
 
-function MoonIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>
-  )
-}
 
 function Badge({ type }: { type: TrackBadge }) {
   const styles: Record<TrackBadge, { bg: string; text: string; border: string }> = {
@@ -107,10 +86,37 @@ function Badge({ type }: { type: TrackBadge }) {
   )
 }
 
+const DEFAULT_PROJECT_SUBTITLES: Record<string, string> = {
+  'what-do-you-know': 'The 7th Project',
+  'saccharin': 'Official Movie Soundtrack',
+  'cicatrix': 'The 6th Project – Deluxe',
+  'cuts-and-chances': 'The 6th Project',
+  'star': 'The 5th Project',
+  'when-the-night-falls': 'A Tribute to Hiro Jin',
+  'cuts-chances-declassified': 'The 4th Project (Declassified)',
+  'connections': 'The 4th Project',
+  'something': 'The 3rd Project',
+  'bubble': 'The 2nd Project',
+  'beginnings': 'The 1st Project',
+}
+
+const DEFAULT_PROJECT_DESCRIPTIONS: Record<string, string> = {
+  'what-do-you-know': "The 7th project and VEN's final chapter. A collection of poems and songs exploring questions of truth, silence, and what we choose to carry.",
+  'saccharin': "Official movie soundtrack for NAMUJANE Studios' short film. An auditory tension piece exploring the bitter cure through ambient soundscapes and emotive compositions.",
+  'cicatrix': "The deluxe expansion to 'cuts and chances', representing the scars left after the emotional journey. Features 'The Gecko' and collaborations with 13.",
+  'cuts-and-chances': "VEN's 6th project and debut on streaming platforms. A deeply coherent, raw chronicle of heartbreak, choices, and vulnerability featuring 'The Greatest Heist In History'.",
+  'star': "The 5th project and beginning of 'The' Trilogy. An upbeat, electronic-infused sonic evolution featuring 'REAL FORM' and 'THE GOOD ONE (ft. JHUZZ)'.",
+  'when-the-night-falls': "A sacred tribute project commemorating Hiro Jin. Ambient nocturnes exploring grief, remembrance, and the peace found in twilight.",
+  'cuts-chances-declassified': "One year after the original — the hidden memos, unfiltered emotions, and the missing piece finally revealed. Featuring 'Half a Lie.'",
+  'connections': "The 4th project examining ties, unspoken words, and the bonds we forge. Featuring the channel-defining ambient singles 'crimson red' and 'andromeda'.",
+  'something': "The 3rd project marking VEN's transition into visual storytelling and introspection. An emotive narrative exploring stillness, longing, and closure.",
+  'bubble': "The 2nd project and breakthrough era. A soaring dreamscape of resilience, vulnerability, and cinematic pop centered around 'HERA' and 'RESILIENCE'.",
+  'beginnings': "The 1st project. Where the studio journey began. Raw vocal tracks and formative recordings that defined the sound of studioseven.",
+}
+
 export default function ProjectPageClient({ project }: { project: Project }) {
-  const [tab, setTab] = useState<'tracklist' | 'history' | 'ratings'>('tracklist')
+  const [tab, setTab] = useState<'tracklist' | 'history' | 'credits' | 'ratings'>('tracklist')
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
-  const [isLight, setIsLight] = useState(false)
 
   // Collectible Wizard Modal States
   const [showCollectibleWizard, setShowCollectibleWizard] = useState(false)
@@ -126,10 +132,13 @@ export default function ProjectPageClient({ project }: { project: Project }) {
   const isDeclassified = project.id === 'cuts-chances-declassified'
   const coverUrl = getCoverUrl(project.coverFile)
   const artist = ARTISTS.find(a => a.id === project.artistId)
+  const readableAccent = getReadableAccent(project.accentColor)
+
+  const projectSubtitle = project.subtitle || DEFAULT_PROJECT_SUBTITLES[project.id] || ''
+  const projectDescription = project.description || DEFAULT_PROJECT_DESCRIPTIONS[project.id] || ''
+  const projectCredits = project.credits || getDefaultProjectCredits(project)
 
   useEffect(() => {
-    setIsLight(document.body.classList.contains('light-mode'))
-
     const fetchRatings = async () => {
       const { data, error } = await supabase.from('ratings')
         .select('*')
@@ -152,16 +161,6 @@ export default function ProjectPageClient({ project }: { project: Project }) {
       supabase.removeChannel(channel)
     }
   }, [project.id])
-
-  const toggleTheme = () => {
-    const nextIsLight = !isLight
-    setIsLight(nextIsLight)
-    if (nextIsLight) {
-      document.body.classList.add('light-mode')
-    } else {
-      document.body.classList.remove('light-mode')
-    }
-  }
 
   const resetForm = () => {
     setNewRating(0)
@@ -200,59 +199,40 @@ export default function ProjectPageClient({ project }: { project: Project }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-base)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column' }}>
       
-      {/* Top Floating Liquid Navbar */}
-      <header className="navbar-wrapper">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <Link href="/#projects" className="liquid-btn liquid-pill-sm" style={{ gap: 8, textDecoration: 'none' }}>
-            <ArrowLeftIcon />
-            <span>Projects</span>
-          </Link>
-          <Link href="/" title="studioseven" style={{ display: 'flex', alignItems: 'center' }}>
-            <img src={LOGO_URL} alt="studioseven" className="brand-logo-img" />
-          </Link>
-        </div>
-
-        <nav className="liquid-dock nav-links">
-          <Link href="/" className="liquid-btn liquid-pill-sm" style={{ border: 'none', background: 'transparent' }}>Home</Link>
-          <Link href="/#newsroom" className="liquid-btn liquid-pill-sm" style={{ border: 'none', background: 'transparent' }}>Newsroom</Link>
-          <Link href="/#projects" className="liquid-btn liquid-pill-sm active" style={{ border: 'none' }}>Projects</Link>
-          <Link href="/#artists" className="liquid-btn liquid-pill-sm" style={{ border: 'none', background: 'transparent' }}>Artists</Link>
-        </nav>
-
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <button onClick={toggleTheme} className="liquid-btn liquid-icon-sm" title="Toggle theme">
-            {isLight ? <MoonIcon /> : <SunIcon />}
-          </button>
-        </div>
-      </header>
+      {/* Top Navigation Bar with Mobile Drawer */}
+      <Navbar currentView="projects" backTo={{ href: '/#projects', label: 'Projects' }} />
 
       {/* Navbar spacer for fixed header */}
       <div className="navbar-spacer" />
 
       {/* Main Project Full-Page Body */}
-      <main style={{ maxWidth: 1180, margin: '0 auto', width: '100%', padding: '24px 28px 80px 28px', display: 'flex', flexDirection: 'column', gap: 48 }}>
+      <main style={{ maxWidth: 1180, margin: '0 auto', width: '100%', padding: '36px 28px 80px 28px', display: 'flex', flexDirection: 'column', gap: 48 }}>
         
-        {/* Project Hero Banner */}
+        {/* Project Hero Banner matching cover art colors */}
         <section
-          className="liquid-glass-card"
+          className="material-card detail-hero-grid"
           style={{
             padding: '36px 40px',
             display: 'grid',
             gridTemplateColumns: 'minmax(240px, 320px) 1fr',
             gap: 40,
             alignItems: 'center',
-            borderColor: `${project.accentColor}35`,
+            borderRadius: 34,
+            background: `linear-gradient(165deg, ${readableAccent}20 0%, var(--bg-surface) 65%)`,
+            borderColor: `${readableAccent}40`,
+            boxShadow: `0 8px 32px ${readableAccent}15, var(--elevation-2)`
           }}
         >
           {/* Cover Art */}
-          <div style={{
+          <div className="detail-hero-avatar-wrap" style={{
             width: '100%',
+            maxWidth: 320,
             aspectRatio: '1',
-            borderRadius: 24,
+            borderRadius: 26,
             overflow: 'hidden',
             backgroundColor: 'var(--bg-surface-solid)',
-            border: '1px solid var(--glass-border-outer)',
-            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.45)'
+            border: `1px solid ${readableAccent}30`,
+            boxShadow: 'var(--elevation-2)'
           }}>
             {coverUrl && (
               <img src={coverUrl} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -262,12 +242,27 @@ export default function ProjectPageClient({ project }: { project: Project }) {
           {/* Details */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-              <span className="liquid-badge" style={{ background: 'var(--liquid-glass-hover)', color: 'var(--text-muted)', border: '1px solid var(--glass-border-outer)' }}>
-                {project.type ? project.type.toUpperCase() : 'PROJECT'}
-              </span>
-              <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                {project.releaseLabel}
-              </span>
+              {projectSubtitle ? (
+                <span
+                  className="liquid-badge"
+                  style={{
+                    background: `${readableAccent}20`,
+                    color: readableAccent,
+                    borderColor: `${readableAccent}40`,
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    fontSize: 11.5,
+                    padding: '4px 12px'
+                  }}
+                >
+                  {projectSubtitle}
+                </span>
+              ) : (
+                <span className="liquid-badge" style={{ background: 'var(--bg-surface-variant)', color: 'var(--text-muted)', border: '1px solid var(--border-default)' }}>
+                  {project.type ? project.type.toUpperCase() : 'PROJECT'}
+                </span>
+              )}
             </div>
 
             <h1 style={{
@@ -282,10 +277,36 @@ export default function ProjectPageClient({ project }: { project: Project }) {
 
             <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
               {artist && (
-                <>Created by <Link href={`/artists/${artist.id}`} style={{ color: 'var(--text-main)', fontWeight: 600, textDecoration: 'none' }}>{artist.name}</Link> · </>
+                <>A project by <Link href={`/artists/${artist.id}`} style={{ color: 'var(--text-main)', fontWeight: 600, textDecoration: 'none' }}>{artist.name}</Link> · </>
               )}
               {project.releaseLabel}
             </p>
+
+            {/* Showcase Story / Narrative Message */}
+            {projectDescription && (
+              <div
+                style={{
+                  padding: '16px 20px',
+                  borderRadius: 22,
+                  background: 'var(--bg-surface-variant)',
+                  border: `1px solid ${readableAccent}30`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                  maxWidth: 680,
+                  marginTop: 2
+                }}
+              >
+                <p style={{
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  color: 'var(--text-main)',
+                  margin: 0
+                }}>
+                  {projectDescription}
+                </p>
+              </div>
+            )}
 
             {/* Ratings Summary */}
             {avgRating > 0 && (
@@ -346,7 +367,7 @@ export default function ProjectPageClient({ project }: { project: Project }) {
         </section>
 
         {/* Content Navigation Tabs */}
-        <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--glass-border-subtle)', paddingBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border-subtle)', paddingBottom: 16, flexWrap: 'wrap' }}>
           <button
             onClick={() => { setTab('tracklist'); setSelectedTrack(null); resetForm(); }}
             className={`liquid-btn liquid-pill ${tab === 'tracklist' && !selectedTrack ? 'active' : ''}`}
@@ -358,6 +379,12 @@ export default function ProjectPageClient({ project }: { project: Project }) {
             className={`liquid-btn liquid-pill ${tab === 'history' && !selectedTrack ? 'active' : ''}`}
           >
             History & Story
+          </button>
+          <button
+            onClick={() => { setTab('credits'); setSelectedTrack(null); resetForm(); }}
+            className={`liquid-btn liquid-pill ${tab === 'credits' && !selectedTrack ? 'active' : ''}`}
+          >
+            Credits
           </button>
           <button
             onClick={() => { setTab('ratings'); setSelectedTrack(null); resetForm(); }}
@@ -389,6 +416,46 @@ export default function ProjectPageClient({ project }: { project: Project }) {
                   {selectedTrack.badges?.map(b => <Badge key={b} type={b} />)}
                 </div>
               </div>
+
+              {/* Individual Track Credits Pill/Card */}
+              {(() => {
+                const trackCredits = selectedTrack.credits || getDefaultTrackCredits(selectedTrack.title, projectCredits)
+                return (
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 16,
+                    padding: '12px 18px',
+                    borderRadius: 18,
+                    background: 'var(--bg-surface-variant)',
+                    border: '1px solid var(--border-subtle)',
+                    marginBottom: 20,
+                    fontSize: 12.5,
+                    color: 'var(--text-muted)'
+                  }}>
+                    {trackCredits.writtenBy && (
+                      <div>
+                        <strong style={{ color: 'var(--text-main)' }}>Written by:</strong> {trackCredits.writtenBy}
+                      </div>
+                    )}
+                    {trackCredits.producedBy && (
+                      <div>
+                        <strong style={{ color: 'var(--text-main)' }}>Produced by:</strong> {trackCredits.producedBy}
+                      </div>
+                    )}
+                    {trackCredits.featuredArtists && (
+                      <div>
+                        <strong style={{ color: readableAccent }}>Featured:</strong> {trackCredits.featuredArtists}
+                      </div>
+                    )}
+                    {trackCredits.additionalCredits && (
+                      <div>
+                        <strong style={{ color: 'var(--text-main)' }}>Credits:</strong> {trackCredits.additionalCredits}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
 
               {selectedTrack.content ? (
                 <div style={{ marginTop: 24, fontSize: 16, lineHeight: 1.85, whiteSpace: 'pre-wrap', color: 'var(--text-main)' }}>
@@ -490,16 +557,22 @@ export default function ProjectPageClient({ project }: { project: Project }) {
                       <span style={{ fontSize: 13, color: 'var(--text-faint)', width: 26, fontWeight: 600 }}>
                         {String(i + 1).padStart(2, '0')}
                       </span>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-                        {track.title}
-                      </span>
-
-                      {trackAvg > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8 }}>
-                          <StarIcon filled={true} size={12} />
-                          <span style={{ fontSize: 12, color: '#facc15', fontWeight: 600 }}>{trackAvg.toFixed(1)}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+                            {track.title}
+                          </span>
+                          {trackAvg > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <StarIcon filled={true} size={12} />
+                              <span style={{ fontSize: 12, color: '#facc15', fontWeight: 600 }}>{trackAvg.toFixed(1)}</span>
+                            </div>
+                          )}
                         </div>
-                      )}
+                        <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                          {formatTrackCreditsSummary(track, projectCredits)}
+                        </span>
+                      </div>
 
                       <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
                         {track.badges?.map(b => <Badge key={b} type={b} />)}
@@ -528,6 +601,130 @@ export default function ProjectPageClient({ project }: { project: Project }) {
                     </p>
                   </div>
                 ))}
+              </section>
+            )}
+
+            {/* Tab: Credits */}
+            {tab === 'credits' && (
+              <section className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+                {/* 1. Project-Level Executive Credits Card */}
+                <div className="liquid-glass-card" style={{ padding: '36px 40px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  <div>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: readableAccent, textTransform: 'uppercase' }}>
+                      Album Credits
+                    </span>
+                    <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.025em', marginTop: 4 }}>
+                      {project.title}
+                    </h2>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Written By</span>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>
+                        {projectCredits.writtenBy || 'VEN'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Produced By</span>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>
+                        {projectCredits.producedBy || 'VEN'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Released Under</span>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>
+                        {projectCredits.releasedUnder || 'studioseven'}
+                      </span>
+                    </div>
+
+                    {projectCredits.collaboration && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Co-Released With / Collaboration</span>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: readableAccent }}>
+                          {projectCredits.collaboration}
+                        </span>
+                      </div>
+                    )}
+
+                    {projectCredits.featuredArtists && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Featured Artists</span>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>
+                          {projectCredits.featuredArtists}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {projectCredits.additionalNotes && (
+                    <div style={{ paddingTop: 16, borderTop: '1px solid var(--border-subtle)' }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                        Additional Notes
+                      </span>
+                      <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+                        {projectCredits.additionalNotes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Track-by-Track Individual Credits Breakdown */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+                      Track-by-Track Credits ({project.tracks.length})
+                    </h3>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                      Click any song to view lyrics & individual ratings
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {project.tracks.map((track, idx) => {
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => { setSelectedTrack(track); resetForm(); }}
+                          className="liquid-glass-card"
+                          style={{
+                            padding: '18px 24px',
+                            cursor: 'pointer',
+                            borderRadius: 20,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            gap: 16
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                            <span style={{ fontSize: 13, color: 'var(--text-faint)', width: 24, fontWeight: 600 }}>
+                              {String(idx + 1).padStart(2, '0')}
+                            </span>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)' }}>
+                                  {track.title}
+                                </span>
+                                {track.badges?.map(b => <Badge key={b} type={b} />)}
+                              </div>
+                              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>
+                                {formatTrackCreditsSummary(track, projectCredits)}
+                              </div>
+                            </div>
+                          </div>
+
+                          <span style={{ fontSize: 12, color: readableAccent, fontWeight: 600 }}>
+                            View Track →
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
               </section>
             )}
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { NewsItem, Project, formatTimeAgo } from '@/data/projects'
 import { supabase } from '@/utils/supabase'
+import Navbar from '@/components/Navbar'
 
 const LOGO_URL = 'https://flrwvmfjjuyoyjeeosls.supabase.co/storage/v1/object/public/misc/ss7.png'
 const REACTIONS = ['🔥', '❤️', '🤯', '😢', '👏', '👀']
@@ -27,39 +28,6 @@ function RedirectIcon() {
   )
 }
 
-function ArrowLeftIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="19" y1="12" x2="5" y2="12"></line>
-      <polyline points="12 19 5 12 12 5"></polyline>
-    </svg>
-  )
-}
-
-function SunIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="5"/>
-      <line x1="12" y1="12" x2="12" y2="3"/>
-      <line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/>
-      <line x1="21" y1="12" x2="23" y2="12"/>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-    </svg>
-  )
-}
-
-function MoonIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>
-  )
-}
-
 interface NewsPageClientProps {
   item: NewsItem
   project: Project | undefined
@@ -67,21 +35,6 @@ interface NewsPageClientProps {
 }
 
 export default function NewsPageClient({ item, imageUrl }: NewsPageClientProps) {
-  const [isLight, setIsLight] = useState(false)
-
-  useEffect(() => {
-    setIsLight(document.body.classList.contains('light-mode'))
-  }, [])
-
-  const toggleTheme = () => {
-    const next = !isLight
-    setIsLight(next)
-    if (next) {
-      document.body.classList.add('light-mode')
-    } else {
-      document.body.classList.remove('light-mode')
-    }
-  }
   const [reactions, setReactions] = useState<NewsReaction[]>([])
   const [newReaction, setNewReaction] = useState('')
   const [reviewerName, setReviewerName] = useState('')
@@ -162,30 +115,7 @@ export default function NewsPageClient({ item, imageUrl }: NewsPageClientProps) 
       )}
 
       {/* Fixed Navbar */}
-      <header className="navbar-wrapper">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <Link href="/#newsroom" className="liquid-btn liquid-pill-sm" style={{ gap: 8, textDecoration: 'none' }}>
-            <ArrowLeftIcon />
-            <span>Newsroom</span>
-          </Link>
-          <Link href="/" title="studioseven" style={{ display: 'flex', alignItems: 'center' }}>
-            <img src={LOGO_URL} alt="studioseven" className="brand-logo-img" />
-          </Link>
-        </div>
-
-        <nav className="liquid-dock nav-links">
-          <Link href="/" className="liquid-btn liquid-pill-sm" style={{ border: 'none', background: 'transparent' }}>Home</Link>
-          <Link href="/#newsroom" className="liquid-btn liquid-pill-sm active" style={{ border: 'none' }}>Newsroom</Link>
-          <Link href="/#projects" className="liquid-btn liquid-pill-sm" style={{ border: 'none', background: 'transparent' }}>Projects</Link>
-          <Link href="/#artists" className="liquid-btn liquid-pill-sm" style={{ border: 'none', background: 'transparent' }}>Artists</Link>
-        </nav>
-
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <button onClick={toggleTheme} className="liquid-btn liquid-icon-sm" title="Toggle theme">
-            {isLight ? <MoonIcon /> : <SunIcon />}
-          </button>
-        </div>
-      </header>
+      <Navbar currentView="newsroom" backTo={{ href: '/#newsroom', label: 'Newsroom' }} />
 
       {/* Navbar spacer */}
       <div className="navbar-spacer" />
@@ -224,10 +154,10 @@ export default function NewsPageClient({ item, imageUrl }: NewsPageClientProps) 
                     gap: 6,
                     padding: '5px 12px',
                     borderRadius: 999,
-                    background: 'var(--liquid-glass-bg)',
-                    border: '1px solid var(--glass-border-outer)',
+                    background: 'var(--bg-surface-variant)',
+                    border: '1px solid var(--border-default)',
                     fontSize: 13,
-                    boxShadow: 'var(--liquid-inner-rim)'
+                    boxShadow: 'var(--elevation-1)'
                   }}
                 >
                   <span>{emoji}</span>
@@ -237,7 +167,7 @@ export default function NewsPageClient({ item, imageUrl }: NewsPageClientProps) 
             </div>
           )}
 
-          <div style={{ width: '100%', height: 1, background: 'var(--glass-border-subtle)', marginBottom: 32 }} />
+          <div style={{ width: '100%', height: 1, background: 'var(--border-subtle)', marginBottom: 32 }} />
 
           <div style={{
             fontSize: 16.5,
@@ -280,11 +210,11 @@ export default function NewsPageClient({ item, imageUrl }: NewsPageClientProps) 
           )}
         </article>
 
-        {/* Sidebar: Community Reactions */}
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: 28 }} className="animate-in news-page-sidebar">
+        {/* Sidebar: Community Reactions (Sticky & Independently Scrollable) */}
+        <aside style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-in news-page-sidebar">
           
           {/* Reaction Form */}
-          <div className="liquid-glass-card" style={{ padding: 26, display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div className="material-card" style={{ padding: 26, display: 'flex', flexDirection: 'column', gap: 16, borderRadius: 30 }}>
             <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
               React to this Story
             </h3>
@@ -296,14 +226,14 @@ export default function NewsPageClient({ item, imageUrl }: NewsPageClientProps) 
                   <button
                     key={emoji}
                     onClick={() => setNewReaction(emoji)}
-                    className={`liquid-btn ${isSelected ? 'active' : ''}`}
+                    className={`material-btn ${isSelected ? 'active' : ''}`}
                     style={{
-                      borderRadius: 14,
+                      borderRadius: 20,
                       width: 44,
                       height: 44,
                       fontSize: isSelected ? 22 : 18,
-                      transform: isSelected ? 'scale(1.12)' : 'scale(1)',
-                      border: isSelected ? '1px solid var(--accent-color)' : '1px solid var(--glass-border-outer)'
+                      border: isSelected ? '1px solid var(--accent-color)' : '1px solid var(--border-default)',
+                      background: isSelected ? 'var(--bg-surface-variant)' : 'transparent',
                     }}
                   >
                     {emoji}
@@ -314,29 +244,31 @@ export default function NewsPageClient({ item, imageUrl }: NewsPageClientProps) 
 
             <input
               type="text"
-              className="liquid-input liquid-pill-sm"
+              className="material-input"
               placeholder="Your Nickname *"
               value={reviewerName}
               onChange={e => setReviewerName(e.target.value)}
-              style={{ padding: '12px 18px', borderRadius: 14 }}
+              style={{ padding: '12px 18px', borderRadius: 999 }}
             />
 
             <textarea
-              className="liquid-input"
+              className="material-input"
               placeholder="Add an optional comment..."
               value={reviewerComment}
               onChange={e => setReviewerComment(e.target.value)}
-              style={{ minHeight: 85 }}
+              style={{ minHeight: 85, borderRadius: 22 }}
             />
 
             <button
               onClick={submitReaction}
               disabled={!newReaction || !reviewerName.trim() || isSubmitting}
-              className="liquid-btn liquid-pill"
+              className="material-btn material-pill"
               style={{
                 opacity: (!newReaction || !reviewerName.trim() || isSubmitting) ? 0.5 : 1,
                 fontWeight: 700,
-                background: 'var(--liquid-glass-active)'
+                background: 'var(--text-main)',
+                color: 'var(--bg-base)',
+                borderColor: 'var(--text-main)'
               }}
             >
               {isSubmitting ? 'Posting...' : 'Post Reaction'}
@@ -354,7 +286,7 @@ export default function NewsPageClient({ item, imageUrl }: NewsPageClientProps) 
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {reactions.map(r => (
-                  <div key={r.id} className="liquid-glass-card" style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div key={r.id} className="material-card" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 8, borderRadius: 24 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 18 }}>{r.reaction}</span>
