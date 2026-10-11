@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useNavigationLoading } from '@/components/NavigationLoadingProvider'
 
 const LOGO_URL = 'https://flrwvmfjjuyoyjeeosls.supabase.co/storage/v1/object/public/misc/ss7.png'
 
@@ -111,11 +112,13 @@ function UserIcon() {
 
 export default function Navbar({ currentView = 'home', setCurrentView, backTo }: NavBarProps) {
   const router = useRouter()
+  const { startLoading } = useNavigationLoading()
   const [isLight, setIsLight] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleBackClick = (e: React.MouseEvent) => {
     e.preventDefault()
+    startLoading()
     if (typeof window !== 'undefined') {
       if (window.history.length > 1) {
         window.history.back()

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import NavigationLoadingProvider from '@/components/NavigationLoadingProvider'
 
 export const metadata: Metadata = {
   title: 'studioseven',
@@ -33,7 +34,11 @@ export default function RootLayout({
         {/* Project-specific banner fonts */}
         <link href="https://fonts.googleapis.com/css2?family=Almendra:ital,wght@0,400;0,700;1,400;1,700&family=Fondamento:ital@0;1&family=Cinzel+Decorative:wght@700;900&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Space+Grotesk:wght@400;700;900&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}</body>
+      <body>
+        <NavigationLoadingProvider>
+          {children}
+        </NavigationLoadingProvider>
+      </body>
     </html>
   )
 }

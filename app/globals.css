@@ -1071,3 +1071,274 @@ body.light-mode .modal-container {
     padding-top: 12px !important;
   }
 }
+
+/* ─── GLOBAL SCREEN LOADING OVERLAY (STUDIOSEVEN LOGO ANIMATION) ─── */
+.ss7-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(18, 18, 18, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  animation: ss7-loading-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: auto;
+  user-select: none;
+}
+
+body.light-mode .ss7-loading-overlay {
+  background: rgba(248, 249, 250, 0.82);
+}
+
+.ss7-logo-anim-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(130px, 18vw, 175px);
+  height: auto;
+  animation: ss7-logo-pop-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.ss7-logo-anim-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Base shape colors */
+.ss7-shape {
+  fill: #ffffff;
+  transition: fill 0.25s ease, filter 0.25s ease;
+}
+
+body.light-mode .ss7-shape {
+  fill: #18181b;
+}
+
+/* Transform origins mapped directly to logo vector centers in 2094x812 coordinates */
+.ss7-anim-ring {
+  transform-origin: 317px 317px;
+  animation: ss7-wave-ring 1.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.ss7-anim-circle {
+  transform-origin: 1047px 317px;
+  animation: ss7-wave-circle 1.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.ss7-anim-third-circle {
+  transform-origin: 1776px 317px;
+  animation: ss7-wave-third 1.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.ss7-anim-line {
+  transform-origin: 1776px 766px;
+  animation: ss7-wave-line 1.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* DARK MODE KEYFRAMES — Cyan Glow & Wave Cascade */
+@keyframes ss7-wave-ring {
+  0%, 100% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #ffffff;
+    filter: drop-shadow(0 0 0 rgba(56, 189, 248, 0));
+  }
+  22% {
+    opacity: 1;
+    transform: translateY(-50px) scale(1.1);
+    fill: #38bdf8;
+    filter: drop-shadow(0 0 28px rgba(56, 189, 248, 0.9));
+  }
+  48% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #ffffff;
+    filter: drop-shadow(0 0 0 rgba(56, 189, 248, 0));
+  }
+}
+
+@keyframes ss7-wave-circle {
+  0%, 15%, 100% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #ffffff;
+    filter: drop-shadow(0 0 0 rgba(56, 189, 248, 0));
+  }
+  38% {
+    opacity: 1;
+    transform: translateY(-50px) scale(1.1);
+    fill: #38bdf8;
+    filter: drop-shadow(0 0 28px rgba(56, 189, 248, 0.9));
+  }
+  64% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #ffffff;
+    filter: drop-shadow(0 0 0 rgba(56, 189, 248, 0));
+  }
+}
+
+@keyframes ss7-wave-third {
+  0%, 34%, 100% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #ffffff;
+    filter: drop-shadow(0 0 0 rgba(56, 189, 248, 0));
+  }
+  56% {
+    opacity: 1;
+    transform: translateY(-50px) scale(1.1);
+    fill: #38bdf8;
+    filter: drop-shadow(0 0 28px rgba(56, 189, 248, 0.9));
+  }
+  80% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #ffffff;
+    filter: drop-shadow(0 0 0 rgba(56, 189, 248, 0));
+  }
+}
+
+@keyframes ss7-wave-line {
+  0%, 34%, 100% {
+    opacity: 0.28;
+    transform: translateY(0) scaleX(0.72);
+    fill: #ffffff;
+    filter: drop-shadow(0 0 0 rgba(56, 189, 248, 0));
+  }
+  56% {
+    opacity: 1;
+    transform: translateY(18px) scaleX(1.16);
+    fill: #38bdf8;
+    filter: drop-shadow(0 0 22px rgba(56, 189, 248, 0.9));
+  }
+  80% {
+    opacity: 0.28;
+    transform: translateY(0) scaleX(0.72);
+    fill: #ffffff;
+    filter: drop-shadow(0 0 0 rgba(56, 189, 248, 0));
+  }
+}
+
+/* LIGHT MODE OVERRIDES */
+body.light-mode .ss7-anim-ring {
+  animation-name: ss7-wave-ring-light;
+}
+body.light-mode .ss7-anim-circle {
+  animation-name: ss7-wave-circle-light;
+}
+body.light-mode .ss7-anim-third-circle {
+  animation-name: ss7-wave-third-light;
+}
+body.light-mode .ss7-anim-line {
+  animation-name: ss7-wave-line-light;
+}
+
+@keyframes ss7-wave-ring-light {
+  0%, 100% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #18181b;
+    filter: none;
+  }
+  22% {
+    opacity: 1;
+    transform: translateY(-50px) scale(1.1);
+    fill: #0284c7;
+    filter: drop-shadow(0 0 20px rgba(2, 132, 199, 0.7));
+  }
+  48% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #18181b;
+    filter: none;
+  }
+}
+
+@keyframes ss7-wave-circle-light {
+  0%, 15%, 100% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #18181b;
+    filter: none;
+  }
+  38% {
+    opacity: 1;
+    transform: translateY(-50px) scale(1.1);
+    fill: #0284c7;
+    filter: drop-shadow(0 0 20px rgba(2, 132, 199, 0.7));
+  }
+  64% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #18181b;
+    filter: none;
+  }
+}
+
+@keyframes ss7-wave-third-light {
+  0%, 34%, 100% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #18181b;
+    filter: none;
+  }
+  56% {
+    opacity: 1;
+    transform: translateY(-50px) scale(1.1);
+    fill: #0284c7;
+    filter: drop-shadow(0 0 20px rgba(2, 132, 199, 0.7));
+  }
+  80% {
+    opacity: 0.28;
+    transform: translateY(0) scale(0.92);
+    fill: #18181b;
+    filter: none;
+  }
+}
+
+@keyframes ss7-wave-line-light {
+  0%, 34%, 100% {
+    opacity: 0.28;
+    transform: translateY(0) scaleX(0.72);
+    fill: #18181b;
+    filter: none;
+  }
+  56% {
+    opacity: 1;
+    transform: translateY(18px) scaleX(1.16);
+    fill: #0284c7;
+    filter: drop-shadow(0 0 16px rgba(2, 132, 199, 0.7));
+  }
+  80% {
+    opacity: 0.28;
+    transform: translateY(0) scaleX(0.72);
+    fill: #18181b;
+    filter: none;
+  }
+}
+
+@keyframes ss7-loading-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ss7-logo-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
