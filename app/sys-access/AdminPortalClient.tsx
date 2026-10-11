@@ -880,17 +880,17 @@ export default function AdminPortalClient() {
       <div className="navbar-spacer" />
 
       {/* Mobile Tab Switcher */}
-      <div className="mobile-only" style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)' }}>
-        <div className="nav-dock" style={{ width: '100%', justifyContent: 'center', flexWrap: 'wrap', gap: 4 }}>
-          <button onClick={() => setActiveTab('news')} className={`material-btn material-pill-sm ${activeTab === 'news' ? 'active' : ''}`}>News</button>
-          <button onClick={() => setActiveTab('projects')} className={`material-btn material-pill-sm ${activeTab === 'projects' ? 'active' : ''}`}>Releases</button>
-          <button onClick={() => setActiveTab('showcase')} className={`material-btn material-pill-sm ${activeTab === 'showcase' ? 'active' : ''}`}>Showcase</button>
-          <button onClick={() => setActiveTab('artists')} className={`material-btn material-pill-sm ${activeTab === 'artists' ? 'active' : ''}`}>Artists</button>
+      <div className="mobile-only admin-mobile-nav-bar">
+        <div className="admin-scroll-tabs" style={{ width: '100%', justifyContent: 'flex-start' }}>
+          <button onClick={() => setActiveTab('news')} className={`material-btn material-pill-sm ${activeTab === 'news' ? 'active' : ''}`}>News ({newsList.length})</button>
+          <button onClick={() => setActiveTab('projects')} className={`material-btn material-pill-sm ${activeTab === 'projects' ? 'active' : ''}`}>Releases ({projectsList.length})</button>
+          <button onClick={() => setActiveTab('showcase')} className={`material-btn material-pill-sm ${activeTab === 'showcase' ? 'active' : ''}`}>Showcase ({activeShowcase.length})</button>
+          <button onClick={() => setActiveTab('artists')} className={`material-btn material-pill-sm ${activeTab === 'artists' ? 'active' : ''}`}>Artists ({artistsList.length})</button>
         </div>
       </div>
 
       {/* Main Container */}
-      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '36px 32px 96px 32px', width: '100%' }}>
+      <main className="admin-main-container">
 
         {/* ═══════════════ TAB 1: NEWSROOM ═══════════════ */}
         {activeTab === 'news' && (
@@ -1330,16 +1330,7 @@ export default function AdminPortalClient() {
                     return (
                       <div
                         key={project.id}
-                        style={{
-                          padding: '18px 22px',
-                          borderRadius: 24,
-                          background: 'var(--bg-surface-variant)',
-                          border: '1px solid #38bdf8',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 16
-                        }}
+                        className="admin-showcase-row"
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: 1 }}>
                           {/* Slot Badge */}
@@ -1382,7 +1373,7 @@ export default function AdminPortalClient() {
                         </div>
 
                         {/* Actions: Reorder & Customize */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                        <div className="admin-showcase-actions">
                           <button
                             type="button"
                             onClick={() => handleMoveShowcase(project, 'up')}
@@ -1630,11 +1621,11 @@ export default function AdminPortalClient() {
       {editingNews && (
         <div className="modal-overlay" onClick={() => setEditingNews(null)}>
           <div
-            className="modal-container"
+            className="modal-container admin-modal-card"
             onClick={e => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: 720, padding: 32, borderRadius: 32, backgroundColor: 'var(--bg-surface-solid)', display: 'flex', flexDirection: 'column', gap: 20 }}
+            style={{ maxWidth: 720, backgroundColor: 'var(--bg-surface-solid)' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="modal-header-fixed">
               <div>
                 <h3 style={{ fontSize: 20, fontWeight: 800 }}>
                   {originalNewsId ? 'Edit Article' : 'Write New Article'}
@@ -1652,7 +1643,8 @@ export default function AdminPortalClient() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveNews} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <form onSubmit={handleSaveNews} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <div className="modal-body-scrollable">
               {/* Editable Slug / ID */}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
@@ -1682,7 +1674,7 @@ export default function AdminPortalClient() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 14 }}>
+              <div className="admin-form-grid-preview">
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                     📅 Publication Date (Interactive Calendar) *
@@ -1856,7 +1848,9 @@ export default function AdminPortalClient() {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+              </div>
+
+              <div className="modal-footer-fixed">
                 <button
                   type="button"
                   onClick={() => setEditingNews(null)}
@@ -1882,12 +1876,12 @@ export default function AdminPortalClient() {
       {editingProject && (
         <div className="modal-overlay" onClick={() => setEditingProject(null)}>
           <div
-            className="modal-container"
+            className="modal-container admin-modal-card"
             onClick={e => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: 860, padding: 34, borderRadius: 34, backgroundColor: 'var(--bg-surface-solid)', display: 'flex', flexDirection: 'column', gap: 20 }}
+            style={{ maxWidth: 860, backgroundColor: 'var(--bg-surface-solid)' }}
           >
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="modal-header-fixed">
               <div>
                 <h3 style={{ fontSize: 20, fontWeight: 800 }}>
                   Release Master: {editingProject.title || 'New Release'}
@@ -1906,7 +1900,7 @@ export default function AdminPortalClient() {
             </div>
 
             {/* Modal Tabs */}
-            <div className="nav-dock" style={{ borderRadius: 999, width: 'fit-content' }}>
+            <div className="admin-scroll-tabs">
               <button
                 type="button"
                 onClick={() => setProjectEditorTab('details')}
@@ -1951,7 +1945,8 @@ export default function AdminPortalClient() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveProject} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <form onSubmit={handleSaveProject} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <div className="modal-body-scrollable">
 
               {/* SUB-TAB: DETAILS */}
               {projectEditorTab === 'details' && (
@@ -1972,7 +1967,7 @@ export default function AdminPortalClient() {
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="admin-form-grid-2">
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Title *</label>
                       <input
@@ -1996,7 +1991,7 @@ export default function AdminPortalClient() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="admin-form-grid-2">
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                         📅 Release Date (Interactive Calendar) *
@@ -2123,7 +2118,7 @@ export default function AdminPortalClient() {
                     )}
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="admin-form-grid-2">
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                         <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Artist</label>
@@ -2295,7 +2290,7 @@ export default function AdminPortalClient() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="admin-form-grid-2">
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                         Lead Single Track
@@ -2683,7 +2678,7 @@ export default function AdminPortalClient() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="admin-form-grid-2">
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                         Written By (Songwriting / Composition)
@@ -2725,7 +2720,7 @@ export default function AdminPortalClient() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="admin-form-grid-2">
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                         Released Under (Label / Imprint)
@@ -2913,8 +2908,10 @@ export default function AdminPortalClient() {
                 </div>
               )}
 
+              </div>
+
               {/* Footer Actions */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10, borderTop: '1px solid var(--border-subtle)', paddingTop: 16 }}>
+              <div className="modal-footer-fixed">
                 <button
                   type="button"
                   onClick={() => setEditingProject(null)}
@@ -2940,11 +2937,11 @@ export default function AdminPortalClient() {
       {editingShowcaseProject && (
         <div className="modal-overlay" onClick={() => setEditingShowcaseProject(null)}>
           <div
-            className="modal-container"
+            className="modal-container admin-modal-card"
             onClick={e => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: 640, padding: 32, borderRadius: 32, backgroundColor: 'var(--bg-surface-solid)', display: 'flex', flexDirection: 'column', gap: 20 }}
+            style={{ maxWidth: 640, backgroundColor: 'var(--bg-surface-solid)' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="modal-header-fixed">
               <div>
                 <h3 style={{ fontSize: 20, fontWeight: 800 }}>
                   Customize Hero Banner: {editingShowcaseProject.title}
@@ -2962,7 +2959,8 @@ export default function AdminPortalClient() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveShowcaseBanner} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <form onSubmit={handleSaveShowcaseBanner} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <div className="modal-body-scrollable">
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                   Banner Headline Title
@@ -3006,7 +3004,9 @@ export default function AdminPortalClient() {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+              </div>
+
+              <div className="modal-footer-fixed">
                 <button
                   type="button"
                   onClick={() => setEditingShowcaseProject(null)}
@@ -3032,11 +3032,11 @@ export default function AdminPortalClient() {
       {editingArtist && (
         <div className="modal-overlay" onClick={() => setEditingArtist(null)}>
           <div
-            className="modal-container"
+            className="modal-container admin-modal-card"
             onClick={e => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: 640, padding: 32, borderRadius: 32, backgroundColor: 'var(--bg-surface-solid)', display: 'flex', flexDirection: 'column', gap: 20 }}
+            style={{ maxWidth: 640, backgroundColor: 'var(--bg-surface-solid)' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="modal-header-fixed">
               <div>
                 <h3 style={{ fontSize: 20, fontWeight: 800 }}>
                   {originalArtistId ? 'Edit Creator Profile' : 'Add New Artist'}
@@ -3054,7 +3054,8 @@ export default function AdminPortalClient() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveArtist} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <form onSubmit={handleSaveArtist} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <div className="modal-body-scrollable">
               {/* Editable Slug / ID */}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
@@ -3100,7 +3101,7 @@ export default function AdminPortalClient() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="admin-form-grid-2">
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                     Spotify URL (Optional)
@@ -3143,7 +3144,9 @@ export default function AdminPortalClient() {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+              </div>
+
+              <div className="modal-footer-fixed">
                 <button
                   type="button"
                   onClick={() => setEditingArtist(null)}

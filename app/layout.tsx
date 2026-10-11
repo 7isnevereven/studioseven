@@ -31,7 +31,7 @@ export default function RootLayout({
         {/* Base UI font */}
         <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
         {/* Project-specific banner fonts */}
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Space+Grotesk:wght@400;700;900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Almendra:ital,wght@0,400;0,700;1,400;1,700&family=Fondamento:ital@0;1&family=Cinzel+Decorative:wght@700;900&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Space+Grotesk:wght@400;700;900&display=swap" rel="stylesheet" />
       </head>
       <body>{children}</body>
     </html>

@@ -164,10 +164,34 @@ export function sortProjectsByDateDesc(projects: Project[]): Project[] {
   return [...projects].sort((a, b) => parseProjectDate(b.releasedAt) - parseProjectDate(a.releasedAt))
 }
 
+// In-memory cache to eliminate redundant network latency on re-renders and client navigation
+let cacheProjects: { all: Project[]; timestamp: number } | null = null
+let cacheNews: { all: NewsItem[]; timestamp: number } | null = null
+let cacheArtists: { all: Artist[]; timestamp: number } | null = null
+const CACHE_TTL = 45 * 1000 // 45 seconds fresh cache
+
+export function invalidateDataCache() {
+  cacheProjects = null
+  cacheNews = null
+  cacheArtists = null
+}
+
 // Pure Supabase Data Fetching — No outdated static fallbacks
 // If includeScheduled is false, filters out items scheduled for the future
-export async function getLiveNews(includeScheduled: boolean = false): Promise<{ data: NewsItem[]; error: string | null }> {
+export async function getLiveNews(includeScheduled: boolean = false, forceRefresh: boolean = false): Promise<{ data: NewsItem[]; error: string | null }> {
   try {
+    if (!forceRefresh && cacheNews && Date.now() - cacheNews.timestamp < CACHE_TTL) {
+      const mapped = cacheNews.all
+      const filtered = includeScheduled
+        ? mapped
+        : mapped.filter(n => {
+            if (!n.scheduledAt) return true
+            const scheduledTime = new Date(n.scheduledAt).getTime()
+            return isNaN(scheduledTime) || scheduledTime <= Date.now()
+          })
+      return { data: sortNewsByDateDesc(filtered), error: null }
+    }
+
     const { data, error } = await supabase
       .from('news')
       .select('*')
@@ -176,6 +200,8 @@ export async function getLiveNews(includeScheduled: boolean = false): Promise<{ 
       return { data: [], error: error.message }
     }
     const mapped = (data || []).map(mapDbNews)
+    cacheNews = { all: mapped, timestamp: Date.now() }
+
     const filtered = includeScheduled
       ? mapped
       : mapped.filter(n => {
@@ -191,8 +217,20 @@ export async function getLiveNews(includeScheduled: boolean = false): Promise<{ 
 
 // Pure Supabase Data Fetching — Always sorted latest to oldest by release date
 // If includeScheduled is false, filters out releases scheduled for the future
-export async function getLiveProjects(includeScheduled: boolean = false): Promise<{ data: Project[]; error: string | null }> {
+export async function getLiveProjects(includeScheduled: boolean = false, forceRefresh: boolean = false): Promise<{ data: Project[]; error: string | null }> {
   try {
+    if (!forceRefresh && cacheProjects && Date.now() - cacheProjects.timestamp < CACHE_TTL) {
+      const mapped = cacheProjects.all
+      const filtered = includeScheduled
+        ? mapped
+        : mapped.filter(p => {
+            if (!p.scheduledAt) return true
+            const scheduledTime = new Date(p.scheduledAt).getTime()
+            return isNaN(scheduledTime) || scheduledTime <= Date.now()
+          })
+      return { data: sortProjectsByDateDesc(filtered), error: null }
+    }
+
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -201,6 +239,8 @@ export async function getLiveProjects(includeScheduled: boolean = false): Promis
       return { data: [], error: error.message }
     }
     const mapped = (data || []).map(mapDbProject)
+    cacheProjects = { all: mapped, timestamp: Date.now() }
+
     const filtered = includeScheduled
       ? mapped
       : mapped.filter(p => {
@@ -244,8 +284,12 @@ export function unmarkArtistDeleted(id: string) {
 }
 
 // Pure Supabase Data Fetching — Artists
-export async function getLiveArtists(): Promise<{ data: Artist[]; error: string | null }> {
+export async function getLiveArtists(forceRefresh: boolean = false): Promise<{ data: Artist[]; error: string | null }> {
   try {
+    if (!forceRefresh && cacheArtists && Date.now() - cacheArtists.timestamp < CACHE_TTL) {
+      return { data: cacheArtists.all, error: null }
+    }
+
     const { data, error } = await supabase
       .from('artists')
       .select('*')
@@ -269,6 +313,7 @@ export async function getLiveArtists(): Promise<{ data: Artist[]; error: string 
         saveArtist(seed).catch(() => {})
       }
       const merged = [...dbArtists, ...missingSeeds].sort((a, b) => a.name.localeCompare(b.name))
+      cacheArtists = { all: merged, timestamp: Date.now() }
       return { data: merged, error: null }
     }
 
@@ -276,9 +321,11 @@ export async function getLiveArtists(): Promise<{ data: Artist[]; error: string 
       for (const seed of SEED_ARTISTS) {
         saveArtist(seed).catch(() => {})
       }
+      cacheArtists = { all: SEED_ARTISTS, timestamp: Date.now() }
       return { data: SEED_ARTISTS, error: null }
     }
 
+    cacheArtists = { all: dbArtists, timestamp: Date.now() }
     return { data: dbArtists, error: null }
   } catch (err: any) {
     return { data: SEED_ARTISTS, error: null }
@@ -287,6 +334,7 @@ export async function getLiveArtists(): Promise<{ data: Artist[]; error: string 
 
 // Admin: Save or update an artist
 export async function saveArtist(artist: Artist): Promise<{ error: any }> {
+  invalidateDataCache()
   unmarkArtistDeleted(artist.id)
   const dbData = mapArtistToDb(artist)
   let { error } = await supabase
@@ -307,6 +355,7 @@ export async function saveArtist(artist: Artist): Promise<{ error: any }> {
 
 // Admin: Delete an artist
 export async function deleteArtist(id: string): Promise<{ error: any }> {
+  invalidateDataCache()
   markArtistDeleted(id)
   const { error } = await supabase
     .from('artists')
@@ -317,6 +366,7 @@ export async function deleteArtist(id: string): Promise<{ error: any }> {
 
 // Admin: Save or update a news item
 export async function saveNewsItem(item: NewsItem): Promise<{ error: any }> {
+  invalidateDataCache()
   const dbData = mapNewsToDb(item)
   let { error } = await supabase
     .from('news')
@@ -334,6 +384,7 @@ export async function saveNewsItem(item: NewsItem): Promise<{ error: any }> {
 
 // Admin: Delete a news item
 export async function deleteNewsItem(id: string): Promise<{ error: any }> {
+  invalidateDataCache()
   const { error } = await supabase
     .from('news')
     .delete()
@@ -343,6 +394,7 @@ export async function deleteNewsItem(id: string): Promise<{ error: any }> {
 
 // Admin: Save or update a project
 export async function saveProject(project: Project): Promise<{ error: any }> {
+  invalidateDataCache()
   const dbData = mapProjectToDb(project)
   let { error } = await supabase
     .from('projects')
@@ -369,6 +421,7 @@ export async function saveProject(project: Project): Promise<{ error: any }> {
 
 // Admin: Delete a project
 export async function deleteProject(id: string): Promise<{ error: any }> {
+  invalidateDataCache()
   const { error } = await supabase
     .from('projects')
     .delete()
@@ -379,6 +432,7 @@ export async function deleteProject(id: string): Promise<{ error: any }> {
 // Admin: Seed from seedData.ts into Supabase
 export async function seedAllToSupabase(): Promise<{ newsCount: number; projectsCount: number; error?: string }> {
   try {
+    invalidateDataCache()
     // 1. Seed Projects
     const projectsPayload = SEED_PROJECTS.map(mapProjectToDb)
     let { error: pErr } = await supabase

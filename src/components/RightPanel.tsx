@@ -19,23 +19,24 @@ const PROJECT_DESCRIPTIONS: Record<string, string> = {
   'cuts-chances-declassified': 'One year after the original — the hidden memos, unfiltered emotions, and the missing piece finally revealed. Featuring "Half a Lie."',
 }
 
-// Custom display fonts per project (Google Fonts stack fallback to Inter)
+// Custom display fonts per project
 const PROJECT_FONT_STYLES: Record<string, React.CSSProperties> = {
   'what-do-you-know': {
-    fontFamily: '"Libre Baskerville", Georgia, serif',
-    letterSpacing: '-0.02em',
+    fontFamily: '"Creato Display", "Helvetica Neue", Helvetica, "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif',
+    fontWeight: 800,
+    letterSpacing: '-0.025em',
   },
   'saccharin': {
-    fontFamily: '"Space Grotesk", "Inter", sans-serif',
-    letterSpacing: '0.10em',
+    fontFamily: '"Almendra", "Fondamento", "Cinzel Decorative", Georgia, serif',
+    letterSpacing: '0.08em',
     textTransform: 'uppercase' as const,
-    fontWeight: 900,
+    fontWeight: 700,
   },
   'cicatrix': {
-    fontFamily: '"Playfair Display", Georgia, serif',
-    letterSpacing: '0.06em',
+    fontFamily: '"Creato Display", "Helvetica Neue", Helvetica, "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif',
+    letterSpacing: '0.08em',
     textTransform: 'uppercase' as const,
-    fontWeight: 900,
+    fontWeight: 800,
   },
   'cuts-chances-declassified': {
     fontFamily: '"Playfair Display", Georgia, serif',
@@ -146,7 +147,7 @@ function NewsCard({ item, projects = [] }: { item: NewsItem, projects?: Project[
           position: 'relative'
         }}>
           {imageUrl && (
-            <img src={imageUrl} alt={item.headline} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={imageUrl} alt={item.headline} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           )}
         </div>
 
@@ -247,7 +248,7 @@ function ProjectCard({
           backgroundColor: 'var(--bg-surface-solid)', marginBottom: 14,
           border: `1px solid ${readableAccent}25`
         }}>
-          {coverUrl && <img src={coverUrl} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+          {coverUrl && <img src={coverUrl} alt={project.title} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 2px', flex: 1 }}>
           {subtitle && (
@@ -294,7 +295,7 @@ function ArtistCard({ artist, projects = [] }: { artist: Artist, projects?: Proj
     <Link href={`/artists/${artist.id}`} style={{ textDecoration: 'none', display: 'block' }}>
       <div className="material-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '30px 18px', cursor: 'pointer', textAlign: 'center', height: '100%', borderRadius: 30 }}>
         <div style={{ width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border-default)', backgroundColor: 'var(--bg-surface-solid)' }}>
-          {imgUrl && <img src={imgUrl} alt={artist.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+          {imgUrl && <img src={imgUrl} alt={artist.name} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-main)' }}>{artist.name}</span>
