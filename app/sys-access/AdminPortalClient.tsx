@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import LoadingScreen from '@/components/LoadingScreen'
 import { supabase } from '@/utils/supabase'
 import {
   getLiveNews,
@@ -639,19 +640,16 @@ export default function AdminPortalClient() {
     a.id.toLowerCase().includes(artistSearch.toLowerCase())
   )
 
-  // ─── LOADING SCREEN ───
+  // ─── LOADING SCREEN (VERIFYING CREDENTIALS) ───
   if (checkingAuth) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-base)', color: 'var(--text-main)' }}>
-        <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Verifying zero-trust credentials...</div>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   // ─── LOGIN SCREEN (ZERO-TRUST HARDENED) ───
   if (!user) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-base)', padding: 20 }}>
+        {loggingIn && <LoadingScreen />}
         <div
           className="material-card"
           style={{
@@ -774,6 +772,11 @@ export default function AdminPortalClient() {
         </div>
       </div>
     )
+  }
+
+  // ─── INITIAL ADMIN DATA FETCH ───
+  if (loadingData && newsList.length === 0 && projectsList.length === 0 && artistsList.length === 0) {
+    return <LoadingScreen />
   }
 
   // ─── AUTHENTICATED ADMIN PORTAL ───
