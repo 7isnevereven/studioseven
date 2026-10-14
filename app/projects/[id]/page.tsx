@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { Project } from '@/data/projects'
+import { Project, isProjectScheduled } from '@/data/projects'
 import ProjectPageClient from './ProjectPageClient'
 import { supabase } from '@/utils/supabase'
 
@@ -11,11 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   try {
     const { data: project } = await supabase.from('projects').select('*').eq('id', id).single()
     if (project && project.title) {
-      if (project.scheduled_at) {
-        const scheduledTime = new Date(project.scheduled_at).getTime()
-        if (!isNaN(scheduledTime) && scheduledTime > Date.now()) {
-          return { title: 'Project Not Found · studioseven' }
-        }
+      if (isProjectScheduled(project)) {
+        return { title: 'Project Not Found · studioseven' }
       }
       return {
         title: `${project.title} · studioseven`,
@@ -39,12 +36,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     notFound()
   }
 
-  // If release is scheduled for future release, it is not yet posted
-  if (data.scheduled_at) {
-    const scheduledTime = new Date(data.scheduled_at).getTime()
-    if (!isNaN(scheduledTime) && scheduledTime > Date.now()) {
-      notFound()
-    }
+  // If release is scheduled for future release, it is not yet posted publicly
+  if (isProjectScheduled(data)) {
+    notFound()
   }
 
   const project: Project = {

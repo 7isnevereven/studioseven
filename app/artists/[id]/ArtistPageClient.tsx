@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Artist, Project, getCoverUrl } from '@/data/projects'
+import { Artist, Project, getCoverUrl, isProjectScheduled } from '@/data/projects'
 import { getLiveProjects } from '@/utils/dataStore'
 import Navbar from '@/components/Navbar'
 
@@ -36,7 +36,7 @@ export default function ArtistPageClient({ artist }: { artist: Artist }) {
     if (res.error) {
       setDbError(res.error)
     } else {
-      setLiveProjects(res.data)
+      setLiveProjects(res.data.filter(p => !isProjectScheduled(p)))
     }
     setLoading(false)
   }

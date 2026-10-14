@@ -1,4 +1,4 @@
-import { getCoverUrl, NewsItem, Project } from '@/data/projects'
+import { getCoverUrl, NewsItem, Project, isNewsScheduled, isProjectScheduled } from '@/data/projects'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import NewsPageClient from './NewsPageClient'
@@ -11,11 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   try {
     const { data } = await supabase.from('news').select('*').eq('id', id).single()
     if (data && data.headline) {
-      if (data.scheduled_at) {
-        const scheduledTime = new Date(data.scheduled_at).getTime()
-        if (!isNaN(scheduledTime) && scheduledTime > Date.now()) {
-          return { title: 'Not Found — studioseven' }
-        }
+      if (isNewsScheduled(data)) {
+        return { title: 'Not Found — studioseven' }
       }
       return {
         title: `${data.headline} — studioseven`,
@@ -34,12 +31,9 @@ export default async function NewsPage({ params }: { params: Promise<{ id: strin
     notFound()
   }
 
-  // If item is scheduled for future release, it is not yet posted
-  if (data.scheduled_at) {
-    const scheduledTime = new Date(data.scheduled_at).getTime()
-    if (!isNaN(scheduledTime) && scheduledTime > Date.now()) {
-      notFound()
-    }
+  // If item is scheduled for future release, it is not yet posted publicly
+  if (isNewsScheduled(data)) {
+    notFound()
   }
 
   const item: NewsItem = {
@@ -56,7 +50,7 @@ export default async function NewsPage({ params }: { params: Promise<{ id: strin
   let project: Project | undefined = undefined
   if (item.projectId) {
     const { data: pData } = await supabase.from('projects').select('*').eq('id', item.projectId).single()
-    if (pData) {
+    if (pData && !isProjectScheduled(pData)) {
       project = {
         id: pData.id,
         title: pData.title,

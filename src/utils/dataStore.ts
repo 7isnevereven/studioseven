@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { Project, NewsItem, Artist, ARTISTS as SEED_ARTISTS, getDefaultProjectCredits } from '@/data/projects'
+import { Project, NewsItem, Artist, ARTISTS as SEED_ARTISTS, getDefaultProjectCredits, isProjectScheduled, isNewsScheduled } from '@/data/projects'
 import { PROJECTS as SEED_PROJECTS, NEWS as SEED_NEWS } from '@/data/seedData'
 
 // Map database row to Project type
@@ -92,11 +92,8 @@ function mapProjectToDb(p: Project) {
     payload.credits = p.credits
   }
 
-  // Scheduling a post is strictly optional. If not set, do not send scheduled_at
-  // to prevent PostgREST schema cache errors when the column has not been added yet.
-  if (p.scheduledAt && p.scheduledAt.trim()) {
-    payload.scheduled_at = p.scheduledAt
-  }
+  // Scheduling a post is strictly optional. If set to non-empty string, save it; otherwise set null to clear.
+  payload.scheduled_at = p.scheduledAt && p.scheduledAt.trim() ? p.scheduledAt : null
 
   return payload
 }
@@ -116,9 +113,7 @@ function mapNewsToDb(n: NewsItem) {
   }
 
   // Scheduling a post is strictly optional.
-  if (n.scheduledAt && n.scheduledAt.trim()) {
-    payload.scheduled_at = n.scheduledAt
-  }
+  payload.scheduled_at = n.scheduledAt && n.scheduledAt.trim() ? n.scheduledAt : null
 
   return payload
 }
@@ -184,11 +179,7 @@ export async function getLiveNews(includeScheduled: boolean = false, forceRefres
       const mapped = cacheNews.all
       const filtered = includeScheduled
         ? mapped
-        : mapped.filter(n => {
-            if (!n.scheduledAt) return true
-            const scheduledTime = new Date(n.scheduledAt).getTime()
-            return isNaN(scheduledTime) || scheduledTime <= Date.now()
-          })
+        : mapped.filter(n => !isNewsScheduled(n))
       return { data: sortNewsByDateDesc(filtered), error: null }
     }
 
@@ -204,11 +195,7 @@ export async function getLiveNews(includeScheduled: boolean = false, forceRefres
 
     const filtered = includeScheduled
       ? mapped
-      : mapped.filter(n => {
-          if (!n.scheduledAt) return true
-          const scheduledTime = new Date(n.scheduledAt).getTime()
-          return isNaN(scheduledTime) || scheduledTime <= Date.now()
-        })
+      : mapped.filter(n => !isNewsScheduled(n))
     return { data: sortNewsByDateDesc(filtered), error: null }
   } catch (err: any) {
     return { data: [], error: err?.message || 'Database connection error' }
@@ -223,11 +210,7 @@ export async function getLiveProjects(includeScheduled: boolean = false, forceRe
       const mapped = cacheProjects.all
       const filtered = includeScheduled
         ? mapped
-        : mapped.filter(p => {
-            if (!p.scheduledAt) return true
-            const scheduledTime = new Date(p.scheduledAt).getTime()
-            return isNaN(scheduledTime) || scheduledTime <= Date.now()
-          })
+        : mapped.filter(p => !isProjectScheduled(p))
       return { data: sortProjectsByDateDesc(filtered), error: null }
     }
 
@@ -243,11 +226,7 @@ export async function getLiveProjects(includeScheduled: boolean = false, forceRe
 
     const filtered = includeScheduled
       ? mapped
-      : mapped.filter(p => {
-          if (!p.scheduledAt) return true
-          const scheduledTime = new Date(p.scheduledAt).getTime()
-          return isNaN(scheduledTime) || scheduledTime <= Date.now()
-        })
+      : mapped.filter(p => !isProjectScheduled(p))
     return { data: sortProjectsByDateDesc(filtered), error: null }
   } catch (err: any) {
     return { data: [], error: err?.message || 'Database connection error' }
@@ -385,6 +364,9 @@ export async function saveNewsItem(item: NewsItem): Promise<{ error: any }> {
 // Admin: Delete a news item
 export async function deleteNewsItem(id: string): Promise<{ error: any }> {
   invalidateDataCache()
+  try {
+    await supabase.from('news_reactions').delete().eq('news_id', id)
+  } catch {}
   const { error } = await supabase
     .from('news')
     .delete()
@@ -422,6 +404,10 @@ export async function saveProject(project: Project): Promise<{ error: any }> {
 // Admin: Delete a project
 export async function deleteProject(id: string): Promise<{ error: any }> {
   invalidateDataCache()
+  try {
+    await supabase.from('ratings').delete().eq('project_id', id)
+    await supabase.from('news').update({ project_id: null }).eq('project_id', id)
+  } catch {}
   const { error } = await supabase
     .from('projects')
     .delete()

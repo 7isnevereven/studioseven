@@ -121,6 +121,39 @@ export function formatTimeAgo(dateString: string): string {
 }
 
 /**
+ * Determines whether a project is scheduled for future release.
+ * Returns true if scheduledAt or releasedAt is set to a future timestamp.
+ */
+export function isProjectScheduled(project?: { scheduledAt?: string; scheduled_at?: string; releasedAt?: string; released_at?: string } | null): boolean {
+  if (!project) return false
+  const sched = project.scheduledAt || project.scheduled_at
+  if (sched) {
+    const st = new Date(sched).getTime()
+    if (!isNaN(st) && st > Date.now()) return true
+  }
+  const rel = project.releasedAt || project.released_at
+  if (rel) {
+    const rt = new Date(rel).getTime()
+    if (!isNaN(rt) && rt > Date.now()) return true
+  }
+  return false
+}
+
+/**
+ * Determines whether a news article is scheduled for future release.
+ * Returns true if scheduledAt is set to a future timestamp.
+ */
+export function isNewsScheduled(news?: { scheduledAt?: string; scheduled_at?: string } | null): boolean {
+  if (!news) return false
+  const sched = news.scheduledAt || news.scheduled_at
+  if (sched) {
+    const st = new Date(sched).getTime()
+    if (!isNaN(st) && st > Date.now()) return true
+  }
+  return false
+}
+
+/**
  * Ensures any accent color has sufficient contrast and vibrancy to be easily readable
  * on dark backgrounds (in dark mode) or light backgrounds (in light mode).
  */

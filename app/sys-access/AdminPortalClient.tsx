@@ -30,6 +30,8 @@ import {
   formatTimeAgo,
   getDefaultProjectCredits,
   getDefaultTrackCredits,
+  isProjectScheduled,
+  isNewsScheduled,
 } from '@/data/projects'
 import type { User } from '@supabase/supabase-js'
 
@@ -137,6 +139,22 @@ export default function AdminPortalClient() {
 
   // Track Editor within Project Editor
   const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(null)
+
+  // Deletion Confirmation Modal State
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    type: 'project' | 'news' | 'artist' | 'track' | 'history';
+    id: string;
+    title: string;
+    details?: string;
+    extraIdx?: number;
+  }>({
+    isOpen: false,
+    type: 'project',
+    id: '',
+    title: ''
+  })
+  const [deleting, setDeleting] = useState(false)
 
   // Toast notifier
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
@@ -372,16 +390,94 @@ export default function AdminPortalClient() {
     setSavingNews(false)
   }
 
-  // ─── DELETE NEWS ITEM ───
-  const handleDeleteNews = async (id: string, headline: string) => {
-    if (!confirm(`Permanently delete "${headline}" from database?`)) return
+  // ─── DELETE PROMPTS & EXECUTION WITH PROPER CONFIRMATION MODAL ───
+  const handleDeleteNews = (id: string, headline: string) => {
+    setDeleteConfirm({
+      isOpen: true,
+      type: 'news',
+      id,
+      title: headline,
+      details: 'This article will be permanently removed from Supabase.'
+    })
+  }
 
-    const { error } = await deleteNewsItem(id)
-    if (error) {
-      showToast(`Failed to delete: ${error.message}`, 'error')
-    } else {
-      showToast('Article deleted from Supabase.')
-      loadContent()
+  const handleDeleteProject = (id: string, title: string) => {
+    const proj = projectsList.find(p => p.id === id)
+    setDeleteConfirm({
+      isOpen: true,
+      type: 'project',
+      id,
+      title,
+      details: proj ? `${proj.tracks.length} tracks, credits, and lore history sections` : 'Release Master'
+    })
+  }
+
+  const handleDeleteArtist = (id: string, name: string) => {
+    const count = projectsList.filter(p => p.artistId === id).length
+    setDeleteConfirm({
+      isOpen: true,
+      type: 'artist',
+      id,
+      title: name,
+      details: count > 0 ? `Associated with ${count} releases.` : 'Creator profile will be removed.'
+    })
+  }
+
+  const handleExecuteDelete = async () => {
+    if (!deleteConfirm.isOpen) return
+    setDeleting(true)
+
+    try {
+      if (deleteConfirm.type === 'project') {
+        const { error } = await deleteProject(deleteConfirm.id)
+        if (error) {
+          showToast(`Failed to delete release: ${error.message}`, 'error')
+        } else {
+          showToast(`Release "${deleteConfirm.title}" permanently deleted.`)
+          if (editingProject && editingProject.id === deleteConfirm.id) {
+            setEditingProject(null)
+          }
+          await loadContent()
+        }
+      } else if (deleteConfirm.type === 'news') {
+        const { error } = await deleteNewsItem(deleteConfirm.id)
+        if (error) {
+          showToast(`Failed to delete news: ${error.message}`, 'error')
+        } else {
+          showToast(`Article "${deleteConfirm.title}" permanently deleted.`)
+          if (editingNews && editingNews.id === deleteConfirm.id) {
+            setEditingNews(null)
+          }
+          await loadContent()
+        }
+      } else if (deleteConfirm.type === 'artist') {
+        const { error } = await deleteArtist(deleteConfirm.id)
+        if (error) {
+          showToast(`Failed to delete artist: ${error.message}`, 'error')
+        } else {
+          showToast(`Creator "${deleteConfirm.title}" deleted.`)
+          if (editingArtist && editingArtist.id === deleteConfirm.id) {
+            setEditingArtist(null)
+          }
+          await loadContent()
+        }
+      } else if (deleteConfirm.type === 'track' && editingProject && deleteConfirm.extraIdx !== undefined) {
+        const updated = [...editingProject.tracks]
+        updated.splice(deleteConfirm.extraIdx, 1)
+        setEditingProject({ ...editingProject, tracks: updated })
+        if (selectedTrackIndex === deleteConfirm.extraIdx) setSelectedTrackIndex(null)
+        showToast(`Track "${deleteConfirm.title}" removed.`)
+      } else if (deleteConfirm.type === 'history' && editingProject && deleteConfirm.extraIdx !== undefined) {
+        const updated = [...editingProject.history]
+        updated.splice(deleteConfirm.extraIdx, 1)
+        setEditingProject({ ...editingProject, history: updated })
+        showToast(`Lore section removed.`)
+      }
+    } catch (err: any) {
+      showToast(`Error: ${err?.message || 'Delete operation failed'}`, 'error')
+    } finally {
+      setDeleting(false)
+      setDeleteConfirm({ isOpen: false, type: 'project', id: '', title: '' })
     }
   }
 
@@ -471,17 +567,6 @@ export default function AdminPortalClient() {
     setSavingArtist(false)
   }
 
-  // ─── DELETE ARTIST ───
-  const handleDeleteArtist = async (id: string, name: string) => {
-    if (!confirm(`Permanently delete creator "${name}"?`)) return
-    const { error } = await deleteArtist(id)
-    if (error) {
-      showToast(`Failed to delete artist: ${error.message}`, 'error')
-    } else {
-      showToast(`Artist "${name}" deleted.`)
-      loadContent()
-    }
-  }
 
   // ─── SHOWCASE ORDERING & REORDERING ───
   // Active showcase projects sorted strictly by showcaseOrder ascending
@@ -573,10 +658,17 @@ export default function AdminPortalClient() {
 
   const handleDeleteTrack = (idx: number) => {
     if (!editingProject) return
-    const updated = [...editingProject.tracks]
-    updated.splice(idx, 1)
-    setEditingProject({ ...editingProject, tracks: updated })
-    if (selectedTrackIndex === idx) setSelectedTrackIndex(null)
+    const track = editingProject.tracks[idx]
+    if (track) {
+      setDeleteConfirm({
+        isOpen: true,
+        type: 'track',
+        id: editingProject.id,
+        title: track.title || `Track ${idx + 1}`,
+        details: track.content ? `Contains song lyrics/notes (${track.content.length} characters)` : 'Empty track slot',
+        extraIdx: idx
+      })
+    }
   }
 
   // ─── COLOR PALETTE GENERATOR ───
@@ -1208,7 +1300,7 @@ export default function AdminPortalClient() {
                         <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                           {project.releaseLabel}
                         </span>
-                        {isFutureScheduled(project.scheduledAt) && (
+                        {isProjectScheduled(project) && (
                           <span style={{
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -1226,9 +1318,9 @@ export default function AdminPortalClient() {
                         )}
                       </div>
 
-                      {isFutureScheduled(project.scheduledAt) && (
+                      {isProjectScheduled(project) && (
                         <div style={{ fontSize: 11, color: '#38bdf8', fontWeight: 600 }}>
-                          Goes live: {formatScheduledDate(project.scheduledAt)}
+                          Goes live: {formatScheduledDate(project.scheduledAt || project.releasedAt)}
                         </div>
                       )}
 
@@ -1275,13 +1367,13 @@ export default function AdminPortalClient() {
                           Edit Details & Songs
                         </button>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 6 }}>
                           <button
                             type="button"
                             onClick={() => copyPublicLink(`/projects/${project.id}`)}
                             className="material-btn material-pill-sm"
                             style={{ fontSize: 11.5, padding: '5px 8px', width: '100%', whiteSpace: 'nowrap' }}
-                            title="Copy Public Link (works once published, or redirects to 404 countdown if scheduled)"
+                            title="Copy Public Link (redirects to 404 if scheduled for future)"
                           >
                             📋 Link
                           </button>
@@ -1294,6 +1386,15 @@ export default function AdminPortalClient() {
                           >
                             View ↗
                           </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteProject(project.id, project.title)}
+                            className="material-btn material-pill-sm"
+                            style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', padding: '5px 10px', fontSize: 11.5, whiteSpace: 'nowrap' }}
+                            title="Permanently Delete Release"
+                          >
+                            🗑️ Delete
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1354,11 +1455,27 @@ export default function AdminPortalClient() {
                           </div>
 
                           <div style={{ minWidth: 0, flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                               <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-main)' }}>{project.title}</h4>
                               <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                                 • {project.showcaseLabel || project.releaseLabel}
                               </span>
+                              {isProjectScheduled(project) && (
+                                <span style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  padding: '2px 8px',
+                                  borderRadius: 99,
+                                  background: 'rgba(56, 189, 248, 0.15)',
+                                  border: '1px solid rgba(56, 189, 248, 0.4)',
+                                  color: '#38bdf8',
+                                  fontSize: 10.5,
+                                  fontWeight: 700
+                                }}>
+                                  <span>🕒 Scheduled (Hidden Publicly Until Live)</span>
+                                </span>
+                              )}
                             </div>
                             <p style={{
                               fontSize: 12.5,
@@ -1853,22 +1970,34 @@ export default function AdminPortalClient() {
 
               </div>
 
-              <div className="modal-footer-fixed">
-                <button
-                  type="button"
-                  onClick={() => setEditingNews(null)}
-                  className="material-btn material-pill"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingNews}
-                  className="material-btn material-pill"
-                  style={{ background: 'var(--text-main)', color: 'var(--bg-base)', fontWeight: 700 }}
-                >
-                  {savingNews ? 'Publishing...' : 'Save & Publish to Supabase'}
-                </button>
+              <div className="modal-footer-fixed" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                {originalNewsId && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteNews(editingNews.id, editingNews.headline)}
+                    className="material-btn material-pill"
+                    style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.45)', background: 'rgba(239, 68, 68, 0.08)', fontWeight: 700, fontSize: 12.5 }}
+                  >
+                    🗑️ Delete Article
+                  </button>
+                )}
+                <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
+                  <button
+                    type="button"
+                    onClick={() => setEditingNews(null)}
+                    className="material-btn material-pill"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingNews}
+                    className="material-btn material-pill"
+                    style={{ background: 'var(--text-main)', color: 'var(--bg-base)', fontWeight: 700 }}
+                  >
+                    {savingNews ? 'Publishing...' : 'Save & Publish to Supabase'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -2839,12 +2968,18 @@ export default function AdminPortalClient() {
                           <button
                             type="button"
                             onClick={() => {
-                              const updated = [...editingProject.history]
-                              updated.splice(idx, 1)
-                              setEditingProject({ ...editingProject, history: updated })
+                              setDeleteConfirm({
+                                isOpen: true,
+                                type: 'history',
+                                id: editingProject.id,
+                                title: sec.heading || `Lore Section ${idx + 1}`,
+                                details: sec.body ? `Contains narrative text (${sec.body.length} characters)` : undefined,
+                                extraIdx: idx
+                              })
                             }}
                             className="material-btn material-pill-sm"
                             style={{ color: '#ef4444', marginLeft: 10 }}
+                            title="Remove Lore Section"
                           >
                             ✕
                           </button>
@@ -2914,22 +3049,34 @@ export default function AdminPortalClient() {
               </div>
 
               {/* Footer Actions */}
-              <div className="modal-footer-fixed">
-                <button
-                  type="button"
-                  onClick={() => setEditingProject(null)}
-                  className="material-btn material-pill"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingProject}
-                  className="material-btn material-pill"
-                  style={{ background: 'var(--text-main)', color: 'var(--bg-base)', fontWeight: 700 }}
-                >
-                  {savingProject ? 'Saving...' : 'Save Release to Supabase'}
-                </button>
+              <div className="modal-footer-fixed" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                {originalProjectId && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteProject(editingProject.id, editingProject.title)}
+                    className="material-btn material-pill"
+                    style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.45)', background: 'rgba(239, 68, 68, 0.08)', fontWeight: 700, fontSize: 12.5 }}
+                  >
+                    🗑️ Delete Release
+                  </button>
+                )}
+                <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
+                  <button
+                    type="button"
+                    onClick={() => setEditingProject(null)}
+                    className="material-btn material-pill"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingProject}
+                    className="material-btn material-pill"
+                    style={{ background: 'var(--text-main)', color: 'var(--bg-base)', fontWeight: 700 }}
+                  >
+                    {savingProject ? 'Saving...' : 'Save Release to Supabase'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -3149,24 +3296,154 @@ export default function AdminPortalClient() {
 
               </div>
 
-              <div className="modal-footer-fixed">
-                <button
-                  type="button"
-                  onClick={() => setEditingArtist(null)}
-                  className="material-btn material-pill"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingArtist}
-                  className="material-btn material-pill"
-                  style={{ background: 'var(--text-main)', color: 'var(--bg-base)', fontWeight: 700 }}
-                >
-                  {savingArtist ? 'Saving...' : 'Save Artist to Supabase'}
-                </button>
+              <div className="modal-footer-fixed" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                {originalArtistId && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteArtist(editingArtist.id, editingArtist.name)}
+                    className="material-btn material-pill"
+                    style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.45)', background: 'rgba(239, 68, 68, 0.08)', fontWeight: 700, fontSize: 12.5 }}
+                  >
+                    🗑️ Delete Creator
+                  </button>
+                )}
+                <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
+                  <button
+                    type="button"
+                    onClick={() => setEditingArtist(null)}
+                    className="material-btn material-pill"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingArtist}
+                    className="material-btn material-pill"
+                    style={{ background: 'var(--text-main)', color: 'var(--bg-base)', fontWeight: 700 }}
+                  >
+                    {savingArtist ? 'Saving...' : 'Save Artist to Supabase'}
+                  </button>
+                </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════ MODAL: PERMANENT DELETION CONFIRMATION ═══════════════ */}
+      {deleteConfirm.isOpen && (
+        <div className="modal-overlay" onClick={() => !deleting && setDeleteConfirm({ ...deleteConfirm, isOpen: false })}>
+          <div
+            className="modal-container admin-modal-card"
+            onClick={e => e.stopPropagation()}
+            style={{
+              maxWidth: 480,
+              backgroundColor: 'var(--bg-surface-solid)',
+              border: '1px solid rgba(239, 68, 68, 0.45)',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(239, 68, 68, 0.15)',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ padding: '24px 26px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{
+                  width: 46,
+                  height: 46,
+                  borderRadius: 14,
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.45)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 22,
+                  flexShrink: 0
+                }}>
+                  ⚠️
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
+                    {deleteConfirm.type === 'project' && 'Delete Release Master?'}
+                    {deleteConfirm.type === 'news' && 'Delete News Article?'}
+                    {deleteConfirm.type === 'artist' && 'Delete Creator Profile?'}
+                    {deleteConfirm.type === 'track' && 'Remove Track from Project?'}
+                    {deleteConfirm.type === 'history' && 'Remove Lore Section?'}
+                  </h3>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    Admin Confirmation Required
+                  </span>
+                </div>
+              </div>
+
+              <div style={{
+                padding: '14px 16px',
+                borderRadius: 18,
+                background: 'rgba(239, 68, 68, 0.06)',
+                border: '1px solid rgba(239, 68, 68, 0.22)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 5
+              }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)', wordBreak: 'break-word' }}>
+                  {deleteConfirm.title}
+                </div>
+                {deleteConfirm.id && (
+                  <div style={{ fontSize: 11.5, color: '#ef4444', fontFamily: 'monospace' }}>
+                    ID: {deleteConfirm.id}
+                  </div>
+                )}
+                {deleteConfirm.details && (
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.45, marginTop: 2 }}>
+                    {deleteConfirm.details}
+                  </div>
+                )}
+              </div>
+
+              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.55, margin: 0 }}>
+                {deleteConfirm.type === 'track' || deleteConfirm.type === 'history'
+                  ? 'This item will be removed from your current project editor draft.'
+                  : 'This item will be permanently purged from the live Supabase database. This action cannot be reversed.'}
+              </p>
+            </div>
+
+            <div style={{
+              padding: '16px 26px',
+              borderTop: '1px solid var(--border-subtle)',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 10,
+              background: 'var(--bg-surface-variant)'
+            }}>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setDeleteConfirm({ ...deleteConfirm, isOpen: false })}
+                className="material-btn material-pill"
+                style={{ fontSize: 13, padding: '8px 20px' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleExecuteDelete}
+                className="material-btn material-pill"
+                style={{
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  borderColor: '#ef4444',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  padding: '8px 22px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 4px 16px rgba(239, 68, 68, 0.35)',
+                  cursor: deleting ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {deleting ? 'Deleting...' : '🗑️ Yes, Delete Permanently'}
+              </button>
+            </div>
           </div>
         </div>
       )}

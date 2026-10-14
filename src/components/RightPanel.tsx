@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { ARTISTS, Project, Artist, getCoverUrl, formatTimeAgo, TrackBadge, getReadableAccent } from '@/data/projects'
+import { ARTISTS, Project, Artist, getCoverUrl, formatTimeAgo, TrackBadge, getReadableAccent, isProjectScheduled, isNewsScheduled } from '@/data/projects'
 import type { NewsItem } from '@/data/projects'
 import Navbar from '@/components/Navbar'
 import { getLiveNews, getLiveProjects, getLiveArtists, sortNewsByDateDesc } from '@/utils/dataStore'
@@ -335,8 +335,8 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
     if (projRes.error || newsRes.error) {
       setDbError(projRes.error || newsRes.error)
     } else {
-      setAllProjects(projRes.data)
-      setAllNews(newsRes.data)
+      setAllProjects(projRes.data.filter(p => !isProjectScheduled(p)))
+      setAllNews(newsRes.data.filter(n => !isNewsScheduled(n)))
       if (artistsRes.data && artistsRes.data.length > 0) {
         setAllArtists(artistsRes.data)
       }
@@ -350,7 +350,7 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
 
   // Homescreen Showcase Projects: priority to projects marked as featured by admin, sorted strictly by showcaseOrder
   const featuredProjects = allProjects
-    .filter(p => p.featured)
+    .filter(p => p.featured && !isProjectScheduled(p))
     .sort((a, b) => (a.showcaseOrder ?? 999) - (b.showcaseOrder ?? 999))
   const latest3Projects = featuredProjects.length >= 3
     ? featuredProjects.slice(0, 3)
@@ -431,6 +431,7 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
   }, [])
 
   const filteredProjects = allProjects
+    .filter(p => !isProjectScheduled(p))
     .filter(p => {
       const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase())
       const matchesCreator = matchesArtist(p, artistFilter, allArtists)
