@@ -3,7 +3,22 @@ import { Project, NewsItem, Artist, ARTISTS as SEED_ARTISTS, getDefaultProjectCr
 import { PROJECTS as SEED_PROJECTS, NEWS as SEED_NEWS } from '@/data/seedData'
 
 // Map database row to Project type
-function mapDbProject(row: any): Project {
+export function mapDbProject(row: any): Project {
+  const rawTracks = Array.isArray(row.tracks) ? row.tracks : []
+  const metaTrack = rawTracks.find((t: any) => t && t._meta)
+  const cleanTracks = rawTracks.filter((t: any) => !t || !t._meta)
+
+  const allowPreview = Boolean(
+    row.allow_preview ||
+    rawTracks[0]?._allowPreview ||
+    metaTrack?._allowPreview
+  )
+
+  const scheduledAt = row.scheduled_at ||
+    rawTracks[0]?._scheduledAt ||
+    metaTrack?._scheduledAt ||
+    (row.released_at && isProjectScheduled({ releasedAt: row.released_at }) ? row.released_at : undefined)
+
   return {
     id: row.id,
     title: row.title,
@@ -20,17 +35,18 @@ function mapDbProject(row: any): Project {
     spotifyUrl: row.spotify_url || undefined,
     youtubeUrl: row.youtube_url || undefined,
     leadTrack: row.lead_track || undefined,
-    tracks: Array.isArray(row.tracks) ? row.tracks : [],
+    tracks: cleanTracks,
     history: Array.isArray(row.history) ? row.history : [],
     featured: Boolean(row.featured),
-    scheduledAt: row.scheduled_at || undefined,
+    scheduledAt: scheduledAt,
+    allowPreview: allowPreview,
     type: row.type || 'project',
-    credits: row.credits || (row.tracks?.[0] as any)?._projectCredits || getDefaultProjectCredits({ id: row.id, artistId: row.artist_id, type: row.type }),
+    credits: row.credits || (cleanTracks[0] as any)?._projectCredits || metaTrack?._projectCredits || getDefaultProjectCredits({ id: row.id, artistId: row.artist_id, type: row.type }),
   }
 }
 
 // Map database row to NewsItem type
-function mapDbNews(row: any): NewsItem {
+export function mapDbNews(row: any): NewsItem {
   return {
     id: row.id,
     headline: row.headline,
@@ -59,11 +75,26 @@ function mapDbArtist(row: any): Artist {
 // Map Project to database insert object
 function mapProjectToDb(p: Project) {
   const payloadTracks = (p.tracks || []).map((t, idx) => {
-    if (idx === 0 && p.credits) {
-      return { ...t, _projectCredits: p.credits }
+    if (idx === 0) {
+      const extra: any = {}
+      if (p.credits) extra._projectCredits = p.credits
+      if (p.scheduledAt !== undefined) extra._scheduledAt = p.scheduledAt
+      if (p.allowPreview !== undefined) extra._allowPreview = p.allowPreview
+      return { ...t, ...extra }
     }
     return t
   })
+
+  // If no tracks exist yet, store metadata in a meta track so it survives round-trips
+  if (payloadTracks.length === 0 && (p.allowPreview !== undefined || p.scheduledAt || p.credits)) {
+    payloadTracks.push({
+      _meta: true,
+      title: '',
+      _allowPreview: Boolean(p.allowPreview),
+      _scheduledAt: p.scheduledAt,
+      _projectCredits: p.credits,
+    } as any)
+  }
 
   const payload: any = {
     id: p.id,
@@ -90,6 +121,10 @@ function mapProjectToDb(p: Project) {
 
   if (p.credits) {
     payload.credits = p.credits
+  }
+
+  if (p.allowPreview !== undefined) {
+    payload.allow_preview = Boolean(p.allowPreview)
   }
 
   // Scheduling a post is strictly optional. If set to non-empty string, save it; otherwise set null to clear.
@@ -210,7 +245,7 @@ export async function getLiveProjects(includeScheduled: boolean = false, forceRe
       const mapped = cacheProjects.all
       const filtered = includeScheduled
         ? mapped
-        : mapped.filter(p => !isProjectScheduled(p))
+        : mapped.filter(p => !isProjectScheduled(p) || p.allowPreview)
       return { data: sortProjectsByDateDesc(filtered), error: null }
     }
 
@@ -226,7 +261,7 @@ export async function getLiveProjects(includeScheduled: boolean = false, forceRe
 
     const filtered = includeScheduled
       ? mapped
-      : mapped.filter(p => !isProjectScheduled(p))
+      : mapped.filter(p => !isProjectScheduled(p) || p.allowPreview)
     return { data: sortProjectsByDateDesc(filtered), error: null }
   } catch (err: any) {
     return { data: [], error: err?.message || 'Database connection error' }
@@ -382,10 +417,11 @@ export async function saveProject(project: Project): Promise<{ error: any }> {
     .from('projects')
     .upsert([dbData], { onConflict: 'id' })
 
-  // Schema fallback: if scheduled_at, credits, spotify_url, youtube_url, or showcase columns don't exist in Supabase
-  if (error && (error.message.includes('scheduled_at') || error.message.includes('credits') || error.message.includes('spotify_url') || error.message.includes('youtube_url') || error.message.includes('column') || error.message.includes('schema cache'))) {
+  // Schema fallback: if scheduled_at, allow_preview, credits, spotify_url, youtube_url, or showcase columns don't exist in Supabase
+  if (error && (error.message.includes('scheduled_at') || error.message.includes('allow_preview') || error.message.includes('credits') || error.message.includes('spotify_url') || error.message.includes('youtube_url') || error.message.includes('column') || error.message.includes('schema cache'))) {
     const safeData: any = { ...dbData }
     delete safeData.scheduled_at
+    delete safeData.allow_preview
     delete safeData.credits
     delete safeData.spotify_url
     delete safeData.youtube_url

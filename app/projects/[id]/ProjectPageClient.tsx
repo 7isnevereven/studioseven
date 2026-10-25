@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Project, Track, TrackBadge, getCoverUrl, ProjectRating, ARTISTS, getReadableAccent, getDefaultProjectCredits, getDefaultTrackCredits, formatTrackCreditsSummary } from '@/data/projects'
+import { Project, Track, TrackBadge, getCoverUrl, ProjectRating, ARTISTS, getReadableAccent, getDefaultProjectCredits, getDefaultTrackCredits, formatTrackCreditsSummary, isProjectScheduled, getProjectDisplayRelease } from '@/data/projects'
 import { supabase } from '@/utils/supabase'
 import Navbar from '@/components/Navbar'
 import CollectibleWizard from '@/components/CollectibleWizard'
@@ -279,8 +279,28 @@ export default function ProjectPageClient({ project }: { project: Project }) {
               {artist && (
                 <>A project by <Link href={`/artists/${artist.id}`} style={{ color: 'var(--text-main)', fontWeight: 600, textDecoration: 'none' }}>{artist.name}</Link> · </>
               )}
-              {project.releaseLabel}
+              {getProjectDisplayRelease(project)}
             </p>
+
+            {isProjectScheduled(project) && (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '4px 12px',
+                borderRadius: 99,
+                background: 'rgba(56, 189, 248, 0.12)',
+                border: '1px solid rgba(56, 189, 248, 0.35)',
+                color: '#38bdf8',
+                fontSize: 11.5,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                width: 'fit-content',
+                marginTop: 2
+              }}>
+                UPCOMING · {getProjectDisplayRelease(project)}
+              </div>
+            )}
 
             {/* Showcase Story / Narrative Message */}
             {projectDescription && (
@@ -732,49 +752,60 @@ export default function ProjectPageClient({ project }: { project: Project }) {
             {tab === 'ratings' && (
               <section className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
                 {/* Form */}
-                <div className="liquid-glass-card" style={{ padding: '32px 36px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-                    Leave an Album Review
-                  </h3>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <StarIcon 
-                        key={star} 
-                        size={28}
-                        filled={star <= (hoverRating || newRating)}
-                        onClick={() => setNewRating(star)}
-                        onMouseEnter={() => setHoverRating(star)}
-                        onMouseLeave={() => setHoverRating(0)}
-                      />
-                    ))}
-                    <span style={{ fontSize: 13.5, color: 'var(--text-muted)', marginLeft: 8, fontWeight: 600 }}>
-                      {newRating ? `${newRating} of 5 Stars` : 'Tap to rate'}
-                    </span>
+                {isProjectScheduled(project) ? (
+                  <div className="liquid-glass-card" style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <h4 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
+                      Reviews Open Upon Release
+                    </h4>
+                    <p style={{ fontSize: 13.5, color: 'var(--text-muted)', margin: 0 }}>
+                      This project is upcoming ({getProjectDisplayRelease(project)}). Ratings and community reviews will open once the album is officially released.
+                    </p>
                   </div>
-                  <input 
-                    type="text" 
-                    className="liquid-input liquid-pill-sm" 
-                    placeholder="Your Name or Alias *" 
-                    value={reviewerName} 
-                    onChange={e => setReviewerName(e.target.value)} 
-                    style={{ maxWidth: 380, padding: '12px 18px', borderRadius: 14 }}
-                  />
-                  <textarea 
-                    className="liquid-input" 
-                    placeholder="Share your thoughts on this release..." 
-                    value={reviewerDesc}
-                    onChange={e => setReviewerDesc(e.target.value)}
-                    style={{ minHeight: 90 }}
-                  />
-                  <button 
-                    className="liquid-btn liquid-pill" 
-                    onClick={submitRating} 
-                    disabled={!newRating || !reviewerName.trim() || isSubmitting}
-                    style={{ width: 'fit-content', background: 'var(--liquid-glass-active)', fontWeight: 700 }}
-                  >
-                    {isSubmitting ? 'Posting...' : 'Post Review'}
-                  </button>
-                </div>
+                ) : (
+                  <div className="liquid-glass-card" style={{ padding: '32px 36px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+                      Leave an Album Review
+                    </h3>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <StarIcon 
+                          key={star} 
+                          size={28}
+                          filled={star <= (hoverRating || newRating)}
+                          onClick={() => setNewRating(star)}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                        />
+                      ))}
+                      <span style={{ fontSize: 13.5, color: 'var(--text-muted)', marginLeft: 8, fontWeight: 600 }}>
+                        {newRating ? `${newRating} of 5 Stars` : 'Tap to rate'}
+                      </span>
+                    </div>
+                    <input 
+                      type="text" 
+                      className="liquid-input liquid-pill-sm" 
+                      placeholder="Your Name or Alias *" 
+                      value={reviewerName} 
+                      onChange={e => setReviewerName(e.target.value)} 
+                      style={{ maxWidth: 380, padding: '12px 18px', borderRadius: 14 }}
+                    />
+                    <textarea 
+                      className="liquid-input" 
+                      placeholder="Share your thoughts on this release..." 
+                      value={reviewerDesc}
+                      onChange={e => setReviewerDesc(e.target.value)}
+                      style={{ minHeight: 90 }}
+                    />
+                    <button 
+                      className="liquid-btn liquid-pill" 
+                      onClick={submitRating} 
+                      disabled={!newRating || !reviewerName.trim() || isSubmitting}
+                      style={{ width: 'fit-content', background: 'var(--liquid-glass-active)', fontWeight: 700 }}
+                    >
+                      {isSubmitting ? 'Posting...' : 'Post Review'}
+                    </button>
+                  </div>
+                )}
 
                 {/* Review Feed */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

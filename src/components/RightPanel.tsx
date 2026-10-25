@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { ARTISTS, Project, Artist, getCoverUrl, formatTimeAgo, TrackBadge, getReadableAccent, isProjectScheduled, isNewsScheduled } from '@/data/projects'
+import { ARTISTS, Project, Artist, getCoverUrl, formatTimeAgo, TrackBadge, getReadableAccent, isProjectScheduled, isNewsScheduled, getProjectDisplayRelease } from '@/data/projects'
 import type { NewsItem } from '@/data/projects'
 import Navbar from '@/components/Navbar'
 import { getLiveNews, getLiveProjects, getLiveArtists, sortNewsByDateDesc } from '@/utils/dataStore'
@@ -275,7 +275,24 @@ function ProjectCard({
             </p>
           )}
 
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: showArtist ? 0 : 2 }}>{project.releaseLabel}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: showArtist ? 0 : 2 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{getProjectDisplayRelease(project)}</p>
+            {isProjectScheduled(project) && (
+              <span style={{
+                fontSize: 9.5,
+                fontWeight: 800,
+                color: '#38bdf8',
+                background: 'rgba(56, 189, 248, 0.15)',
+                border: '1px solid rgba(56, 189, 248, 0.35)',
+                borderRadius: 99,
+                padding: '1px 6px',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase'
+              }}>
+                UPCOMING
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </Link>
@@ -335,7 +352,7 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
     if (projRes.error || newsRes.error) {
       setDbError(projRes.error || newsRes.error)
     } else {
-      setAllProjects(projRes.data.filter(p => !isProjectScheduled(p)))
+      setAllProjects(projRes.data.filter(p => !isProjectScheduled(p) || p.allowPreview))
       setAllNews(newsRes.data.filter(n => !isNewsScheduled(n)))
       if (artistsRes.data && artistsRes.data.length > 0) {
         setAllArtists(artistsRes.data)
@@ -350,7 +367,7 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
 
   // Homescreen Showcase Projects: priority to projects marked as featured by admin, sorted strictly by showcaseOrder
   const featuredProjects = allProjects
-    .filter(p => p.featured && !isProjectScheduled(p))
+    .filter(p => p.featured && (!isProjectScheduled(p) || p.allowPreview))
     .sort((a, b) => (a.showcaseOrder ?? 999) - (b.showcaseOrder ?? 999))
   const latest3Projects = featuredProjects.length >= 3
     ? featuredProjects.slice(0, 3)
@@ -431,7 +448,7 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
   }, [])
 
   const filteredProjects = allProjects
-    .filter(p => !isProjectScheduled(p))
+    .filter(p => !isProjectScheduled(p) || p.allowPreview)
     .filter(p => {
       const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase())
       const matchesCreator = matchesArtist(p, artistFilter, allArtists)
@@ -597,16 +614,35 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
                   <div className="showcase-banner-content">
                     {/* Left Column: Details & Actions */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: '640px', minWidth: 0 }}>
-                      <span style={{
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        color: 'rgba(255,255,255,0.7)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        width: 'fit-content'
-                      }}>
-                        {activeProject.showcaseLabel || activeProject.releaseLabel}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        {isProjectScheduled(activeProject) && (
+                          <span style={{
+                            fontSize: 10,
+                            fontWeight: 800,
+                            color: '#38bdf8',
+                            background: 'rgba(56, 189, 248, 0.25)',
+                            border: '1px solid rgba(56, 189, 248, 0.55)',
+                            borderRadius: 99,
+                            padding: '2px 8px',
+                            letterSpacing: '0.04em',
+                            textTransform: 'uppercase'
+                          }}>
+                            UPCOMING
+                          </span>
+                        )}
+                        <span style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          color: isProjectScheduled(activeProject) ? '#38bdf8' : 'rgba(255,255,255,0.7)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
+                          width: 'fit-content'
+                        }}>
+                          {activeProject.showcaseLabel
+                            ? (isProjectScheduled(activeProject) ? getProjectDisplayRelease(activeProject) : activeProject.showcaseLabel)
+                            : getProjectDisplayRelease(activeProject)}
+                        </span>
+                      </div>
 
                       <h3 style={{
                         fontSize: 'clamp(20px, 3.2vw, 32px)',

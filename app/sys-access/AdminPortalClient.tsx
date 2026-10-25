@@ -27,11 +27,16 @@ import {
   HistorySection,
   Artist,
   getCoverUrl,
-  formatTimeAgo,
   getDefaultProjectCredits,
   getDefaultTrackCredits,
   isProjectScheduled,
   isNewsScheduled,
+  getProjectDisplayRelease,
+  formatScheduledDate,
+  getDatePart,
+  getTimePart,
+  combineDateAndTime,
+  parseTimestamp,
 } from '@/data/projects'
 import type { User } from '@supabase/supabase-js'
 
@@ -262,24 +267,41 @@ export default function AdminPortalClient() {
 
   const isFutureScheduled = (dateStr?: string) => {
     if (!dateStr) return false
-    const time = new Date(dateStr).getTime()
-    return !isNaN(time) && time > Date.now()
+    const time = parseTimestamp(dateStr)
+    return Boolean(time && time > Date.now())
   }
 
-  const formatScheduledDate = (dateStr?: string) => {
+  const getTimeUntilOrAgo = (dateStr?: string) => {
     if (!dateStr) return ''
+    const t = parseTimestamp(dateStr)
+    if (!t) return ''
+    const diff = t - Date.now()
+    const isFuture = diff > 0
+    const absDiff = Math.abs(diff)
+    const minutes = Math.floor(absDiff / (1000 * 60))
+    const hours = Math.floor(minutes / 60)
+    const days = Math.floor(hours / 24)
+
+    if (isFuture) {
+      if (days > 0) return `in ${days}d ${hours % 24}h`
+      if (hours > 0) return `in ${hours}h ${minutes % 60}m`
+      return `in ${Math.max(1, minutes)}m`
+    } else {
+      if (days > 0) return `${days}d ago`
+      if (hours > 0) return `${hours}h ago`
+      return `${Math.max(1, minutes)}m ago`
+    }
+  }
+
+  const getTimezoneString = () => {
     try {
-      const d = new Date(dateStr)
-      return d.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      })
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local'
+      const offset = -new Date().getTimezoneOffset() / 60
+      const sign = offset >= 0 ? '+' : '-'
+      const absOffset = Math.abs(offset)
+      return `${tz} (GMT${sign}${absOffset})`
     } catch {
-      return dateStr
+      return 'Local Time'
     }
   }
 
@@ -1099,7 +1121,7 @@ export default function AdminPortalClient() {
                               fontSize: 10.5,
                               fontWeight: 700
                             }}>
-                              <span>🕒 Scheduled</span>
+                              <span>Scheduled</span>
                             </span>
                           )}
                         </div>
@@ -1156,7 +1178,7 @@ export default function AdminPortalClient() {
                               style={{ fontSize: 11.5, padding: '6px 10px', width: '100%', whiteSpace: 'nowrap' }}
                               title="Copy Public Link"
                             >
-                              📋 Link
+                              Link
                             </button>
                             <Link
                               href={`/news/${item.id}`}
@@ -1307,20 +1329,20 @@ export default function AdminPortalClient() {
                             gap: 4,
                             padding: '2px 8px',
                             borderRadius: 99,
-                            background: 'rgba(56, 189, 248, 0.15)',
-                            border: '1px solid rgba(56, 189, 248, 0.4)',
-                            color: '#38bdf8',
+                            background: project.allowPreview ? 'rgba(56, 189, 248, 0.2)' : 'rgba(234, 179, 8, 0.15)',
+                            border: project.allowPreview ? '1px solid rgba(56, 189, 248, 0.45)' : '1px solid rgba(234, 179, 8, 0.4)',
+                            color: project.allowPreview ? '#38bdf8' : '#facc15',
                             fontSize: 10.5,
                             fontWeight: 700
                           }}>
-                            <span>🕒 Scheduled</span>
+                            <span>Scheduled {project.allowPreview ? '· Preview Allowed' : '· Hidden'}</span>
                           </span>
                         )}
                       </div>
 
                       {isProjectScheduled(project) && (
                         <div style={{ fontSize: 11, color: '#38bdf8', fontWeight: 600 }}>
-                          Goes live: {formatScheduledDate(project.scheduledAt || project.releasedAt)}
+                          Goes live: {formatScheduledDate(project.scheduledAt || project.releasedAt, true)} ({getTimeUntilOrAgo(project.scheduledAt || project.releasedAt)})
                         </div>
                       )}
 
@@ -1375,7 +1397,7 @@ export default function AdminPortalClient() {
                             style={{ fontSize: 11.5, padding: '5px 8px', width: '100%', whiteSpace: 'nowrap' }}
                             title="Copy Public Link (redirects to 404 if scheduled for future)"
                           >
-                            📋 Link
+                            Link
                           </button>
                           <Link
                             href={`/projects/${project.id}`}
@@ -1458,7 +1480,7 @@ export default function AdminPortalClient() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                               <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-main)' }}>{project.title}</h4>
                               <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                • {project.showcaseLabel || project.releaseLabel}
+                                • {project.showcaseLabel ? (isProjectScheduled(project) ? getProjectDisplayRelease(project) : project.showcaseLabel) : getProjectDisplayRelease(project)}
                               </span>
                               {isProjectScheduled(project) && (
                                 <span style={{
@@ -1467,13 +1489,13 @@ export default function AdminPortalClient() {
                                   gap: 4,
                                   padding: '2px 8px',
                                   borderRadius: 99,
-                                  background: 'rgba(56, 189, 248, 0.15)',
-                                  border: '1px solid rgba(56, 189, 248, 0.4)',
-                                  color: '#38bdf8',
+                                  background: project.allowPreview ? 'rgba(56, 189, 248, 0.2)' : 'rgba(234, 179, 8, 0.15)',
+                                  border: project.allowPreview ? '1px solid rgba(56, 189, 248, 0.45)' : '1px solid rgba(234, 179, 8, 0.4)',
+                                  color: project.allowPreview ? '#38bdf8' : '#facc15',
                                   fontSize: 10.5,
                                   fontWeight: 700
                                 }}>
-                                  <span>🕒 Scheduled (Hidden Publicly Until Live)</span>
+                                  <span>Scheduled {project.allowPreview ? '(Public Preview Active)' : '(Hidden Until Live)'}</span>
                                 </span>
                               )}
                             </div>
@@ -1529,7 +1551,7 @@ export default function AdminPortalClient() {
                             style={{ fontSize: 12.5 }}
                             title="Copy Public Link"
                           >
-                            📋 Link
+                            Link
                           </button>
                           <button
                             type="button"
@@ -1797,7 +1819,7 @@ export default function AdminPortalClient() {
               <div className="admin-form-grid-preview">
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                    📅 Publication Date (Interactive Calendar) *
+                    Publication Date (Interactive Calendar) *
                   </label>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <input
@@ -1851,13 +1873,10 @@ export default function AdminPortalClient() {
                 gap: 12
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 20 }}>🕒</span>
-                    <div>
-                      <h4 style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-main)' }}>
-                        Schedule Publication for Future Date & Time (Optional)
-                      </h4>
-                    </div>
+                  <div>
+                    <h4 style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-main)' }}>
+                      Schedule Publication for Future Date & Time (Optional)
+                    </h4>
                   </div>
                   <button
                     type="button"
@@ -1880,7 +1899,7 @@ export default function AdminPortalClient() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 10, borderTop: '1px solid var(--border-subtle)' }}>
                     <div>
                       <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>
-                        📅 Pick Calendar Date & Time (Your Local Timezone)
+                        Pick Calendar Date & Time (Your Local Timezone)
                       </label>
                       <input
                         type="datetime-local"
@@ -1917,7 +1936,7 @@ export default function AdminPortalClient() {
                         className="material-btn material-pill-sm"
                         style={{ fontSize: 12, fontWeight: 700, padding: '5px 14px', flexShrink: 0 }}
                       >
-                        📋 Copy Link
+                        Copy Link
                       </button>
                     </div>
                   </div>
@@ -2123,132 +2142,275 @@ export default function AdminPortalClient() {
                     </div>
                   </div>
 
-                  <div className="admin-form-grid-2">
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                        📅 Release Date (Interactive Calendar) *
-                      </label>
-                      <input
-                        type="date"
-                        required
-                        value={toDateInputValue(editingProject.releasedAt)}
-                        onChange={e => {
-                          const val = e.target.value
-                          if (val) {
-                            const formatted = formatDateFromInput(val)
-                            setEditingProject({
-                              ...editingProject,
-                              releasedAt: val,
-                              releaseLabel: !editingProject.releaseLabel || editingProject.releaseLabel.startsWith('Released')
-                                ? `Released ${formatted}`
-                                : editingProject.releaseLabel
-                            })
-                          }
-                        }}
-                        className="material-input"
-                        style={{ width: '100%', padding: '10px 18px', borderRadius: 999, colorScheme: 'dark', cursor: 'pointer' }}
-                        title="Open Calendar to select release date"
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                        Release Display Label *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={editingProject.releaseLabel}
-                        onChange={e => setEditingProject({ ...editingProject, releaseLabel: e.target.value })}
-                        className="material-input"
-                        style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
-                        placeholder="e.g. Released October 8, 2026"
-                      />
-                    </div>
-                  </div>
+                  {/* ─── UNIFIED RELEASE DATE & TIME SCHEDULING ─── */}
+                  {(() => {
+                    const curDatePart = getDatePart(editingProject.releasedAt || editingProject.scheduledAt) || new Date().toISOString().split('T')[0]
+                    const curTimePart = getTimePart(editingProject.releasedAt || editingProject.scheduledAt, '12:00')
+                    const projectIsScheduled = isProjectScheduled(editingProject)
+                    const timeRemainingInfo = getTimeUntilOrAgo(editingProject.releasedAt || editingProject.scheduledAt)
 
-                  {/* Schedule Release for Future Date & Time */}
-                  <div style={{
-                    padding: '16px 20px',
-                    borderRadius: 22,
-                    background: editingProject.scheduledAt ? 'rgba(56, 189, 248, 0.08)' : 'var(--bg-surface-variant)',
-                    border: editingProject.scheduledAt ? '1px solid rgba(56, 189, 248, 0.45)' : '1px solid var(--border-subtle)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 20 }}>🕒</span>
-                        <div>
-                          <h4 style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-main)' }}>
-                            Schedule Release for Future Date & Time (Optional)
-                          </h4>
+                    const handleProjectDateChange = (newDate: string) => {
+                      if (!newDate) return
+                      const newIso = combineDateAndTime(newDate, curTimePart)
+                      const isFuture = new Date(newIso).getTime() > Date.now()
+                      const formatted = formatDateFromInput(newDate)
+                      const autoLabel = isFuture ? `Will be released on ${formatted}` : `Released ${formatted}`
+                      const shouldUpdate = !editingProject.releaseLabel ||
+                        editingProject.releaseLabel.startsWith('Released') ||
+                        editingProject.releaseLabel.startsWith('Will be released')
+
+                      setEditingProject({
+                        ...editingProject,
+                        releasedAt: newIso,
+                        scheduledAt: isFuture ? newIso : undefined,
+                        releaseLabel: shouldUpdate ? autoLabel : editingProject.releaseLabel
+                      })
+                    }
+
+                    const handleProjectTimeChange = (newTime: string) => {
+                      if (!newTime) return
+                      const newIso = combineDateAndTime(curDatePart, newTime)
+                      const isFuture = new Date(newIso).getTime() > Date.now()
+                      setEditingProject({
+                        ...editingProject,
+                        releasedAt: newIso,
+                        scheduledAt: isFuture ? newIso : undefined
+                      })
+                    }
+
+                    const handleProjectSetNow = () => {
+                      const now = new Date()
+                      const newIso = now.toISOString()
+                      const formatted = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                      setEditingProject({
+                        ...editingProject,
+                        releasedAt: newIso,
+                        scheduledAt: undefined,
+                        releaseLabel: `Released ${formatted}`
+                      })
+                    }
+
+                    return (
+                      <div style={{
+                        padding: '20px 22px',
+                        borderRadius: 24,
+                        background: projectIsScheduled ? 'rgba(56, 189, 248, 0.08)' : 'var(--bg-surface-variant)',
+                        border: projectIsScheduled ? '1px solid rgba(56, 189, 248, 0.45)' : '1px solid var(--border-subtle)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 16
+                      }}>
+                        {/* Section Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                          <div>
+                            <h4 style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+                              Release Date & Time (Unified Scheduler)
+                            </h4>
+                            <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                              Setting a date and time in the future automatically schedules this release.
+                            </p>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 5,
+                              padding: '4px 12px',
+                              borderRadius: 99,
+                              fontSize: 11,
+                              fontWeight: 800,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                              background: projectIsScheduled ? 'rgba(56, 189, 248, 0.2)' : 'rgba(34, 197, 94, 0.15)',
+                              border: projectIsScheduled ? '1px solid rgba(56, 189, 248, 0.5)' : '1px solid rgba(34, 197, 94, 0.4)',
+                              color: projectIsScheduled ? '#38bdf8' : '#22c55e',
+                            }}>
+                              <span>{projectIsScheduled ? 'Scheduled Release' : 'Live / Released'}</span>
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={handleProjectSetNow}
+                              className="material-btn material-pill-sm"
+                              style={{ fontSize: 11, padding: '4px 12px', fontWeight: 700 }}
+                              title="Set release date & time to right now"
+                            >
+                              Set to Now
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (editingProject.scheduledAt) {
-                            setEditingProject({ ...editingProject, scheduledAt: undefined })
-                          } else {
-                            const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000)
-                            setEditingProject({ ...editingProject, scheduledAt: tomorrow.toISOString() })
-                          }
-                        }}
-                        className={`material-btn material-pill-sm ${editingProject.scheduledAt ? 'active' : ''}`}
-                        style={{ fontSize: 12, fontWeight: 700 }}
-                      >
-                        {editingProject.scheduledAt ? '✕ Remove Schedule (Release Now)' : '+ Schedule Future Release (Optional)'}
-                      </button>
-                    </div>
 
-                    {editingProject.scheduledAt && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 10, borderTop: '1px solid var(--border-subtle)' }}>
+                        {/* Interactive Date & Time Pickers */}
+                        <div className="admin-form-grid-2">
+                          <div>
+                            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: 6 }}>
+                              Release Date *
+                            </label>
+                            <input
+                              type="date"
+                              required
+                              value={curDatePart}
+                              onChange={e => handleProjectDateChange(e.target.value)}
+                              className="material-input"
+                              style={{ width: '100%', padding: '10px 18px', borderRadius: 999, colorScheme: 'dark', cursor: 'pointer' }}
+                              title="Pick release calendar date"
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: 6 }}>
+                              Release Time (Local Time) *
+                            </label>
+                            <input
+                              type="time"
+                              required
+                              value={curTimePart}
+                              onChange={e => handleProjectTimeChange(e.target.value)}
+                              className="material-input"
+                              style={{ width: '100%', padding: '10px 18px', borderRadius: 999, colorScheme: 'dark', cursor: 'pointer' }}
+                              title="Pick release time"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Time Indicator & Timezone details */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap',
+                          gap: 8,
+                          padding: '10px 16px',
+                          borderRadius: 14,
+                          background: 'var(--bg-surface)',
+                          border: '1px solid var(--border-subtle)',
+                          fontSize: 12
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}>
+                            <span>Timezone: <strong>{getTimezoneString()}</strong></span>
+                          </div>
+
+                          <div style={{ fontWeight: 600, color: projectIsScheduled ? '#38bdf8' : 'var(--text-main)' }}>
+                            {projectIsScheduled ? (
+                              <span>Goes live: <strong>{formatScheduledDate(editingProject.releasedAt || editingProject.scheduledAt, true)}</strong> ({timeRemainingInfo})</span>
+                            ) : (
+                              <span>Released: <strong>{formatScheduledDate(editingProject.releasedAt, true)}</strong> ({timeRemainingInfo})</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* ─── PUBLIC PREVIEW OPTION FOR SCHEDULED RELEASES ─── */}
+                        {projectIsScheduled && (
+                          <div style={{
+                            padding: '14px 18px',
+                            borderRadius: 18,
+                            background: editingProject.allowPreview ? 'rgba(56, 189, 248, 0.12)' : 'var(--bg-surface)',
+                            border: editingProject.allowPreview ? '1px solid rgba(56, 189, 248, 0.5)' : '1px solid var(--border-subtle)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 8
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', flex: 1 }}>
+                                <input
+                                  type="checkbox"
+                                  checked={Boolean(editingProject.allowPreview)}
+                                  onChange={e => setEditingProject({ ...editingProject, allowPreview: e.target.checked })}
+                                  style={{ width: 18, height: 18, marginTop: 2, accentColor: '#38bdf8', cursor: 'pointer' }}
+                                />
+                                <div>
+                                  <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-main)', display: 'block' }}>
+                                    Allow Public Preview for this Scheduled Project
+                                  </span>
+                                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.45, display: 'block', marginTop: 2 }}>
+                                    When checked, viewers can view this project and its tracks before release. The label will show &quot;<strong>Will be released on [Date]</strong>&quot;.
+                                    It will also be visible on the hero banner and homescreen showcase if marked as featured.
+                                    When unchecked, visitors navigating to this project will see a 404 page until it is released.
+                                  </span>
+                                </div>
+                              </label>
+
+                              <span style={{
+                                fontSize: 11,
+                                padding: '3px 10px',
+                                borderRadius: 99,
+                                fontWeight: 800,
+                                flexShrink: 0,
+                                background: editingProject.allowPreview ? 'rgba(56, 189, 248, 0.25)' : 'var(--bg-surface-variant)',
+                                color: editingProject.allowPreview ? '#38bdf8' : 'var(--text-faint)',
+                                border: `1px solid ${editingProject.allowPreview ? 'rgba(56, 189, 248, 0.5)' : 'var(--border-subtle)'}`
+                              }}>
+                                {editingProject.allowPreview ? 'Preview Allowed' : 'Hidden (404)'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Release Display Label */}
                         <div>
-                          <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>
-                            📅 Pick Calendar Date & Time (Your Local Timezone)
-                          </label>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)' }}>
+                              Release Display Label *
+                            </label>
+                            <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>
+                              {projectIsScheduled ? 'Auto-suggested: "Will be released on ..."' : 'Auto-suggested: "Released ..."'}
+                            </span>
+                          </div>
                           <input
-                            type="datetime-local"
+                            type="text"
                             required
-                            value={toDatetimeLocalValue(editingProject.scheduledAt)}
-                            onChange={e => {
-                              const val = e.target.value
-                              if (val) {
-                                setEditingProject({ ...editingProject, scheduledAt: new Date(val).toISOString() })
-                              }
-                            }}
+                            value={editingProject.releaseLabel}
+                            onChange={e => setEditingProject({ ...editingProject, releaseLabel: e.target.value })}
                             className="material-input"
-                            style={{ width: '100%', padding: '10px 18px', borderRadius: 999, colorScheme: 'dark', cursor: 'pointer' }}
+                            style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
+                            placeholder={projectIsScheduled ? "e.g. Will be released on October 30, 2026" : "e.g. Released October 8, 2026"}
                           />
                         </div>
 
+                        {/* Public Link Box */}
                         <div style={{
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           background: 'var(--bg-surface)',
-                          padding: '12px 16px',
-                          borderRadius: 18,
+                          padding: '10px 16px',
+                          borderRadius: 16,
                           fontSize: 12.5,
                           gap: 12,
                           border: '1px solid var(--border-subtle)'
                         }}>
                           <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
-                            Future Public Link: <strong style={{ color: '#38bdf8' }}>/projects/{editingProject.id}</strong>
+                            Project Page Link: <strong style={{ color: '#38bdf8' }}>/projects/{editingProject.id}</strong>
+                            {projectIsScheduled && (
+                              <span style={{ marginLeft: 8, fontSize: 11, color: editingProject.allowPreview ? '#38bdf8' : '#eab308' }}>
+                                ({editingProject.allowPreview ? 'Preview active' : 'Hidden until release'})
+                              </span>
+                            )}
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => copyPublicLink(`/projects/${editingProject.id}`)}
-                            className="material-btn material-pill-sm"
-                            style={{ fontSize: 12, fontWeight: 700, padding: '5px 14px', flexShrink: 0 }}
-                          >
-                            📋 Copy Link
-                          </button>
+                          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                            <button
+                              type="button"
+                              onClick={() => copyPublicLink(`/projects/${editingProject.id}`)}
+                              className="material-btn material-pill-sm"
+                              style={{ fontSize: 11.5, fontWeight: 700, padding: '5px 12px' }}
+                            >
+                              Copy Link
+                            </button>
+                            <a
+                              href={`/projects/${editingProject.id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="material-btn material-pill-sm"
+                              style={{ textDecoration: 'none', fontSize: 11.5, fontWeight: 700, padding: '5px 12px' }}
+                            >
+                              View ↗
+                            </a>
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
+                    )
+                  })()}
 
                   <div className="admin-form-grid-2">
                     <div>

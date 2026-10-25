@@ -45,6 +45,7 @@ ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS description TEXT DEFAULT ''
 ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS showcase_order INTEGER DEFAULT 999;
 ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS showcase_label TEXT DEFAULT '';
 ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS scheduled_at TEXT;
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS allow_preview BOOLEAN DEFAULT false;
 ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS credits JSONB;
 ALTER TABLE public.news ADD COLUMN IF NOT EXISTS scheduled_at TEXT;
 

@@ -69,6 +69,7 @@ export interface Project {
   history: HistorySection[];
   featured?: boolean;
   scheduledAt?: string;
+  allowPreview?: boolean;
   type?: 'project' | 'soundtrack' | 'special' | 'final';
   credits?: ProjectCredits;
 }
@@ -121,6 +122,24 @@ export function formatTimeAgo(dateString: string): string {
 }
 
 /**
+ * Parses a date or ISO string into epoch ms.
+ * For date-only strings (YYYY-MM-DD), evaluates to the start of next day (23:59:59.999 local)
+ * so scheduled releases on that date remain scheduled until the day is reached.
+ */
+export function parseTimestamp(dateStr?: string): number | null {
+  if (!dateStr) return null
+  const trimmed = dateStr.trim()
+  if (!trimmed) return null
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const [y, m, d] = trimmed.split('-').map(Number)
+    const dt = new Date(y, m - 1, d, 23, 59, 59, 999).getTime()
+    return isNaN(dt) ? null : dt
+  }
+  const t = new Date(trimmed).getTime()
+  return isNaN(t) ? null : t
+}
+
+/**
  * Determines whether a project is scheduled for future release.
  * Returns true if scheduledAt or releasedAt is set to a future timestamp.
  */
@@ -128,15 +147,151 @@ export function isProjectScheduled(project?: { scheduledAt?: string; scheduled_a
   if (!project) return false
   const sched = project.scheduledAt || project.scheduled_at
   if (sched) {
-    const st = new Date(sched).getTime()
-    if (!isNaN(st) && st > Date.now()) return true
+    const st = parseTimestamp(sched)
+    if (st && st > Date.now()) return true
   }
   const rel = project.releasedAt || project.released_at
   if (rel) {
-    const rt = new Date(rel).getTime()
-    if (!isNaN(rt) && rt > Date.now()) return true
+    const rt = parseTimestamp(rel)
+    if (rt && rt > Date.now()) return true
   }
   return false
+}
+
+/**
+ * Formats the release display label for a project.
+ * If the project is scheduled for future release, replaces "Released on" or "Released" with
+ * "Will be released on ...".
+ */
+export function getProjectDisplayRelease(project?: { releasedAt?: string; scheduledAt?: string; releaseLabel?: string } | null): string {
+  if (!project) return ''
+  const isScheduled = isProjectScheduled(project)
+  const rawLabel = project.releaseLabel?.trim() || ''
+
+  if (!isScheduled) {
+    return rawLabel || 'Released'
+  }
+
+  // If scheduled, replace "Released on" or "Released" with "Will be released on"
+  if (/^released\s+on\s+/i.test(rawLabel)) {
+    return rawLabel.replace(/^released\s+on\s+/i, 'Will be released on ')
+  }
+  if (/^released\s+/i.test(rawLabel)) {
+    return rawLabel.replace(/^released\s+/i, 'Will be released on ')
+  }
+
+  if (rawLabel) {
+    if (rawLabel.startsWith('RELEASED')) {
+      return rawLabel.replace(/^RELEASED\s*/, 'WILL BE RELEASED ON ')
+    }
+    if (/^will\s+be\s+released\s+on/i.test(rawLabel)) {
+      return rawLabel
+    }
+    return `Will be released on ${rawLabel}`
+  }
+
+  const targetDate = project.scheduledAt || project.releasedAt
+  if (targetDate) {
+    return `Will be released on ${formatScheduledDate(targetDate, false)}`
+  }
+  return 'Will be released soon'
+}
+
+/**
+ * Formats a scheduled date string for display.
+ * Avoids printing fake 8:00 AM on legacy date-only strings (YYYY-MM-DD).
+ * For date-time strings, formats the exact hour and minute in the user's local timezone.
+ */
+export function formatScheduledDate(dateStr?: string, includeTime: boolean = true): string {
+  if (!dateStr) return ''
+  try {
+    const trimmed = dateStr.trim()
+    const hasTime = trimmed.includes('T') || trimmed.includes(':')
+
+    let d: Date
+    if (!hasTime && /^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const [y, m, day] = trimmed.split('-').map(Number)
+      d = new Date(y, m - 1, day, 12, 0, 0)
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })
+    } else {
+      d = new Date(trimmed)
+    }
+
+    if (isNaN(d.getTime())) return dateStr
+
+    if (!includeTime || !hasTime) {
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })
+    }
+
+    return d.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    })
+  } catch {
+    return dateStr
+  }
+}
+
+/**
+ * Extracts YYYY-MM-DD in local time from an ISO or date string.
+ */
+export function getDatePart(isoOrDateStr?: string): string {
+  if (!isoOrDateStr) return ''
+  const trimmed = isoOrDateStr.trim()
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
+  try {
+    const d = new Date(trimmed)
+    if (isNaN(d.getTime())) return ''
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  } catch {
+    return ''
+  }
+}
+
+/**
+ * Extracts HH:mm in local time from an ISO or date-time string.
+ */
+export function getTimePart(isoOrDateStr?: string, defaultTime = '00:00'): string {
+  if (!isoOrDateStr) return defaultTime
+  const trimmed = isoOrDateStr.trim()
+  if (!trimmed.includes('T') && !trimmed.includes(':')) {
+    return defaultTime
+  }
+  try {
+    const d = new Date(trimmed)
+    if (isNaN(d.getTime())) return defaultTime
+    const h = String(d.getHours()).padStart(2, '0')
+    const m = String(d.getMinutes()).padStart(2, '0')
+    return `${h}:${m}`
+  } catch {
+    return defaultTime
+  }
+}
+
+/**
+ * Combines local date (YYYY-MM-DD) and local time (HH:mm) into an ISO-8601 string.
+ */
+export function combineDateAndTime(dateStr: string, timeStr: string): string {
+  if (!dateStr) return ''
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const [hour, min] = (timeStr || '00:00').split(':').map(Number)
+  const dateObj = new Date(y, m - 1, d, hour || 0, min || 0, 0, 0)
+  return dateObj.toISOString()
 }
 
 /**
@@ -147,8 +302,8 @@ export function isNewsScheduled(news?: { scheduledAt?: string; scheduled_at?: st
   if (!news) return false
   const sched = news.scheduledAt || news.scheduled_at
   if (sched) {
-    const st = new Date(sched).getTime()
-    if (!isNaN(st) && st > Date.now()) return true
+    const st = parseTimestamp(sched)
+    if (st && st > Date.now()) return true
   }
   return false
 }

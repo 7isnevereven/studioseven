@@ -1,25 +1,29 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { Project, isProjectScheduled } from '@/data/projects'
+import { isProjectScheduled, getProjectDisplayRelease } from '@/data/projects'
 import ProjectPageClient from './ProjectPageClient'
 import { supabase } from '@/utils/supabase'
+import { mapDbProject } from '@/utils/dataStore'
 
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   try {
-    const { data: project } = await supabase.from('projects').select('*').eq('id', id).single()
-    if (project && project.title) {
-      if (isProjectScheduled(project)) {
+    const { data: raw } = await supabase.from('projects').select('*').eq('id', id).single()
+    if (raw && raw.title) {
+      const project = mapDbProject(raw)
+      const scheduled = isProjectScheduled(project)
+      if (scheduled && !project.allowPreview) {
         return { title: 'Project Not Found · studioseven' }
       }
+      const displayRelease = getProjectDisplayRelease(project)
       return {
-        title: `${project.title} · studioseven`,
-        description: `${project.subtitle || ''} · ${project.release_label || ''}. Explore tracklist, history, and community reviews.`,
+        title: scheduled ? `${project.title} (Upcoming) · studioseven` : `${project.title} · studioseven`,
+        description: `${project.subtitle ? `${project.subtitle} · ` : ''}${displayRelease}. Explore tracklist, history, and community reviews.`,
         openGraph: {
-          title: `${project.title} · studioseven`,
-          description: `${project.subtitle || ''} · ${project.release_label || ''}`,
+          title: scheduled ? `${project.title} (Upcoming) · studioseven` : `${project.title} · studioseven`,
+          description: `${project.subtitle ? `${project.subtitle} · ` : ''}${displayRelease}`,
           siteName: 'studioseven',
         }
       }
@@ -36,31 +40,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     notFound()
   }
 
-  // If release is scheduled for future release, it is not yet posted publicly
-  if (isProjectScheduled(data)) {
-    notFound()
-  }
+  const project = mapDbProject(data)
 
-  const project: Project = {
-    id: data.id,
-    title: data.title,
-    subtitle: data.subtitle || '',
-    description: data.description || '',
-    showcaseLabel: data.showcase_label || '',
-    showcaseOrder: data.showcase_order !== null && data.showcase_order !== undefined ? Number(data.showcase_order) : 999,
-    releasedAt: data.released_at || '',
-    releaseLabel: data.release_label || '',
-    artistId: data.artist_id || '',
-    coverFile: data.cover_file || '',
-    accentColor: data.accent_color || '#38bdf8',
-    accentSoft: data.accent_soft || '#0284c7',
-    spotifyUrl: data.spotify_url || undefined,
-    youtubeUrl: data.youtube_url || undefined,
-    leadTrack: data.lead_track || undefined,
-    tracks: Array.isArray(data.tracks) ? data.tracks : [],
-    history: Array.isArray(data.history) ? data.history : [],
-    featured: Boolean(data.featured),
-    type: data.type || 'project',
+  // If release is scheduled for future release, allow viewing ONLY if allowPreview is explicitly enabled
+  if (isProjectScheduled(project) && !project.allowPreview) {
+    notFound()
   }
 
   return <ProjectPageClient project={project} />
