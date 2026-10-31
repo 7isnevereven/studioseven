@@ -1480,7 +1480,18 @@ export default function AdminPortalClient() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                               <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-main)' }}>{project.title}</h4>
                               <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                • {project.showcaseLabel ? (isProjectScheduled(project) ? getProjectDisplayRelease(project) : project.showcaseLabel) : getProjectDisplayRelease(project)}
+                                • {(() => {
+                                    const isScheduled = isProjectScheduled(project)
+                                    if (isScheduled) return getProjectDisplayRelease(project)
+                                    if (project.showcaseLabel) {
+                                      const trimmed = project.showcaseLabel.trim()
+                                      if (/^(to\s+be\s+released|will\s+be\s+released)/i.test(trimmed)) {
+                                        return trimmed.replace(/^(to\s+be\s+released|will\s+be\s+released)(\s+on)?\s*/i, 'RELEASED ')
+                                      }
+                                      return trimmed
+                                    }
+                                    return getProjectDisplayRelease(project)
+                                  })()}
                               </span>
                               {isProjectScheduled(project) && (
                                 <span style={{

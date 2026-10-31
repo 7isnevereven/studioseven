@@ -132,7 +132,7 @@ export function parseTimestamp(dateStr?: string): number | null {
   if (!trimmed) return null
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
     const [y, m, d] = trimmed.split('-').map(Number)
-    const dt = new Date(y, m - 1, d, 23, 59, 59, 999).getTime()
+    const dt = new Date(y, m - 1, d, 0, 0, 0, 0).getTime()
     return isNaN(dt) ? null : dt
   }
   const t = new Date(trimmed).getTime()
@@ -169,7 +169,18 @@ export function getProjectDisplayRelease(project?: { releasedAt?: string; schedu
   const rawLabel = project.releaseLabel?.trim() || ''
 
   if (!isScheduled) {
-    return rawLabel || 'Released'
+    if (!rawLabel) return 'Released'
+    // If rawLabel was saved with future wording ("Will be released", "To be released"), convert it to "Released"
+    if (/^(will\s+be\s+released\s+on|to\s+be\s+released\s+on)\s+/i.test(rawLabel)) {
+      return rawLabel.replace(/^(will\s+be\s+released\s+on|to\s+be\s+released\s+on)\s+/i, 'Released ')
+    }
+    if (/^(will\s+be\s+released|to\s+be\s+released)\s+/i.test(rawLabel)) {
+      return rawLabel.replace(/^(will\s+be\s+released|to\s+be\s+released)\s+/i, 'Released ')
+    }
+    if (/^(will\s+be\s+released|to\s+be\s+released)$/i.test(rawLabel)) {
+      return 'Released'
+    }
+    return rawLabel
   }
 
   // If scheduled, replace "Released on" or "Released" with "Will be released on"

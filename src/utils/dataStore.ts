@@ -417,14 +417,22 @@ export async function saveProject(project: Project): Promise<{ error: any }> {
     .from('projects')
     .upsert([dbData], { onConflict: 'id' })
 
-  // Schema fallback: if scheduled_at, allow_preview, credits, spotify_url, youtube_url, or showcase columns don't exist in Supabase
+  // Schema fallback: if scheduled_at, allow_preview, credits, or other columns don't exist in Supabase
   if (error && (error.message.includes('scheduled_at') || error.message.includes('allow_preview') || error.message.includes('credits') || error.message.includes('spotify_url') || error.message.includes('youtube_url') || error.message.includes('column') || error.message.includes('schema cache'))) {
     const safeData: any = { ...dbData }
+    // Only remove optional scheduling and credits extensions that are not present in older Supabase tables
     delete safeData.scheduled_at
     delete safeData.allow_preview
     delete safeData.credits
-    delete safeData.spotify_url
-    delete safeData.youtube_url
+
+    // Only delete media links if they were specifically the columns reported missing
+    if (error.message.includes('spotify_url')) {
+      delete safeData.spotify_url
+    }
+    if (error.message.includes('youtube_url')) {
+      delete safeData.youtube_url
+    }
+
     let res = await supabase.from('projects').upsert([safeData], { onConflict: 'id' })
     if (res.error && (res.error.message.includes('column') || res.error.message.includes('schema cache'))) {
       delete safeData.description

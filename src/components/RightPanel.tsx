@@ -638,9 +638,18 @@ export default function RightPanel({ currentView = 'home', setCurrentView }: Mai
                           letterSpacing: '0.08em',
                           width: 'fit-content'
                         }}>
-                          {activeProject.showcaseLabel
-                            ? (isProjectScheduled(activeProject) ? getProjectDisplayRelease(activeProject) : activeProject.showcaseLabel)
-                            : getProjectDisplayRelease(activeProject)}
+                          {(() => {
+                            const isScheduled = isProjectScheduled(activeProject)
+                            if (isScheduled) return getProjectDisplayRelease(activeProject)
+                            if (activeProject.showcaseLabel) {
+                              const trimmed = activeProject.showcaseLabel.trim()
+                              if (/^(to\s+be\s+released|will\s+be\s+released)/i.test(trimmed)) {
+                                return trimmed.replace(/^(to\s+be\s+released|will\s+be\s+released)(\s+on)?\s*/i, 'RELEASED ')
+                              }
+                              return trimmed
+                            }
+                            return getProjectDisplayRelease(activeProject)
+                          })()}
                         </span>
                       </div>
 
