@@ -1482,11 +1482,16 @@ export default function AdminPortalClient() {
                               <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                                 • {(() => {
                                     const isScheduled = isProjectScheduled(project)
-                                    if (isScheduled) return getProjectDisplayRelease(project)
                                     if (project.showcaseLabel) {
                                       const trimmed = project.showcaseLabel.trim()
                                       if (/^(to\s+be\s+released|will\s+be\s+released)/i.test(trimmed)) {
-                                        return trimmed.replace(/^(to\s+be\s+released|will\s+be\s+released)(\s+on)?\s*/i, 'RELEASED ')
+                                        if (isScheduled) {
+                                          return trimmed.replace(/^(will\s+be\s+released|to\s+be\s+released)(\s*[-:]?\s*on)?\s*[-:]?\s*/i, 'TO BE RELEASED ')
+                                        }
+                                        return trimmed.replace(/^(to\s+be\s+released|will\s+be\s+released)(\s*[-:]?\s*on)?\s*[-:]?\s*/i, 'RELEASED ')
+                                      }
+                                      if (isScheduled) {
+                                        return `TO BE RELEASED · ${trimmed}`
                                       }
                                       return trimmed
                                     }
@@ -2165,10 +2170,12 @@ export default function AdminPortalClient() {
                       const newIso = combineDateAndTime(newDate, curTimePart)
                       const isFuture = new Date(newIso).getTime() > Date.now()
                       const formatted = formatDateFromInput(newDate)
-                      const autoLabel = isFuture ? `Will be released on ${formatted}` : `Released ${formatted}`
+                      const autoLabel = isFuture ? `To Be Released ${formatted}` : `Released ${formatted}`
                       const shouldUpdate = !editingProject.releaseLabel ||
                         editingProject.releaseLabel.startsWith('Released') ||
-                        editingProject.releaseLabel.startsWith('Will be released')
+                        editingProject.releaseLabel.startsWith('Will be released') ||
+                        editingProject.releaseLabel.startsWith('To Be Released') ||
+                        editingProject.releaseLabel.startsWith('To be released')
 
                       setEditingProject({
                         ...editingProject,
@@ -2365,7 +2372,7 @@ export default function AdminPortalClient() {
                               Release Display Label *
                             </label>
                             <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>
-                              {projectIsScheduled ? 'Auto-suggested: "Will be released on ..."' : 'Auto-suggested: "Released ..."'}
+                              {projectIsScheduled ? 'Auto-suggested: "To Be Released ..."' : 'Auto-suggested: "Released ..."'}
                             </span>
                           </div>
                           <input
@@ -2375,7 +2382,7 @@ export default function AdminPortalClient() {
                             onChange={e => setEditingProject({ ...editingProject, releaseLabel: e.target.value })}
                             className="material-input"
                             style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
-                            placeholder={projectIsScheduled ? "e.g. Will be released on October 30, 2026" : "e.g. Released October 8, 2026"}
+                            placeholder={projectIsScheduled ? "e.g. To Be Released October 30, 2026" : "e.g. Released October 8, 2026"}
                           />
                         </div>
 

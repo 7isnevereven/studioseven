@@ -160,52 +160,51 @@ export function isProjectScheduled(project?: { scheduledAt?: string; scheduled_a
 
 /**
  * Formats the release display label for a project.
- * If the project is scheduled for future release, replaces "Released on" or "Released" with
- * "Will be released on ...".
+ * If the project is scheduled for future release, displays "To Be Released [Date]".
+ * Once the schedule has passed / project is released, dynamically displays "Released [Date]".
  */
 export function getProjectDisplayRelease(project?: { releasedAt?: string; scheduledAt?: string; releaseLabel?: string } | null): string {
   if (!project) return ''
   const isScheduled = isProjectScheduled(project)
   const rawLabel = project.releaseLabel?.trim() || ''
+  const targetDate = project.scheduledAt || project.releasedAt
+  const formattedDate = targetDate ? formatScheduledDate(targetDate, false) : ''
 
   if (!isScheduled) {
-    if (!rawLabel) return 'Released'
-    // If rawLabel was saved with future wording ("Will be released", "To be released"), convert it to "Released"
-    if (/^(will\s+be\s+released\s+on|to\s+be\s+released\s+on)\s+/i.test(rawLabel)) {
-      return rawLabel.replace(/^(will\s+be\s+released\s+on|to\s+be\s+released\s+on)\s+/i, 'Released ')
-    }
-    if (/^(will\s+be\s+released|to\s+be\s+released)\s+/i.test(rawLabel)) {
-      return rawLabel.replace(/^(will\s+be\s+released|to\s+be\s+released)\s+/i, 'Released ')
-    }
-    if (/^(will\s+be\s+released|to\s+be\s+released)$/i.test(rawLabel)) {
-      return 'Released'
-    }
-    return rawLabel
-  }
-
-  // If scheduled, replace "Released on" or "Released" with "Will be released on"
-  if (/^released\s+on\s+/i.test(rawLabel)) {
-    return rawLabel.replace(/^released\s+on\s+/i, 'Will be released on ')
-  }
-  if (/^released\s+/i.test(rawLabel)) {
-    return rawLabel.replace(/^released\s+/i, 'Will be released on ')
-  }
-
-  if (rawLabel) {
-    if (rawLabel.startsWith('RELEASED')) {
-      return rawLabel.replace(/^RELEASED\s*/, 'WILL BE RELEASED ON ')
-    }
-    if (/^will\s+be\s+released\s+on/i.test(rawLabel)) {
+    // Project is already released / schedule is up
+    if (rawLabel) {
+      if (/^(to\s+be\s+released|will\s+be\s+released)(\s*[-:]?\s*on)?\s*[-:]?\s*/i.test(rawLabel)) {
+        const cleaned = rawLabel.replace(/^(to\s+be\s+released|will\s+be\s+released)(\s*[-:]?\s*on)?\s*[-:]?\s*/i, '').trim()
+        return cleaned ? `Released ${cleaned}` : (formattedDate ? `Released ${formattedDate}` : 'Released')
+      }
+      if (/^released\s*/i.test(rawLabel)) {
+        return rawLabel
+      }
+      // If it doesn't mention release at all but has a label, check if it's just a date
+      if (formattedDate && !rawLabel.toLowerCase().includes('released')) {
+        return `Released ${rawLabel}`
+      }
       return rawLabel
     }
-    return `Will be released on ${rawLabel}`
+    return formattedDate ? `Released ${formattedDate}` : 'Released'
   }
 
-  const targetDate = project.scheduledAt || project.releasedAt
-  if (targetDate) {
-    return `Will be released on ${formatScheduledDate(targetDate, false)}`
+  // Project is scheduled for future release
+  if (rawLabel) {
+    if (/^released\s*[-:]?\s*(on\s*)?/i.test(rawLabel)) {
+      const cleaned = rawLabel.replace(/^released\s*[-:]?\s*(on\s*)?/i, '').trim()
+      return cleaned ? `To Be Released ${cleaned}` : (formattedDate ? `To Be Released ${formattedDate}` : 'To Be Released')
+    }
+    if (/^(to\s+be\s+released|will\s+be\s+released)/i.test(rawLabel)) {
+      return rawLabel.replace(/^(will\s+be\s+released|to\s+be\s+released)(\s+on)?\s*/i, 'To Be Released ')
+    }
+    return `To Be Released ${rawLabel}`
   }
-  return 'Will be released soon'
+
+  if (formattedDate) {
+    return `To Be Released ${formattedDate}`
+  }
+  return 'To Be Released Soon'
 }
 
 /**
