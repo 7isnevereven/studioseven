@@ -1,6 +1,8 @@
 import { Metadata } from 'next'
 import AdminPortalClient from './AdminPortalClient'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'System Access',
   description: 'Internal System Access Portal',

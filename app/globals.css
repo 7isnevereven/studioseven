@@ -690,6 +690,23 @@ textarea.liquid-input, textarea.glass-input, textarea.material-input {
   overflow: hidden;
 }
 
+.hero-banners-container > .full-bleed-banner {
+  position: relative;
+}
+
+/* Subtle, luminous edge divider between stacked showcase banners */
+.hero-banners-container > .full-bleed-banner:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.01) 0%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.01) 100%);
+  z-index: 5;
+  pointer-events: none;
+}
+
 .full-bleed-banner {
   position: relative;
   width: 100%;
@@ -815,94 +832,294 @@ body.light-mode .full-bleed-banner .tracklist-card-footer {
 }
 
 @media (max-width: 960px) {
+  /* Keep cover artwork clearly visible and vibrant when resized */
+  .banner-backdrop-img {
+    opacity: 0.92 !important;
+    filter: brightness(0.90) contrast(1.05) saturate(1.1) !important;
+    object-position: 85% 25% !important;
+  }
+
+  /* Directional composite scrim: dark on left for text legibility, clear on right for visible album art */
+  .monograph-backdrop,
+  .saccharin-backdrop,
+  .cicatrix-backdrop,
+  .fallback-backdrop {
+    background: 
+      linear-gradient(90deg, 
+        rgba(5, 5, 8, 0.94) 0%, 
+        rgba(5, 5, 8, 0.82) 38%, 
+        rgba(5, 5, 8, 0.40) 70%, 
+        rgba(5, 5, 8, 0.12) 88%, 
+        rgba(5, 5, 8, 0.04) 100%
+      ),
+      linear-gradient(180deg, 
+        rgba(5, 5, 8, 0.15) 0%, 
+        rgba(5, 5, 8, 0) 35%, 
+        rgba(5, 5, 8, 0.45) 75%, 
+        rgba(5, 5, 8, 0.92) 100%
+      ) !important;
+  }
+
+  body.light-mode .monograph-backdrop,
+  body.light-mode .saccharin-backdrop,
+  body.light-mode .cicatrix-backdrop,
+  body.light-mode .fallback-backdrop {
+    background: 
+      linear-gradient(90deg, 
+        rgba(5, 5, 8, 0.94) 0%, 
+        rgba(5, 5, 8, 0.82) 38%, 
+        rgba(5, 5, 8, 0.40) 70%, 
+        rgba(5, 5, 8, 0.12) 88%, 
+        rgba(5, 5, 8, 0.04) 100%
+      ),
+      linear-gradient(180deg, 
+        rgba(5, 5, 8, 0.15) 0%, 
+        rgba(5, 5, 8, 0) 35%, 
+        rgba(5, 5, 8, 0.45) 75%, 
+        rgba(5, 5, 8, 0.92) 100%
+      ) !important;
+  }
+
   .full-bleed-banner {
-    height: auto;
-    min-height: 480px;
-    padding: 56px 0 44px 0;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 44px 0 36px 0 !important;
   }
+
   .banner-content-grid {
-    grid-template-columns: 1fr;
-    gap: 28px;
-    padding: 0 24px;
+    grid-template-columns: 1fr !important;
+    gap: 22px !important;
+    padding: 0 24px !important;
   }
+
+  .banner-editorial-col {
+    max-width: min(580px, 88%) !important;
+  }
+
+  .banner-title {
+    font-size: clamp(28px, 5.5vw, 42px) !important;
+    line-height: 1.1 !important;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95), 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+  }
+
+  .banner-title-logo {
+    max-height: clamp(38px, 7vw, 60px) !important;
+    max-width: 85% !important;
+  }
+
   .banner-stage-col {
-    justify-content: flex-start;
+    justify-content: flex-start !important;
+    width: 100% !important;
   }
+
   .banner-tracklist-card {
-    max-width: 100%;
+    max-width: 100% !important;
   }
 }
 
 @media (max-width: 640px) {
+  /* Album cover clearly visible on mobile screens, positioned to showcase artwork details */
+  .banner-backdrop-img {
+    opacity: 0.90 !important;
+    filter: brightness(0.88) contrast(1.05) saturate(1.1) !important;
+    object-position: right 20% !important;
+    transform: scale(1.02) !important;
+  }
+
+  .monograph-backdrop,
+  .saccharin-backdrop,
+  .cicatrix-backdrop,
+  .fallback-backdrop {
+    background: 
+      linear-gradient(90deg, 
+        rgba(5, 5, 8, 0.95) 0%, 
+        rgba(5, 5, 8, 0.82) 42%, 
+        rgba(5, 5, 8, 0.38) 72%, 
+        rgba(5, 5, 8, 0.10) 90%, 
+        rgba(5, 5, 8, 0.03) 100%
+      ),
+      linear-gradient(180deg, 
+        rgba(5, 5, 8, 0.12) 0%, 
+        rgba(5, 5, 8, 0) 35%, 
+        rgba(5, 5, 8, 0.50) 75%, 
+        rgba(5, 5, 8, 0.94) 100%
+      ) !important;
+  }
+
+  body.light-mode .monograph-backdrop,
+  body.light-mode .saccharin-backdrop,
+  body.light-mode .cicatrix-backdrop,
+  body.light-mode .fallback-backdrop {
+    background: 
+      linear-gradient(90deg, 
+        rgba(5, 5, 8, 0.95) 0%, 
+        rgba(5, 5, 8, 0.82) 42%, 
+        rgba(5, 5, 8, 0.38) 72%, 
+        rgba(5, 5, 8, 0.10) 90%, 
+        rgba(5, 5, 8, 0.03) 100%
+      ),
+      linear-gradient(180deg, 
+        rgba(5, 5, 8, 0.12) 0%, 
+        rgba(5, 5, 8, 0) 35%, 
+        rgba(5, 5, 8, 0.50) 75%, 
+        rgba(5, 5, 8, 0.94) 100%
+      ) !important;
+  }
+
   .full-bleed-banner {
-    height: auto;
-    min-height: auto;
-    padding: 34px 0 24px 0;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 32px 0 28px 0 !important;
   }
+
   .banner-content-grid {
-    grid-template-columns: 1fr;
-    gap: 18px;
-    padding: 0 16px;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding: 0 16px !important;
   }
+
+  .banner-editorial-col {
+    max-width: min(520px, 86%) !important;
+  }
+
   .banner-meta-line {
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 5px !important;
+    margin-bottom: 8px !important;
+    font-size: 11px !important;
+    flex-wrap: wrap !important;
   }
+
   .banner-subtitle-badge {
-    font-size: 11px;
-    letter-spacing: 0.10em;
+    font-size: 10.5px !important;
+    letter-spacing: 0.08em !important;
   }
+
   .banner-meta-divider {
-    font-size: 11px;
+    font-size: 10px !important;
+    opacity: 0.6;
   }
+
   .banner-meta-text {
-    font-size: 11.5px;
+    font-size: 11px !important;
   }
+
   .banner-title {
-    font-size: clamp(26px, 8vw, 36px);
-    line-height: 1.08;
-    margin: 0 0 10px 0;
+    font-size: clamp(22px, 6.8vw, 30px) !important;
+    line-height: 1.12 !important;
+    margin: 0 0 8px 0 !important;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95), 0 1px 3px rgba(0, 0, 0, 0.9) !important;
   }
+
+  .banner-title-logo {
+    max-height: clamp(32px, 8.2vw, 46px) !important;
+    max-width: 82% !important;
+  }
+
+  /* Clamp description on mobile to 2 lines to prevent vertical bloat */
   .banner-excerpt {
-    font-size: 13.5px;
-    line-height: 1.5;
-    margin: 0 0 16px 0;
+    font-size: 12.5px !important;
+    line-height: 1.45 !important;
+    margin: 0 0 12px 0 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9) !important;
   }
+
+  /* Compact single-row action pill dock */
   .banner-actions {
-    gap: 8px;
-    width: 100%;
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin-bottom: 2px !important;
   }
+
   .banner-primary-btn,
   .banner-secondary-btn {
-    padding: 9px 18px;
-    font-size: 12.5px;
+    padding: 7px 12px !important;
+    font-size: 11.5px !important;
+    gap: 5px !important;
+    border-radius: 9999px !important;
+    white-space: nowrap !important;
   }
+
   .banner-stage-col {
-    width: 100%;
+    width: 100% !important;
   }
+
+  /* Sleek, proportionate mobile tracklist card */
   .banner-tracklist-card {
-    padding: 14px 16px;
-    border-radius: 16px;
-    max-width: 100%;
+    padding: 10px 12px !important;
+    border-radius: 14px !important;
+    background: rgba(12, 12, 15, 0.82) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6) !important;
+    max-width: 100% !important;
   }
+
   .tracklist-card-header {
-    padding-bottom: 8px;
-    margin-bottom: 8px;
+    padding-bottom: 6px !important;
+    margin-bottom: 6px !important;
   }
+
   .tracklist-card-label {
-    font-size: 10px;
+    font-size: 9.5px !important;
   }
+
   .tracklist-card-tag {
-    font-size: 10.5px;
+    font-size: 10px !important;
   }
+
   .banner-track-row {
-    padding: 8px 10px;
-    font-size: 12.5px;
+    padding: 5px 8px !important;
+    font-size: 11.5px !important;
+    gap: 8px !important;
+    border-radius: 8px !important;
   }
+
+  .track-row-num {
+    font-size: 10.5px !important;
+    width: 16px !important;
+  }
+
+  .track-row-title {
+    font-size: 11.5px !important;
+  }
+
   .tracklist-card-footer {
-    padding-top: 8px;
-    margin-top: 8px;
-    font-size: 11.5px;
+    padding-top: 6px !important;
+    margin-top: 6px !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .full-bleed-banner {
+    padding: 26px 0 22px 0 !important;
+  }
+
+  .banner-content-grid {
+    padding: 0 12px !important;
+    gap: 12px !important;
+  }
+
+  .banner-title {
+    font-size: clamp(20px, 6.2vw, 25px) !important;
+  }
+
+  .banner-primary-btn,
+  .banner-secondary-btn {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+  }
+
+  .banner-tracklist-card {
+    padding: 8px 10px !important;
   }
 }
 
@@ -2154,16 +2371,23 @@ body.light-mode .modal-container {
     max-width: 100%;
   }
 
+  /* Project Detail Page Responsive Layout */
+  .project-page-main {
+    padding: 24px 16px 64px 16px !important;
+    gap: 32px !important;
+  }
+
   /* Detail hero grids */
   .detail-hero-grid {
     grid-template-columns: 1fr !important;
-    padding: 24px 20px !important;
-    gap: 24px !important;
+    padding: 22px 18px !important;
+    gap: 20px !important;
     text-align: left;
     border-radius: 20px !important;
   }
   .detail-hero-avatar-wrap {
     margin: 0 auto;
+    max-width: 260px !important;
   }
 }
 
@@ -2394,8 +2618,25 @@ body.light-mode .modal-container {
 }
 
 @media (max-width: 960px) {
+  .home-newsroom-section {
+    padding: 44px 24px;
+  }
   .home-newsroom-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-newsroom-section {
+    padding: 32px 16px;
+  }
+  .home-section-header {
+    margin-bottom: 18px;
+    gap: 12px;
+  }
+  .home-section-title {
+    font-size: clamp(22px, 6vw, 26px);
   }
 }
 
@@ -2586,9 +2827,26 @@ body.light-mode .news-compact-headline {
   gap: 24px;
 }
 
+@media (max-width: 960px) {
+  .home-artists-section {
+    padding: 44px 24px;
+  }
+}
+
 @media (max-width: 860px) {
   .artists-showcase-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-artists-section {
+    padding: 32px 16px;
+  }
+  .artist-feature-card {
+    padding: 22px 16px;
+    border-radius: 20px;
   }
 }
 

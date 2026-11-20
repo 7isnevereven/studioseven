@@ -486,7 +486,9 @@ function BespokeShowcaseBanner({
             <div
               className="banner-tracklist-card"
               style={{
-                background: '#0c0c0e',
+                background: 'rgba(12, 12, 15, 0.82)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
                 borderColor: `${accentColor}33`,
                 boxShadow: `0 16px 40px rgba(0, 0, 0, 0.65), 0 0 28px ${accentColor}18`,
               }}

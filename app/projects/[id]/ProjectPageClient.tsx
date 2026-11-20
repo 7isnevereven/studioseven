@@ -220,7 +220,7 @@ export default function ProjectPageClient({ project }: { project: Project }) {
       <div className="navbar-spacer" />
 
       {/* Main Project Full-Page Body */}
-      <main style={{ maxWidth: 1180, margin: '0 auto', width: '100%', padding: '36px 28px 80px 28px', display: 'flex', flexDirection: 'column', gap: 48 }}>
+      <main className="project-page-main" style={{ maxWidth: 1180, margin: '0 auto', width: '100%', padding: '36px 28px 80px 28px', display: 'flex', flexDirection: 'column', gap: 48 }}>
         
         {/* Project Hero Banner matching cover art colors */}
         <section
