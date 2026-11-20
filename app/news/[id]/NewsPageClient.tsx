@@ -42,6 +42,12 @@ export default function NewsPageClient({ item, imageUrl }: NewsPageClientProps) 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }
+  }, [])
+
   // Close lightbox on Escape
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') setLightboxOpen(false)
@@ -125,22 +131,22 @@ export default function NewsPageClient({ item, imageUrl }: NewsPageClientProps) 
 
         {/* Article */}
         <article className="animate-in">
-          <div style={{ marginBottom: 12 }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              {item.date} • {formatTimeAgo(item.date)}
-            </span>
-          </div>
-
           <h1 style={{
             fontSize: 'clamp(28px, 4.5vw, 42px)',
             fontWeight: 800,
             lineHeight: 1.15,
             color: 'var(--text-main)',
-            marginBottom: 28,
+            marginBottom: 10,
             letterSpacing: '-0.035em'
           }}>
             {item.headline}
           </h1>
+
+          <div style={{ marginBottom: 28 }}>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>
+              {item.date} · {formatTimeAgo(item.date)}
+            </span>
+          </div>
 
           {/* Quick Reaction Tally Pills */}
           {Object.keys(reactionCounts).length > 0 && (

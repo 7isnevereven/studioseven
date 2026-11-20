@@ -49,6 +49,54 @@ export interface ProjectCredits {
   additionalNotes?: string;
 }
 
+export interface ProjectBannerConfig {
+  titleMode?: 'text' | 'logo';
+  titleLogoUrl?: string;
+  logoHeight?: number;
+  invertInLightMode?: boolean;
+  font?: string;
+  customFontFamily?: string;
+  customFontUrl?: string;
+  fontWeight?: string;
+  fontStyle?:
+    | 'normal'
+    | 'italic'
+    | 'oblique'
+    | 'condensed'
+    | 'condensed-italic'
+    | 'ultra-condensed'
+    | 'semi-condensed'
+    | 'expanded'
+    | 'expanded-italic'
+    | 'ultra-expanded'
+    | 'small-caps'
+    | 'outline'
+    | 'outline-italic'
+    | 'underline'
+    | 'overline'
+    | string;
+  fontStretch?:
+    | 'ultra-condensed'
+    | 'extra-condensed'
+    | 'condensed'
+    | 'semi-condensed'
+    | 'normal'
+    | 'semi-expanded'
+    | 'expanded'
+    | 'extra-expanded'
+    | 'ultra-expanded'
+    | string;
+  textStroke?: 'none' | 'outline-only' | 'thin-stroke' | 'bold-stroke' | string;
+  fontSize?: 'compact' | 'standard' | 'large' | 'massive';
+  lineHeight?: 'tight' | 'normal' | 'relaxed';
+  letterSpacing?: string;
+  textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+  titleColor?: string;
+  textShadow?: 'none' | 'subtle' | 'dramatic' | 'glow';
+  cardLabel?: string;
+  cardTag?: string;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -72,6 +120,7 @@ export interface Project {
   allowPreview?: boolean;
   type?: 'project' | 'soundtrack' | 'special' | 'final';
   credits?: ProjectCredits;
+  bannerConfig?: ProjectBannerConfig;
 }
 
 export interface NewsItem {

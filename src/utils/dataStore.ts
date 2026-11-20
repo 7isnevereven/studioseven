@@ -42,6 +42,7 @@ export function mapDbProject(row: any): Project {
     allowPreview: allowPreview,
     type: row.type || 'project',
     credits: row.credits || (cleanTracks[0] as any)?._projectCredits || metaTrack?._projectCredits || getDefaultProjectCredits({ id: row.id, artistId: row.artist_id, type: row.type }),
+    bannerConfig: row.banner_config || metaTrack?._bannerConfig || (cleanTracks[0] as any)?._bannerConfig || undefined,
   }
 }
 
@@ -80,19 +81,21 @@ function mapProjectToDb(p: Project) {
       if (p.credits) extra._projectCredits = p.credits
       if (p.scheduledAt !== undefined) extra._scheduledAt = p.scheduledAt
       if (p.allowPreview !== undefined) extra._allowPreview = p.allowPreview
+      if (p.bannerConfig !== undefined) extra._bannerConfig = p.bannerConfig
       return { ...t, ...extra }
     }
     return t
   })
 
   // If no tracks exist yet, store metadata in a meta track so it survives round-trips
-  if (payloadTracks.length === 0 && (p.allowPreview !== undefined || p.scheduledAt || p.credits)) {
+  if (payloadTracks.length === 0 && (p.allowPreview !== undefined || p.scheduledAt || p.credits || p.bannerConfig)) {
     payloadTracks.push({
       _meta: true,
       title: '',
       _allowPreview: Boolean(p.allowPreview),
       _scheduledAt: p.scheduledAt,
       _projectCredits: p.credits,
+      _bannerConfig: p.bannerConfig,
     } as any)
   }
 

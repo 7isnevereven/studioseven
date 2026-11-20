@@ -290,7 +290,7 @@ What do you know?`
     ],
     history: [
       { heading: 'Before Release', body: 'The concept for What Do You Know? was planned before the release of CICATRIX. The main track was always intended to be titled The Video. Originally set for Q3 2026, it was first introduced as a literary work on February 14, 2026, featuring a glass-inspired look with an off-white colour scheme, reflecting the project\'s themes of clarity and openness.' },
-      { heading: 'Official Release', body: 'On April 8, 2026, the seventh and final project was officially released — including The Video as its only song, alongside additional poems. The official music video for The Video accompanied the release. Ten days later it became available on major streaming platforms including Spotify and YouTube Music.' },
+      { heading: 'Official Release', body: 'On April 8, 2026, the seventh and final project was officially released, including The Video as its only song, alongside additional poems. The official music video for The Video accompanied the release. Ten days later it became available on major streaming platforms including Spotify and YouTube Music.' },
       { heading: 'After Release', body: 'One day after release, The Video (Single Pack) was uploaded to studioseven\'s YouTube channel, including an extended track with a rap verse and a lyric video. What Do You Know? is planned to be VEN\'s final project, closing the series that began in 2020.' }
     ],
   },
@@ -392,8 +392,8 @@ What do you know?`
       { title: 'Fits Right' },
     ],
     history: [
-      { heading: 'Before Release', body: 'Following the restructuring of STAR and personal events in May–June 2025, cuts and chances was envisioned to reflect these experiences. Initially titled CUTS, it was designed to be VEN\'s most coherent and conceptually rich project. Development began in June 2025, prior to STAR\'s release. The Greatest Heist In History — originally from STAR — became the focal point, exploring themes of infidelity closely related to THE GOOD ONE (ft. JHUZZ).' },
-      { heading: 'Official Release', body: 'On August 8, 2025, the sixth project was officially released and simultaneously made available on Spotify and Apple Music — marking VEN\'s first project on streaming services. The lead track was released August 6, 2025 alongside a music video that became VEN\'s most successful video to date.' },
+      { heading: 'Before Release', body: 'Following the restructuring of STAR and personal events in May–June 2025, cuts and chances was envisioned to reflect these experiences. Initially titled CUTS, it was designed to be VEN\'s most coherent and conceptually rich project. Development began in June 2025, prior to STAR\'s release. The Greatest Heist In History (originally from STAR) became the focal point, exploring themes of infidelity closely related to THE GOOD ONE (ft. JHUZZ).' },
+      { heading: 'Official Release', body: 'On August 8, 2025, the sixth project was officially released and simultaneously made available on Spotify and Apple Music, marking VEN\'s first project on streaming services. The lead track was released August 6, 2025 alongside a music video that became VEN\'s most successful video to date.' },
       { heading: 'After Release', body: 'The project was received positively. Multiple versions of The Greatest Heist In History were released, and Chances was accompanied by a lyric video and additional versions on August 7, 2025.' }
     ],
   },
@@ -423,7 +423,7 @@ What do you know?`
       { title: 'THE GOOD ONE (ft. JHUZZ)', badges: ['SINGLE'] },
     ],
     history: [
-      { heading: 'Before Release', body: 'STAR was originally planned as VEN\'s only 2025 project — an ongoing release that would grow over time. Personal reasons caused a restructure, condensing it to five upbeat tracks. Songs like The Greatest Heist In History were moved to cuts and chances for not fitting the concept.' },
+      { heading: 'Before Release', body: 'STAR was originally planned as VEN\'s only 2025 project, an ongoing release that would grow over time. Personal reasons caused a restructure, condensing it to five upbeat tracks. Songs like The Greatest Heist In History were moved to cuts and chances for not fitting the concept.' },
       { heading: 'Official Release', body: 'On June 20, 2025, the fifth project was officially released. THE GOOD ONE (ft. JHUZZ) was released as a collaborative single ahead of the official release.' },
       { heading: 'After Release', body: 'In January 2026, the project became available on various streaming platforms.' }
     ],
@@ -476,7 +476,7 @@ What do you know?`
       { title: 'my everything', badges: ['SINGLE'] }
     ],
     history: [
-      { heading: 'Before Release', body: 'connections was initially designed to be a poetry-based project centered on the idea of "the connections we made along the way." It was refined into four tracks, each with its own dedicated promotional period. The lead track crimson red was released August 19, 2024 with a music video. andromeda — originally titled eyes of andromeda — and its sped-up version became the most-viewed videos on studioseven\'s YouTube channel, reaching more than 4,000 views.' },
+      { heading: 'Before Release', body: 'connections was initially designed to be a poetry-based project centered on the idea of "the connections we made along the way." It was refined into four tracks, each with its own dedicated promotional period. The lead track crimson red was released August 19, 2024 with a music video. andromeda (originally titled eyes of andromeda) and its sped-up version became the most-viewed videos on studioseven\'s YouTube channel, reaching more than 4,000 views.' },
       { heading: 'Official Release', body: 'On September 6, 2024, the fourth project was officially released alongside the official video for at peace.' },
       { heading: 'After Release', body: 'In January 2026, the project became available on various streaming platforms.' }
     ],
@@ -541,9 +541,9 @@ What do you know?`
       { title: 'SATELLITE', badges: ['DELUXE', 'SINGLE'] }
     ],
     history: [
-      { heading: 'Before Release', body: 'The BUBBLE era began with the release of Resilience on February 2, 2022 — nine months before the full project. Work on the track started in July 2021, originally intended for You Do You as Overturn pt. 2. The rollout for the lead track began October 21, 2022, introducing the project\'s new logo and previewing the bonus track Laugh. Posters, snippets, an album trailer, and teaser videos for HERA were shared across platforms in the days leading up to release.' },
+      { heading: 'Before Release', body: 'The BUBBLE era began with the release of Resilience on February 2, 2022, nine months before the full project. Work on the track started in July 2021, originally intended for You Do You as Overturn pt. 2. The rollout for the lead track began October 21, 2022, introducing the project\'s new logo and previewing the bonus track Laugh. Posters, snippets, an album trailer, and teaser videos for HERA were shared across platforms in the days leading up to release.' },
       { heading: 'Official Release', body: 'On November 21, 2022, the second full project was officially released alongside the official video for HERA. The release was met with significantly greater success than the previous project.' },
-      { heading: 'After Release', body: 'BUBBLE (Deluxe Edition) was released on April 10, 2023 — five months after the original — featuring new renditions of HERA and Satellite.' }
+      { heading: 'After Release', body: 'BUBBLE (Deluxe Edition) was released on April 10, 2023, five months after the original, featuring new renditions of HERA and Satellite.' }
     ],
   },
   {
@@ -572,7 +572,7 @@ What do you know?`
     history: [
       { heading: 'Before Release', body: 'You Do You began with two experimental demo tracks: Volatile in August 2020 and Schmaltz in October 2020. On November 14, LOVEHATE was released, followed by Very Festive on November 21.' },
       { heading: 'Official Release', body: 'On November 24, 2020, the full project was officially released alongside a short concept video for Overturn.' },
-      { heading: 'After Release', body: 'You Do You (Final Version) was released July 30, 2021, featuring a remastered Overturn. Five years later, the 5th Anniversary Edition was released with refined instrumentals and improved mixing, excluding demo tracks — marking it as VEN\'s third project on streaming services.' }
+      { heading: 'After Release', body: 'You Do You (Final Version) was released July 30, 2021, featuring a remastered Overturn. Five years later, the 5th Anniversary Edition was released with refined instrumentals and improved mixing, excluding demo tracks, marking it as VEN\'s third project on streaming services.' }
     ],
   },
 ]
@@ -651,8 +651,8 @@ The lyric video is now streaming exclusively on the studioseven YouTube channel.
   {
     id: 'the-video-mv',
     headline: 'The Video (Music Video) is out!',
-    preview: "I keep on replaying the video, hoping it will finally explain what happened — but every replay only proves how much I’ll never fully know.",
-    body: `I keep on replaying the video, hoping it will finally explain what happened — but every replay only proves how much I’ll never fully know.
+    preview: "I keep on replaying the video, hoping it will finally explain what happened, but every replay only proves how much I’ll never fully know.",
+    body: `I keep on replaying the video, hoping it will finally explain what happened, but every replay only proves how much I’ll never fully know.
 
 The official music video for 'The Video', the lead and sole track of the 7th project, What Do You Know?, is out now!
 
@@ -700,17 +700,11 @@ Thank you to the organizers of 𝗖𝗢𝗣𝗔 𝗦𝗔𝗠𝗣𝗔𝗚𝗨𝗜
     id: 'ven-workshop-oca',
     headline: 'DEEP DIVE: Audio Production Seminar and Workshop',
     preview: "DEEP DIVE: Audio Production Seminar and Workshop",
-    body: `Step into the world of sound and creativity as we present 𝐃𝐄𝐄𝐏 𝐃𝐈𝐕𝐄: 𝐀𝐮𝐝𝐢𝐨 𝐏𝐫𝐨𝐝𝐮𝐜𝐭𝐢𝐨𝐧 𝐒𝐞𝐦𝐢𝐧𝐚𝐫 𝐚𝐧𝐝 𝐖𝐨𝐫𝐤𝐬𝐡𝐨𝐩. 🎶 This event aims to provide participants with valuable knowledge and practical insights into the art of audio production—from understanding sound fundamentals 🎛️ to enhancing production techniques 🎚️. It’s a great opportunity to learn how quality audio plays an important role in media and content creation. 🎥✨
+    body: `Step into sound engineering and composition as we present DEEP DIVE: Audio Production Seminar and Workshop. This masterclass provides participants with comprehensive knowledge and practical insights into audio production, from sound fundamentals to modern mixing techniques.
 
-Join us on 𝐌𝐚𝐫𝐜𝐡 𝟏𝟎, 𝟐𝟎𝟐𝟔, 𝐟𝐫𝐨𝐦 𝟏:𝟑𝟎 𝐏𝐌 𝐭𝐨 𝟒:𝟑𝟎 𝐏𝐌 𝐚𝐭 𝐭𝐡𝐞 𝐀𝐕𝐑 for an engaging and informative session. We are honored to have 𝐆𝐮𝐞𝐬𝐭 𝐒𝐩𝐞𝐚𝐤𝐞𝐫: 𝐕𝐞𝐧 𝐕𝐢𝐧𝐥𝐮𝐚𝐧, who will be sharing expertise, experiences, and helpful tips about the field of audio production. 🎧💡
+Held on March 10, 2026 at the AVR, the seminar features Guest Speaker Ven Vinluan sharing production workflows, creative philosophies, and engineering approaches developed across the studioseven catalog.
 
-Don’t miss this chance to learn, discover new skills, and deepen your understanding of sound production. See you at the seminar! 🎤🔊🎵
-
-#PUPQCOCA
-#officeoftheculturalaffairs
-#OCA
-
- Caption from Office of the Cultural Affairs - PUPQC.`,
+Organized by the Office of the Cultural Affairs, PUPQC.`,
     date: 'March 9, 2026',
     url: 'https://www.facebook.com/PUPQCPAGEANT/posts/pfbid0Ps7mo9HUbiayAyaiZdP4cWQc51JUaQHcLs1LAbWNA8n5m13WpwHUFuLbeuM6y8JMl',
     image: 'https://drive.google.com/file/d/1_TI3eCZSV4O1T6g3HRkzE6CiMzlEs18t/view?usp=drive_link'

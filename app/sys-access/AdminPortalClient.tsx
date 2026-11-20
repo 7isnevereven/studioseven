@@ -20,6 +20,7 @@ import {
 import {
   NewsItem,
   Project,
+  ProjectBannerConfig,
   Track,
   TrackBadge,
   TrackCredits,
@@ -38,6 +39,12 @@ import {
   combineDateAndTime,
   parseTimestamp,
 } from '@/data/projects'
+import {
+  cleanFontUrl,
+  hexToRgba,
+  getProjectFontStyle,
+  formatDisplayTitle
+} from '@/utils/projectTypography'
 import type { User } from '@supabase/supabase-js'
 
 const LOGO_URL = 'https://flrwvmfjjuyoyjeeosls.supabase.co/storage/v1/object/public/misc/ss7.png'
@@ -63,6 +70,597 @@ const PRESET_PALETTES = [
   { name: 'Rose Petal', accent: '#f43f5e', soft: 'rgba(244, 63, 94, 0.40)' },
   { name: 'Slate Smoke', accent: '#64748b', soft: 'rgba(100, 116, 139, 0.40)' },
 ]
+
+// ─── TYPOGRAPHY & CUSTOM FONT UTILITIES ───
+function getAdminBannerFontStyle(project: Partial<Project> | null): React.CSSProperties {
+  return getProjectFontStyle(project)
+}
+
+function BannerTypographyEditor({
+  config = {},
+  onChange,
+  accentColor = '#38bdf8',
+}: {
+  config?: ProjectBannerConfig
+  onChange: (updated: ProjectBannerConfig) => void
+  accentColor?: string
+}) {
+  const [logoPreviewTheme, setLogoPreviewTheme] = useState<'dark' | 'light'>('dark')
+  const titleMode = config.titleMode || 'text'
+  const chosenFont = config.font || 'creato'
+  const isCustom = chosenFont === 'custom'
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* 1. Header Mode Selector (Stylized Font Text vs Project Logo Image) */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        padding: '4px',
+        borderRadius: 999,
+        background: 'rgba(255, 255, 255, 0.04)',
+        border: '1px solid var(--border-subtle)',
+        gap: 6
+      }}>
+        <button
+          type="button"
+          onClick={() => onChange({ ...config, titleMode: 'text' })}
+          className="material-btn material-pill-sm"
+          style={{
+            flex: 1,
+            fontSize: 12,
+            fontWeight: 700,
+            background: titleMode === 'text' ? 'var(--text-main)' : 'transparent',
+            color: titleMode === 'text' ? 'var(--bg-base)' : 'var(--text-muted)',
+            borderColor: titleMode === 'text' ? 'var(--text-main)' : 'transparent',
+            padding: '7px 14px'
+          }}
+        >
+          Stylized Font Text
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange({ ...config, titleMode: 'logo' })}
+          className="material-btn material-pill-sm"
+          style={{
+            flex: 1,
+            fontSize: 12,
+            fontWeight: 700,
+            background: titleMode === 'logo' ? 'var(--text-main)' : 'transparent',
+            color: titleMode === 'logo' ? 'var(--bg-base)' : 'var(--text-muted)',
+            borderColor: titleMode === 'logo' ? 'var(--text-main)' : 'transparent',
+            padding: '7px 14px'
+          }}
+        >
+          Project Logo Image
+        </button>
+      </div>
+
+      {/* 2A. LOGO IMAGE MODE */}
+      {titleMode === 'logo' && (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+          padding: '16px 18px',
+          borderRadius: 20,
+          background: 'var(--bg-surface-variant)',
+          border: '1px solid var(--border-default)',
+          animation: 'fadeIn 0.2s ease'
+        }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-main)' }}>
+                Project Title Logo URL
+              </label>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Direct image, transparent PNG, SVG, or Google Drive link
+              </span>
+            </div>
+            <input
+              type="url"
+              value={config.titleLogoUrl || ''}
+              onChange={e => onChange({ ...config, titleLogoUrl: e.target.value })}
+              className="material-input"
+              style={{ width: '100%', padding: '10px 16px', borderRadius: 999, fontSize: 12.5 }}
+              placeholder="e.g. https://.../logo.png or Google Drive share link"
+            />
+            <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+              Instead of rendering text, this image will be prominently displayed as the project's hero title banner.
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Logo Display Height ({config.logoHeight || 80}px)
+              </label>
+              <select
+                value={String(config.logoHeight || 80)}
+                onChange={e => onChange({ ...config, logoHeight: parseInt(e.target.value) || 80 })}
+                className="material-input"
+                style={{ width: '100%', padding: '7px 12px', borderRadius: 999, fontSize: 12 }}
+              >
+                <option value="48">Small (48px)</option>
+                <option value="64">Medium-Small (64px)</option>
+                <option value="80">Standard (80px - Recommended)</option>
+                <option value="96">Large (96px)</option>
+                <option value="112">Extra Large (112px)</option>
+                <option value="130">Hero Impact (130px)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Fallback Text if Logo Fails
+              </label>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: '7px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 999, border: '1px solid var(--border-subtle)' }}>
+                Original project title
+              </div>
+            </div>
+          </div>
+
+          {/* Light Mode Invert Option */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            borderRadius: 14,
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid var(--border-subtle)',
+            gap: 12
+          }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-main)', display: 'block' }}>
+                Auto-Invert in Light Mode
+              </label>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block', marginTop: 2 }}>
+                Automatically inverts white logos to solid black on light/white backgrounds for maximum contrast
+              </span>
+            </div>
+            <label style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={config.invertInLightMode !== false}
+                onChange={e => onChange({ ...config, invertInLightMode: e.target.checked })}
+                style={{ width: 18, height: 18, accentColor: '#38bdf8', cursor: 'pointer' }}
+              />
+            </label>
+          </div>
+
+          {/* Live Logo Preview Box */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Logo Preview
+              </span>
+              <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 999, padding: 2 }}>
+                <button
+                  type="button"
+                  onClick={() => setLogoPreviewTheme('dark')}
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    border: 'none',
+                    background: logoPreviewTheme === 'dark' ? 'var(--text-main)' : 'transparent',
+                    color: logoPreviewTheme === 'dark' ? 'var(--bg-base)' : 'var(--text-muted)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Dark BG
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLogoPreviewTheme('light')}
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    border: 'none',
+                    background: logoPreviewTheme === 'light' ? '#000000' : 'transparent',
+                    color: logoPreviewTheme === 'light' ? '#ffffff' : 'var(--text-muted)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  White BG (Light Mode)
+                </button>
+              </div>
+            </div>
+            <div style={{
+              minHeight: 110,
+              padding: '20px 24px',
+              borderRadius: 14,
+              background: logoPreviewTheme === 'dark' ? '#09090b' : '#ffffff',
+              border: logoPreviewTheme === 'dark' ? '1px solid var(--border-subtle)' : '1px solid rgba(0, 0, 0, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              transition: 'background 0.25s ease'
+            }}>
+              {config.titleLogoUrl ? (
+                <img
+                  src={getCoverUrl(config.titleLogoUrl)}
+                  alt="Project Logo Preview"
+                  style={{
+                    maxHeight: `${config.logoHeight || 80}px`,
+                    maxWidth: '100%',
+                    objectFit: 'contain',
+                    filter: (logoPreviewTheme === 'light' && config.invertInLightMode !== false)
+                      ? 'invert(1) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.08))'
+                      : 'drop-shadow(0 4px 16px rgba(0, 0, 0, 0.85))',
+                    transition: 'filter 0.25s ease'
+                  }}
+                  onError={(e) => {
+                    const target = e.currentTarget
+                    target.style.display = 'none'
+                  }}
+                />
+              ) : (
+                <span style={{ fontSize: 12, color: logoPreviewTheme === 'dark' ? 'var(--text-faint)' : 'rgba(0,0,0,0.45)' }}>
+                  Paste a logo URL above to view real-time rendering
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2B. STYLIZED FONT TEXT MODE */}
+      {titleMode === 'text' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+              Banner Font Family
+            </label>
+            <select
+              value={chosenFont}
+              onChange={e => onChange({ ...config, font: e.target.value })}
+              className="material-input"
+              style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
+            >
+              <optgroup label="Condensed & Tall Poster Headlines">
+                <option value="bebas">Bebas Neue (Condensed Poster Headline)</option>
+                <option value="oswald">Oswald (Classic Condensed Gothic · 600/700)</option>
+                <option value="anton">Anton (Ultra-Condensed Impact Sans · Heavy)</option>
+                <option value="barlow-condensed">Barlow Condensed (Modern Clean Condensed)</option>
+                <option value="big-shoulders">Big Shoulders Display (High-Contrast Tech Condensed)</option>
+                <option value="antonio">Antonio (Delicate Tall Condensed Display)</option>
+                <option value="fjalla">Fjalla One (Nordic Editorial Condensed)</option>
+                <option value="saira-condensed">Saira Condensed (Heavy Industrial Condensed)</option>
+              </optgroup>
+              <optgroup label="Thin & Delicate Fonts">
+                <option value="cormorant">Cormorant Garamond (Ultra-Thin Haute Couture Serif · 300)</option>
+                <option value="montserrat-thin">Montserrat (Hairline Thin Geometric · 100/200)</option>
+                <option value="raleway-thin">Raleway (Minimalist Delicate Sans · 100/200)</option>
+                <option value="inter-light">Inter Light (Refined Swiss Minimalist · 200/300)</option>
+              </optgroup>
+              <optgroup label="Modern Grotesque & Tech">
+                <option value="creato">Creato Display (Modern Bold Grotesque · What Do You Know)</option>
+                <option value="sans">Plus Jakarta Sans (Clean Modern Sans)</option>
+                <option value="space-grotesk">Space Grotesk (Tech Monospace Grotesque · CICATRIX)</option>
+                <option value="syne">Syne (Avant-Garde Architectural Display)</option>
+              </optgroup>
+              <optgroup label="Cinematic & Heritage">
+                <option value="playfair">Playfair Display (High-Contrast Editorial Serif)</option>
+                <option value="almendra">Almendra (Gothic & Ornamental · SACCHARIN)</option>
+                <option value="cinzel">Cinzel Decorative (Grand Roman Monumental)</option>
+                <option value="bodoni">Bodoni Moda (Italian High-Fashion Serif)</option>
+              </optgroup>
+              <optgroup label="Custom Web Font">
+                <option value="custom">Custom Font (Import any Google Font, CDN or Webfont)</option>
+              </optgroup>
+            </select>
+          </div>
+
+          {/* Custom Font Importer Box */}
+          {isCustom && (
+            <div style={{
+              background: 'var(--bg-surface-variant)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 18,
+              padding: '14px 18px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent-color)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Custom Font Importer
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  Loads live in real time
+                </span>
+              </div>
+
+              <div className="admin-form-grid-2">
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                    Font Family Name (as used in CSS)
+                  </label>
+                  <input
+                    type="text"
+                    value={config.customFontFamily || ''}
+                    onChange={e => onChange({ ...config, customFontFamily: e.target.value })}
+                    className="material-input"
+                    style={{ width: '100%', padding: '8px 14px', borderRadius: 999, fontSize: 13 }}
+                    placeholder='e.g. "Cormorant Infant" or "Cinzel" or "Futura"'
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                    Font Import URL or Google Fonts Code
+                  </label>
+                  <input
+                    type="text"
+                    value={config.customFontUrl || ''}
+                    onChange={e => onChange({ ...config, customFontUrl: e.target.value })}
+                    className="material-input"
+                    style={{ width: '100%', padding: '8px 14px', borderRadius: 999, fontSize: 13 }}
+                    placeholder='e.g. https://fonts.googleapis.com/css2?family=... or paste <link>'
+                  />
+                </div>
+              </div>
+
+              {/* Quick preset suggestions */}
+              <div>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', marginRight: 8 }}>Quick Google Font Presets:</span>
+                <div style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                  {[
+                    { name: 'Cormorant Thin', family: 'Cormorant Garamond', url: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&display=swap' },
+                    { name: 'Montserrat Hairline', family: 'Montserrat', url: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;400;800&display=swap' },
+                    { name: 'Cinzel Roman', family: 'Cinzel', url: 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&display=swap' },
+                    { name: 'Syne Avant-Garde', family: 'Syne', url: 'https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap' },
+                  ].map(preset => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => onChange({ ...config, customFontFamily: preset.family, customFontUrl: preset.url })}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        padding: '3px 10px',
+                        borderRadius: 999,
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        background: 'rgba(255,255,255,0.06)',
+                        color: 'var(--text-main)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      + {preset.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Typography Fine-Tuning Grid (Style, Weight, Tracking, Casing, Size, Line Height, Color, Shadow) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+            gap: 10,
+            padding: '12px 14px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            borderRadius: 16,
+            border: '1px solid rgba(255, 255, 255, 0.06)'
+          }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Font Style
+              </label>
+              <select
+                value={config.fontStyle || 'normal'}
+                onChange={e => onChange({ ...config, fontStyle: e.target.value as any })}
+                className="material-input"
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 999, fontSize: 12 }}
+              >
+                <optgroup label="Standard Posture">
+                  <option value="normal">Upright (Normal / Regular)</option>
+                  <option value="italic">Italic (Slanted)</option>
+                  <option value="oblique">Oblique (Dynamic Forward Slant)</option>
+                </optgroup>
+                <optgroup label="Condensed & Narrow Cuts">
+                  <option value="condensed">Condensed (Narrow 80%)</option>
+                  <option value="condensed-italic">Condensed Italic (Speed & Kinetic)</option>
+                  <option value="ultra-condensed">Ultra-Condensed (Extra Tight 68%)</option>
+                  <option value="semi-condensed">Semi-Condensed (Subtle Compact 89%)</option>
+                </optgroup>
+                <optgroup label="Expanded & Wide Cuts">
+                  <option value="expanded">Expanded (Wide Editorial 118%)</option>
+                  <option value="expanded-italic">Expanded Italic (Sweeping Kinetic)</option>
+                  <option value="ultra-expanded">Ultra-Expanded (Monumental Spread 136%)</option>
+                </optgroup>
+                <optgroup label="Special Typographic Cuts & Treatments">
+                  <option value="small-caps">Small Caps (Classical Proportions)</option>
+                  <option value="outline">Hollow Outline (Stencil / Ghost)</option>
+                  <option value="outline-italic">Hollow Outline Italic</option>
+                  <option value="underline">Underlined Title</option>
+                  <option value="overline">Overline Modernist</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Width / Stretch
+              </label>
+              <select
+                value={config.fontStretch || 'normal'}
+                onChange={e => onChange({ ...config, fontStretch: e.target.value as any })}
+                className="material-input"
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 999, fontSize: 12 }}
+              >
+                <option value="normal">Default Width (100%)</option>
+                <option value="ultra-condensed">Ultra-Condensed (68% Tight)</option>
+                <option value="extra-condensed">Extra-Condensed (74% Narrow)</option>
+                <option value="condensed">Condensed (80% Compact)</option>
+                <option value="semi-condensed">Semi-Condensed (90% Subtle)</option>
+                <option value="semi-expanded">Semi-Expanded (110% Wide)</option>
+                <option value="expanded">Expanded (120% Spread)</option>
+                <option value="extra-expanded">Extra-Expanded (130% Dramatic)</option>
+                <option value="ultra-expanded">Ultra-Expanded (142% Monumental)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Stroke / Outline
+              </label>
+              <select
+                value={config.textStroke || 'none'}
+                onChange={e => onChange({ ...config, textStroke: e.target.value as any })}
+                className="material-input"
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 999, fontSize: 12 }}
+              >
+                <option value="none">Solid Fill (Standard)</option>
+                <option value="outline-only">Hollow Outline (Ghost Text)</option>
+                <option value="thin-stroke">Thin Outline (1px Border)</option>
+                <option value="bold-stroke">Bold Outline (2px Border)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Font Weight
+              </label>
+              <select
+                value={config.fontWeight || ''}
+                onChange={e => onChange({ ...config, fontWeight: e.target.value })}
+                className="material-input"
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 999, fontSize: 12 }}
+              >
+                <option value="">Default for Font</option>
+                <option value="100">100 · Hairline / Ultra Thin</option>
+                <option value="200">200 · Extra Light / Thin</option>
+                <option value="300">300 · Light</option>
+                <option value="400">400 · Regular / Normal</option>
+                <option value="500">500 · Medium</option>
+                <option value="600">600 · Semi-Bold</option>
+                <option value="700">700 · Bold</option>
+                <option value="800">800 · Extra Bold</option>
+                <option value="900">900 · Black / Heavy</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Text Casing
+              </label>
+              <select
+                value={config.textTransform || 'none'}
+                onChange={e => onChange({ ...config, textTransform: e.target.value as any })}
+                className="material-input"
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 999, fontSize: 12 }}
+              >
+                <option value="none">As Typed (Original)</option>
+                <option value="uppercase">ALL UPPERCASE</option>
+                <option value="lowercase">all lowercase</option>
+                <option value="capitalize">Title Case</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Letter Spacing
+              </label>
+              <select
+                value={config.letterSpacing ?? ''}
+                onChange={e => onChange({ ...config, letterSpacing: e.target.value })}
+                className="material-input"
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 999, fontSize: 12 }}
+              >
+                <option value="">Default for Font</option>
+                <option value="-0.04em">Tight (-0.04em)</option>
+                <option value="-0.02em">Subtle Tight (-0.02em)</option>
+                <option value="0em">Normal (0)</option>
+                <option value="0.06em">Wide (+0.06em)</option>
+                <option value="0.12em">Spaced (+0.12em)</option>
+                <option value="0.22em">Ultra Expanded (+0.22em)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Font Size Scale
+              </label>
+              <select
+                value={config.fontSize || 'standard'}
+                onChange={e => onChange({ ...config, fontSize: e.target.value as any })}
+                className="material-input"
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 999, fontSize: 12 }}
+              >
+                <option value="compact">Compact (Subtle)</option>
+                <option value="standard">Standard (Balanced)</option>
+                <option value="large">Large (Impact)</option>
+                <option value="massive">Hero Massive (Cinematic)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Line Height
+              </label>
+              <select
+                value={config.lineHeight || 'normal'}
+                onChange={e => onChange({ ...config, lineHeight: e.target.value as any })}
+                className="material-input"
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 999, fontSize: 12 }}
+              >
+                <option value="tight">Tight (0.95)</option>
+                <option value="normal">Normal (1.05)</option>
+                <option value="relaxed">Relaxed (1.25)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Title Color
+              </label>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={config.titleColor || '#ffffff'}
+                  onChange={e => onChange({ ...config, titleColor: e.target.value })}
+                  style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer' }}
+                  title="Pick Title Color"
+                />
+                <button
+                  type="button"
+                  onClick={() => onChange({ ...config, titleColor: undefined })}
+                  style={{ fontSize: 11, padding: '3px 8px', borderRadius: 999, border: '1px solid var(--border-subtle)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                Shadow & Glow
+              </label>
+              <select
+                value={config.textShadow || 'none'}
+                onChange={e => onChange({ ...config, textShadow: e.target.value as any })}
+                className="material-input"
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 999, fontSize: 12 }}
+              >
+                <option value="none">Clean (None)</option>
+                <option value="subtle">Subtle Dark Drop</option>
+                <option value="dramatic">Dramatic Contrast</option>
+                <option value="glow">Project Color Aura Glow</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ─── CALENDAR & DATE PICKER UTILITIES ───
 function toDateInputValue(dateStr?: string): string {
@@ -128,7 +726,7 @@ export default function AdminPortalClient() {
   // Project Editor Modal (with sub-tabs)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [originalProjectId, setOriginalProjectId] = useState<string | null>(null)
-  const [projectEditorTab, setProjectEditorTab] = useState<'details' | 'links' | 'tracks' | 'credits' | 'history' | 'showcase'>('details')
+  const [projectEditorTab, setProjectEditorTab] = useState<'details' | 'typography' | 'links' | 'tracks' | 'credits' | 'history' | 'showcase'>('details')
   const [savingProject, setSavingProject] = useState(false)
   const [isCustomArtist, setIsCustomArtist] = useState(false)
   const [customArtistName, setCustomArtistName] = useState('')
@@ -590,11 +1188,58 @@ export default function AdminPortalClient() {
   }
 
 
-  // ─── SHOWCASE ORDERING & REORDERING ───
+  // ─── SHOWCASE 2-SLOT ORDERING & REORDERING ───
   // Active showcase projects sorted strictly by showcaseOrder ascending
   const activeShowcase = projectsList
     .filter(p => p.featured)
     .sort((a, b) => (a.showcaseOrder ?? 999) - (b.showcaseOrder ?? 999))
+
+  const slot1Project = activeShowcase[0] || null
+  const slot2Project = activeShowcase[1] || null
+
+  const handleSwapSlots = async () => {
+    if (!slot1Project || !slot2Project) return
+    await Promise.all([
+      saveProject({ ...slot1Project, showcaseOrder: 2, featured: true }),
+      saveProject({ ...slot2Project, showcaseOrder: 1, featured: true }),
+    ])
+    showToast(`Swapped hero slots: "${slot2Project.title}" is now Slot #1, "${slot1Project.title}" is now Slot #2`)
+    loadContent()
+  }
+
+  const handleAssignSlot = async (project: Project, slot: 1 | 2) => {
+    const currentInSlot = slot === 1 ? slot1Project : slot2Project
+    const otherInSlot = slot === 1 ? slot2Project : slot1Project
+
+    if (currentInSlot?.id === project.id) return
+
+    if (otherInSlot?.id === project.id) {
+      await handleSwapSlots()
+      return
+    }
+
+    const updates: Promise<any>[] = [
+      saveProject({ ...project, featured: true, showcaseOrder: slot }),
+    ]
+
+    if (currentInSlot) {
+      if (!otherInSlot) {
+        updates.push(saveProject({ ...currentInSlot, featured: true, showcaseOrder: slot === 1 ? 2 : 1 }))
+      } else {
+        updates.push(saveProject({ ...currentInSlot, featured: false, showcaseOrder: 999 }))
+      }
+    }
+
+    await Promise.all(updates)
+    showToast(`Assigned "${project.title}" to Hero Slot #${slot} (${slot === 1 ? 'Primary Lead' : 'Secondary Feature'})`)
+    loadContent()
+  }
+
+  const handleRemoveFromSlot = async (project: Project) => {
+    await saveProject({ ...project, featured: false, showcaseOrder: 999 })
+    showToast(`Removed "${project.title}" from hero showcase`)
+    loadContent()
+  }
 
   const handleMoveShowcase = async (project: Project, direction: 'up' | 'down') => {
     const currentIndex = activeShowcase.findIndex(p => p.id === project.id)
@@ -617,13 +1262,13 @@ export default function AdminPortalClient() {
 
   const handleToggleShowcase = async (project: Project) => {
     const isNowFeatured = !project.featured
-    const nextOrder = isNowFeatured ? activeShowcase.length + 1 : 999
+    const nextOrder = isNowFeatured ? (slot1Project ? 2 : 1) : 999
     const updated = { ...project, featured: isNowFeatured, showcaseOrder: nextOrder }
     const { error } = await saveProject(updated)
     if (error) {
       showToast(`Failed to update showcase: ${error.message}`, 'error')
     } else {
-      showToast(`${project.title} ${isNowFeatured ? 'added to' : 'removed from'} Homescreen Showcase!`)
+      showToast(`${project.title} ${isNowFeatured ? 'assigned to Homescreen Hero' : 'removed from Homescreen Hero'}!`)
       loadContent()
     }
   }
@@ -1415,7 +2060,7 @@ export default function AdminPortalClient() {
                             style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', padding: '5px 10px', fontSize: 11.5, whiteSpace: 'nowrap' }}
                             title="Permanently Delete Release"
                           >
-                            🗑️ Delete
+                            Delete
                           </button>
                         </div>
                       </div>
@@ -1427,202 +2072,357 @@ export default function AdminPortalClient() {
           </div>
         )}
 
-        {/* ═══════════════ TAB 3: HOMESCREEN HERO SHOWCASE ═══════════════ */}
+        {/* ═══════════════ TAB 3: HOMESCREEN HERO SHOWCASE (STRICTLY 2 SLOTS) ═══════════════ */}
         {activeTab === 'showcase' && (
-          <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 940 }}>
-            <div>
-              <h1 className="section-title">Homescreen Hero Showcase</h1>
-            </div>
-
-            {/* Active Showcase Banner Slides in Order */}
-            <div className="material-card" style={{ padding: 28, borderRadius: 32, display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: 17, fontWeight: 700 }}>Active Hero Banner Rotation</h3>
-                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                  {activeShowcase.length} Active Slides
-                </span>
+          <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 980 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+              <div>
+                <h1 className="section-title">Homescreen Hero Showcase</h1>
+                <p style={{ fontSize: 13.5, color: 'var(--text-muted)', marginTop: 4, maxWidth: 640, lineHeight: 1.5 }}>
+                  The homepage displays strictly <strong>2 featured project banners</strong> edge-to-edge with no gaps or seams. Manage which release occupies each slot, swap their order, and customize typography, accent colors, backdrops, and card highlights.
+                </p>
               </div>
 
-              {activeShowcase.length === 0 ? (
-                <div style={{ padding: '30px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
-                  No projects are currently selected for the hero banner. Add releases below to showcase them.
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {activeShowcase.map((project, idx) => {
-                    const cover = getCoverUrl(project.coverFile)
-                    const slotNum = idx + 1
-
-                    return (
-                      <div
-                        key={project.id}
-                        className="admin-showcase-row"
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: 1 }}>
-                          {/* Slot Badge */}
-                          <div style={{
-                            padding: '4px 10px',
-                            borderRadius: 99,
-                            background: '#38bdf8',
-                            color: '#000000',
-                            fontSize: 12,
-                            fontWeight: 800,
-                            flexShrink: 0
-                          }}>
-                            Slot #{slotNum} {slotNum === 1 ? '(Lead)' : ''}
-                          </div>
-
-                          <div style={{ width: 50, height: 50, borderRadius: 14, overflow: 'hidden', backgroundColor: 'var(--bg-surface-solid)', flexShrink: 0 }}>
-                            {cover && <img src={cover} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                          </div>
-
-                          <div style={{ minWidth: 0, flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                              <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-main)' }}>{project.title}</h4>
-                              <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                • {(() => {
-                                    const isScheduled = isProjectScheduled(project)
-                                    if (project.showcaseLabel) {
-                                      const trimmed = project.showcaseLabel.trim()
-                                      if (/^(to\s+be\s+released|will\s+be\s+released)/i.test(trimmed)) {
-                                        if (isScheduled) {
-                                          return trimmed.replace(/^(will\s+be\s+released|to\s+be\s+released)(\s*[-:]?\s*on)?\s*[-:]?\s*/i, 'TO BE RELEASED ')
-                                        }
-                                        return trimmed.replace(/^(to\s+be\s+released|will\s+be\s+released)(\s*[-:]?\s*on)?\s*[-:]?\s*/i, 'RELEASED ')
-                                      }
-                                      if (isScheduled) {
-                                        return `TO BE RELEASED · ${trimmed}`
-                                      }
-                                      return trimmed
-                                    }
-                                    return getProjectDisplayRelease(project)
-                                  })()}
-                              </span>
-                              {isProjectScheduled(project) && (
-                                <span style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  padding: '2px 8px',
-                                  borderRadius: 99,
-                                  background: project.allowPreview ? 'rgba(56, 189, 248, 0.2)' : 'rgba(234, 179, 8, 0.15)',
-                                  border: project.allowPreview ? '1px solid rgba(56, 189, 248, 0.45)' : '1px solid rgba(234, 179, 8, 0.4)',
-                                  color: project.allowPreview ? '#38bdf8' : '#facc15',
-                                  fontSize: 10.5,
-                                  fontWeight: 700
-                                }}>
-                                  <span>Scheduled {project.allowPreview ? '(Public Preview Active)' : '(Hidden Until Live)'}</span>
-                                </span>
-                              )}
-                            </div>
-                            <p style={{
-                              fontSize: 12.5,
-                              color: 'var(--text-muted)',
-                              marginTop: 3,
-                              lineHeight: 1.45,
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden'
-                            }}>
-                              {project.description || 'No custom banner description provided.'}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Actions: Reorder & Customize */}
-                        <div className="admin-showcase-actions">
-                          <button
-                            type="button"
-                            onClick={() => handleMoveShowcase(project, 'up')}
-                            disabled={idx === 0}
-                            className="material-btn material-pill-sm"
-                            style={{ fontSize: 13, padding: '5px 12px', opacity: idx === 0 ? 0.35 : 1 }}
-                            title="Move Up in Rotation"
-                          >
-                            ▲ Up
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleMoveShowcase(project, 'down')}
-                            disabled={idx === activeShowcase.length - 1}
-                            className="material-btn material-pill-sm"
-                            style={{ fontSize: 13, padding: '5px 12px', opacity: idx === activeShowcase.length - 1 ? 0.35 : 1 }}
-                            title="Move Down in Rotation"
-                          >
-                            ▼ Down
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditingShowcaseProject({ ...project })}
-                            className="material-btn material-pill-sm"
-                            style={{ fontWeight: 700, fontSize: 12.5 }}
-                          >
-                            Customize Banner Copy
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => copyPublicLink(`/projects/${project.id}`)}
-                            className="material-btn material-pill-sm"
-                            style={{ fontSize: 12.5 }}
-                            title="Copy Public Link"
-                          >
-                            Link
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleShowcase(project)}
-                            className="material-btn material-pill-sm"
-                            style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', fontSize: 12.5 }}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
+              {slot1Project && slot2Project && (
+                <button
+                  type="button"
+                  onClick={handleSwapSlots}
+                  className="material-btn material-pill"
+                  style={{
+                    background: 'var(--text-main)',
+                    color: 'var(--bg-base)',
+                    fontWeight: 700,
+                    fontSize: 13,
+                    padding: '9px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}
+                >
+                  <span>⇄ Swap Slots (1 & 2)</span>
+                </button>
               )}
             </div>
 
-            {/* Available Projects to Add to Showcase */}
-            <div className="material-card" style={{ padding: 28, borderRadius: 32, display: 'flex', flexDirection: 'column', gap: 18 }}>
-              <h3 style={{ fontSize: 17, fontWeight: 700 }}>Available Releases to Add to Banner</h3>
+            {/* Active 2-Slot Display Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+              {/* SLOT #1: Primary Lead Banner */}
+              <div className="material-card" style={{ padding: 24, borderRadius: 28, display: 'flex', flexDirection: 'column', gap: 16, position: 'relative' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{
+                      padding: '4px 12px',
+                      borderRadius: 99,
+                      background: '#38bdf8',
+                      color: '#090d16',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      letterSpacing: '0.04em'
+                    }}>
+                      SLOT #1 · PRIMARY LEAD
+                    </span>
+                    <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>First on Homepage</span>
+                  </div>
+                </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {projectsList.filter(p => !p.featured).map(project => {
+                {slot1Project ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                      <div style={{ width: 68, height: 68, borderRadius: 16, overflow: 'hidden', backgroundColor: 'var(--bg-surface-solid)', flexShrink: 0, border: '1px solid var(--border-subtle)' }}>
+                        <img src={getCoverUrl(slot1Project.coverFile)} alt={slot1Project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-main)', marginBottom: 2 }}>{slot1Project.title}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 11.5, color: slot1Project.accentColor || '#38bdf8', fontWeight: 700 }}>
+                            {slot1Project.subtitle || 'Featured Release'}
+                          </span>
+                          <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>• {slot1Project.showcaseLabel || getProjectDisplayRelease(slot1Project)}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
+                          <span style={{
+                            fontSize: 10.5,
+                            padding: '2px 8px',
+                            borderRadius: 6,
+                            background: 'var(--bg-surface-variant)',
+                            border: '1px solid var(--border-subtle)',
+                            color: 'var(--text-muted)',
+                            textTransform: 'uppercase',
+                            fontWeight: 600
+                          }}>
+                            Font: {slot1Project.bannerConfig?.font || 'Creato Display'}
+                          </span>
+                          <span style={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: '50%',
+                            background: slot1Project.accentColor || '#38bdf8',
+                            display: 'inline-block',
+                            border: '1px solid rgba(0,0,0,0.2)'
+                          }} title={`Accent: ${slot1Project.accentColor || '#38bdf8'}`} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <p style={{
+                      fontSize: 12.5,
+                      color: 'var(--text-muted)',
+                      lineHeight: 1.5,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
+                      {slot1Project.description || 'No custom banner excerpt set.'}
+                    </p>
+
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingShowcaseProject({ ...slot1Project, showcaseOrder: 1, featured: true })}
+                        className="material-btn material-pill-sm"
+                        style={{ fontWeight: 700, fontSize: 12.5, background: 'var(--text-main)', color: 'var(--bg-base)' }}
+                      >
+                        Customize Banner ↗
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFromSlot(slot1Project)}
+                        className="material-btn material-pill-sm"
+                        style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', fontSize: 12 }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '28px 16px', textAlign: 'center', background: 'var(--bg-surface-variant)', borderRadius: 20, border: '1px dashed var(--border-default)' }}>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>Slot #1 is currently empty</p>
+                    <select
+                      onChange={e => {
+                        const proj = projectsList.find(p => p.id === e.target.value)
+                        if (proj) handleAssignSlot(proj, 1)
+                      }}
+                      defaultValue=""
+                      className="material-input"
+                      style={{ padding: '8px 14px', borderRadius: 999, fontSize: 12.5, width: '100%', maxWidth: 260 }}
+                    >
+                      <option value="" disabled>Select release for Slot 1...</option>
+                      {projectsList.map(p => (
+                        <option key={p.id} value={p.id}>{p.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* SLOT #2: Secondary Feature Banner */}
+              <div className="material-card" style={{ padding: 24, borderRadius: 28, display: 'flex', flexDirection: 'column', gap: 16, position: 'relative' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{
+                      padding: '4px 12px',
+                      borderRadius: 99,
+                      background: '#a855f7',
+                      color: '#ffffff',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      letterSpacing: '0.04em'
+                    }}>
+                      SLOT #2 · SECONDARY FEATURE
+                    </span>
+                    <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>Second on Homepage</span>
+                  </div>
+                </div>
+
+                {slot2Project ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                      <div style={{ width: 68, height: 68, borderRadius: 16, overflow: 'hidden', backgroundColor: 'var(--bg-surface-solid)', flexShrink: 0, border: '1px solid var(--border-subtle)' }}>
+                        <img src={getCoverUrl(slot2Project.coverFile)} alt={slot2Project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-main)', marginBottom: 2 }}>{slot2Project.title}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 11.5, color: slot2Project.accentColor || '#a855f7', fontWeight: 700 }}>
+                            {slot2Project.subtitle || 'Featured Release'}
+                          </span>
+                          <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>• {slot2Project.showcaseLabel || getProjectDisplayRelease(slot2Project)}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
+                          <span style={{
+                            fontSize: 10.5,
+                            padding: '2px 8px',
+                            borderRadius: 6,
+                            background: 'var(--bg-surface-variant)',
+                            border: '1px solid var(--border-subtle)',
+                            color: 'var(--text-muted)',
+                            textTransform: 'uppercase',
+                            fontWeight: 600
+                          }}>
+                            Font: {slot2Project.bannerConfig?.font || 'Creato Display'}
+                          </span>
+                          <span style={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: '50%',
+                            background: slot2Project.accentColor || '#a855f7',
+                            display: 'inline-block',
+                            border: '1px solid rgba(0,0,0,0.2)'
+                          }} title={`Accent: ${slot2Project.accentColor || '#a855f7'}`} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <p style={{
+                      fontSize: 12.5,
+                      color: 'var(--text-muted)',
+                      lineHeight: 1.5,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
+                      {slot2Project.description || 'No custom banner excerpt set.'}
+                    </p>
+
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingShowcaseProject({ ...slot2Project, showcaseOrder: 2, featured: true })}
+                        className="material-btn material-pill-sm"
+                        style={{ fontWeight: 700, fontSize: 12.5, background: 'var(--text-main)', color: 'var(--bg-base)' }}
+                      >
+                        Customize Banner ↗
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFromSlot(slot2Project)}
+                        className="material-btn material-pill-sm"
+                        style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', fontSize: 12 }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '28px 16px', textAlign: 'center', background: 'var(--bg-surface-variant)', borderRadius: 20, border: '1px dashed var(--border-default)' }}>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>Slot #2 is currently empty</p>
+                    <select
+                      onChange={e => {
+                        const proj = projectsList.find(p => p.id === e.target.value)
+                        if (proj) handleAssignSlot(proj, 2)
+                      }}
+                      defaultValue=""
+                      className="material-input"
+                      style={{ padding: '8px 14px', borderRadius: 999, fontSize: 12.5, width: '100%', maxWidth: 260 }}
+                    >
+                      <option value="" disabled>Select release for Slot 2...</option>
+                      {projectsList.map(p => (
+                        <option key={p.id} value={p.id}>{p.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Catalog Releases Banner Studio Pool */}
+            <div className="material-card" style={{ padding: 28, borderRadius: 32, display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                <div>
+                  <h3 style={{ fontSize: 17, fontWeight: 700 }}>All Releases Banner Pool</h3>
+                  <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
+                    Assign any release to Slot 1 or Slot 2, or customize its typography and presentation.
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {projectsList.map(project => {
                   const cover = getCoverUrl(project.coverFile)
+                  const inSlot1 = slot1Project?.id === project.id
+                  const inSlot2 = slot2Project?.id === project.id
+
                   return (
                     <div
                       key={project.id}
                       style={{
-                        padding: '14px 18px',
-                        borderRadius: 20,
-                        background: 'var(--bg-surface-variant)',
-                        border: '1px solid var(--border-subtle)',
+                        padding: '12px 18px',
+                        borderRadius: 18,
+                        background: (inSlot1 || inSlot2) ? 'rgba(56, 189, 248, 0.08)' : 'var(--bg-surface-variant)',
+                        border: (inSlot1 || inSlot2) ? '1px solid rgba(56, 189, 248, 0.35)' : '1px solid var(--border-subtle)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        gap: 16
+                        gap: 16,
+                        flexWrap: 'wrap'
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 220 }}>
                         <div style={{ width: 44, height: 44, borderRadius: 12, overflow: 'hidden', backgroundColor: 'var(--bg-surface-solid)', flexShrink: 0 }}>
                           {cover && <img src={cover} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                         </div>
-                        <div style={{ minWidth: 0 }}>
-                          <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)' }}>{project.title}</h4>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)' }}>{project.title}</h4>
+                            {inSlot1 && (
+                              <span style={{ fontSize: 10.5, fontWeight: 800, background: '#38bdf8', color: '#000', padding: '1px 8px', borderRadius: 99 }}>
+                                Slot #1 Lead
+                              </span>
+                            )}
+                            {inSlot2 && (
+                              <span style={{ fontSize: 10.5, fontWeight: 800, background: '#a855f7', color: '#fff', padding: '1px 8px', borderRadius: 99 }}>
+                                Slot #2 Feature
+                              </span>
+                            )}
+                          </div>
                           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{project.releaseLabel}</span>
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => handleToggleShowcase(project)}
-                        className="material-btn material-pill-sm"
-                        style={{ fontWeight: 700, fontSize: 12.5 }}
-                      >
-                        + Add to Banner
-                      </button>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleAssignSlot(project, 1)}
+                          disabled={inSlot1}
+                          className="material-btn material-pill-sm"
+                          style={{
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            padding: '6px 12px',
+                            background: inSlot1 ? 'var(--text-main)' : 'transparent',
+                            color: inSlot1 ? 'var(--bg-base)' : 'var(--text-main)',
+                            borderColor: inSlot1 ? 'var(--text-main)' : 'var(--border-default)'
+                          }}
+                        >
+                          {inSlot1 ? 'Active in Slot 1' : 'Set as Slot 1'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAssignSlot(project, 2)}
+                          disabled={inSlot2}
+                          className="material-btn material-pill-sm"
+                          style={{
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            padding: '6px 12px',
+                            background: inSlot2 ? 'var(--text-main)' : 'transparent',
+                            color: inSlot2 ? 'var(--bg-base)' : 'var(--text-main)',
+                            borderColor: inSlot2 ? 'var(--text-main)' : 'var(--border-default)'
+                          }}
+                        >
+                          {inSlot2 ? 'Active in Slot 2' : 'Set as Slot 2'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingShowcaseProject({ ...project })}
+                          className="material-btn material-pill-sm"
+                          style={{ fontSize: 11.5, fontWeight: 700, padding: '6px 12px' }}
+                        >
+                          Customize Banner ↗
+                        </button>
+                      </div>
                     </div>
                   )
                 })}
@@ -1907,7 +2707,7 @@ export default function AdminPortalClient() {
                     className={`material-btn material-pill-sm ${editingNews.scheduledAt ? 'active' : ''}`}
                     style={{ fontSize: 12, fontWeight: 700 }}
                   >
-                    {editingNews.scheduledAt ? '✕ Remove Schedule (Publish Now)' : '+ Schedule Future Date (Optional)'}
+                    {editingNews.scheduledAt ? 'Remove Schedule (Publish Now)' : 'Schedule Future Date (Optional)'}
                   </button>
                 </div>
 
@@ -2013,7 +2813,7 @@ export default function AdminPortalClient() {
                     className="material-btn material-pill"
                     style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.45)', background: 'rgba(239, 68, 68, 0.08)', fontWeight: 700, fontSize: 12.5 }}
                   >
-                    🗑️ Delete Article
+                    Delete Article
                   </button>
                 )}
                 <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
@@ -2077,6 +2877,13 @@ export default function AdminPortalClient() {
               </button>
               <button
                 type="button"
+                onClick={() => setProjectEditorTab('typography')}
+                className={`material-btn material-pill-sm ${projectEditorTab === 'typography' ? 'active' : ''}`}
+              >
+                Title & Logo
+              </button>
+              <button
+                type="button"
                 onClick={() => setProjectEditorTab('links')}
                 className={`material-btn material-pill-sm ${projectEditorTab === 'links' ? 'active' : ''}`}
               >
@@ -2118,7 +2925,7 @@ export default function AdminPortalClient() {
               {/* SUB-TAB: DETAILS */}
               {projectEditorTab === 'details' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {/* Editable Project ID */}
+                  {/* Editable Project Slug */}
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                       Project Slug / ID *
@@ -2136,7 +2943,24 @@ export default function AdminPortalClient() {
 
                   <div className="admin-form-grid-2">
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Title *</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Title *</label>
+                        <button
+                          type="button"
+                          onClick={() => setProjectEditorTab('typography')}
+                          style={{
+                            fontSize: 11,
+                            padding: '2px 10px',
+                            borderRadius: 999,
+                            background: 'rgba(56, 189, 248, 0.12)',
+                            color: '#38bdf8',
+                            border: '1px solid rgba(56, 189, 248, 0.3)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {editingProject.bannerConfig?.titleMode === 'logo' ? 'Logo Active ↗' : 'Customize Font / Logo ↗'}
+                        </button>
+                      </div>
                       <input
                         type="text"
                         required
@@ -2519,6 +3343,99 @@ export default function AdminPortalClient() {
                 </div>
               )}
 
+              {/* SUB-TAB: TITLE TYPOGRAPHY & LOGO */}
+              {projectEditorTab === 'typography' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div style={{
+                    padding: '16px 20px',
+                    borderRadius: 20,
+                    background: 'var(--bg-surface-variant)',
+                    border: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 12
+                  }}>
+                    <div>
+                      <h4 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Project Title Styling & Identity</h4>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                        Customize typography or provide a direct logo image link. This custom font or logo will appear on the individual project page and homescreen banners.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Live Hero Preview on Project Detail View */}
+                  <div style={{
+                    padding: '24px 28px',
+                    borderRadius: 22,
+                    background: 'var(--bg-surface-solid)',
+                    border: `1px solid ${editingProject.accentColor || '#38bdf8'}35`,
+                    boxShadow: `0 12px 32px rgba(0,0,0,0.4), 0 0 20px ${editingProject.accentColor || '#38bdf8'}15`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12
+                  }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
+                      Project Page Live Preview (/projects/{editingProject.id})
+                    </span>
+                    <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+                      {editingProject.coverFile && (
+                        <img
+                          src={getCoverUrl(editingProject.coverFile)}
+                          alt=""
+                          style={{
+                            width: 88,
+                            height: 88,
+                            borderRadius: 18,
+                            objectFit: 'cover',
+                            border: `1px solid ${editingProject.accentColor || '#38bdf8'}40`,
+                            flexShrink: 0
+                          }}
+                        />
+                      )}
+                      <div style={{ flex: 1, minWidth: 220 }}>
+                        {editingProject.bannerConfig?.titleMode === 'logo' && editingProject.bannerConfig.titleLogoUrl ? (
+                          <div style={{ marginBottom: 4 }}>
+                            <img
+                              src={getCoverUrl(editingProject.bannerConfig.titleLogoUrl)}
+                              alt="Logo Preview"
+                              className={`project-title-logo-img ${editingProject.bannerConfig.invertInLightMode === false ? 'no-invert' : ''}`}
+                              style={{
+                                maxHeight: `${(editingProject.bannerConfig.logoHeight || 80) * 1.1}px`,
+                                maxWidth: 'min(420px, 100%)',
+                                objectFit: 'contain',
+                                display: 'block',
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <h2 style={{
+                            ...getAdminBannerFontStyle(editingProject),
+                            fontSize: 'clamp(24px, 3.8vw, 40px)',
+                            margin: 0
+                          }}>
+                            {formatDisplayTitle(editingProject.title || 'Project Title')}
+                          </h2>
+                        )}
+                        <span style={{ fontSize: 12.5, color: 'var(--text-muted)', display: 'block', marginTop: 4 }}>
+                          {editingProject.subtitle || 'Release'} · {getProjectDisplayRelease(editingProject)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <BannerTypographyEditor
+                    config={editingProject.bannerConfig}
+                    onChange={updatedConfig => setEditingProject({
+                      ...editingProject,
+                      bannerConfig: updatedConfig
+                    })}
+                    accentColor={editingProject.accentColor}
+                  />
+                </div>
+              )}
+
               {/* SUB-TAB: MEDIA & COLORS */}
               {projectEditorTab === 'links' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -2546,7 +3463,7 @@ export default function AdminPortalClient() {
                         className="material-btn material-pill-sm"
                         style={{ background: 'var(--text-main)', color: 'var(--bg-base)', fontWeight: 700, fontSize: 12 }}
                       >
-                        🎨 Auto-Suggest Studio Palette
+                        Auto-Suggest Studio Palette
                       </button>
                     </div>
 
@@ -2825,7 +3742,7 @@ export default function AdminPortalClient() {
                               }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-main)' }}>
-                                    🎵 Track Credits & Personnel
+                                    Track Credits & Personnel
                                   </span>
                                   <button
                                     type="button"
@@ -2985,7 +3902,7 @@ export default function AdminPortalClient() {
                           fontSize: 12
                         }}
                       >
-                        ⚡ Apply to All {editingProject.tracks.length} Tracks
+                        Apply to All {editingProject.tracks.length} Tracks
                       </button>
                     </div>
                   </div>
@@ -3183,23 +4100,70 @@ export default function AdminPortalClient() {
               {/* SUB-TAB: SHOWCASE SETTINGS */}
               {projectEditorTab === 'showcase' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 18, borderRadius: 20, background: 'var(--bg-surface-variant)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 18, borderRadius: 20, background: 'var(--bg-surface-variant)', border: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: 12 }}>
                     <div>
-                      <h4 style={{ fontSize: 15, fontWeight: 700 }}>Featured in Hero Banner</h4>
+                      <h4 style={{ fontSize: 15, fontWeight: 700 }}>Homepage Hero Banner Slot</h4>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                        Assign this release to one of the 2 homescreen hero banner positions
+                      </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setEditingProject({ ...editingProject, featured: !editingProject.featured })}
-                      className={`material-btn material-pill ${editingProject.featured ? 'active' : ''}`}
-                      style={{ fontWeight: 700 }}
-                    >
-                      {editingProject.featured ? '★ Featured in Banner' : 'Not Featured'}
-                    </button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingProject({ ...editingProject, featured: true, showcaseOrder: 1 })}
+                        className="material-btn material-pill-sm"
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 12,
+                          background: (editingProject.featured && editingProject.showcaseOrder === 1) ? '#38bdf8' : 'var(--bg-surface)',
+                          color: (editingProject.featured && editingProject.showcaseOrder === 1) ? '#000' : 'var(--text-main)'
+                        }}
+                      >
+                        Slot #1 (Lead)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingProject({ ...editingProject, featured: true, showcaseOrder: 2 })}
+                        className="material-btn material-pill-sm"
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 12,
+                          background: (editingProject.featured && editingProject.showcaseOrder === 2) ? '#a855f7' : 'var(--bg-surface)',
+                          color: (editingProject.featured && editingProject.showcaseOrder === 2) ? '#fff' : 'var(--text-main)'
+                        }}
+                      >
+                        Slot #2 (Feature)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingProject({ ...editingProject, featured: false, showcaseOrder: 999 })}
+                        className="material-btn material-pill-sm"
+                        style={{
+                          fontWeight: 600,
+                          fontSize: 12,
+                          background: !editingProject.featured ? 'var(--text-main)' : 'var(--bg-surface)',
+                          color: !editingProject.featured ? 'var(--bg-base)' : 'var(--text-muted)'
+                        }}
+                      >
+                        Not in Hero
+                      </button>
+                    </div>
                   </div>
 
                   <div>
+                    <BannerTypographyEditor
+                      config={editingProject.bannerConfig}
+                      onChange={updatedConfig => setEditingProject({
+                        ...editingProject,
+                        bannerConfig: updatedConfig
+                      })}
+                      accentColor={editingProject.accentColor}
+                    />
+                  </div>
+
+                  <div style={{ marginTop: 12 }}>
                     <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                      Showcase Banner Subtitle / Tagline (Optional)
+                      Showcase Banner Subtitle / Tagline
                     </label>
                     <input
                       type="text"
@@ -3219,9 +4183,45 @@ export default function AdminPortalClient() {
                       value={editingProject.description || ''}
                       onChange={e => setEditingProject({ ...editingProject, description: e.target.value })}
                       className="material-input"
-                      style={{ width: '100%', minHeight: 90, borderRadius: 18, padding: '12px 16px', lineHeight: 1.5 }}
-                      placeholder="Concise 1-2 sentence description shown in the homescreen hero banner (e.g. like Saccharin)..."
+                      style={{ width: '100%', minHeight: 80, borderRadius: 18, padding: '12px 16px', lineHeight: 1.5 }}
+                      placeholder="Concise 1-2 sentence description shown in the homescreen hero banner..."
                     />
+                  </div>
+
+                  <div className="admin-form-grid-2">
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                        Right Stage Card Label (e.g. SELECTIONS)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingProject.bannerConfig?.cardLabel || ''}
+                        onChange={e => setEditingProject({
+                          ...editingProject,
+                          bannerConfig: { ...editingProject.bannerConfig, cardLabel: e.target.value }
+                        })}
+                        className="material-input"
+                        style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
+                        placeholder="SELECTIONS or ORIGINAL SCORE"
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                        Right Stage Card Tag (e.g. Lead · The Video)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingProject.bannerConfig?.cardTag || ''}
+                        onChange={e => setEditingProject({
+                          ...editingProject,
+                          bannerConfig: { ...editingProject.bannerConfig, cardTag: e.target.value }
+                        })}
+                        className="material-input"
+                        style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
+                        placeholder="Lead · The Video or Track Highlights"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
@@ -3237,7 +4237,7 @@ export default function AdminPortalClient() {
                     className="material-btn material-pill"
                     style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.45)', background: 'rgba(239, 68, 68, 0.08)', fontWeight: 700, fontSize: 12.5 }}
                   >
-                    🗑️ Delete Release
+                    Delete Release
                   </button>
                 )}
                 <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
@@ -3263,21 +4263,21 @@ export default function AdminPortalClient() {
         </div>
       )}
 
-      {/* ═══════════════ MODAL: QUICK HERO BANNER COPY EDITOR ═══════════════ */}
+      {/* ═══════════════ MODAL: HERO BANNER STUDIO ═══════════════ */}
       {editingShowcaseProject && (
         <div className="modal-overlay" onClick={() => setEditingShowcaseProject(null)}>
           <div
             className="modal-container admin-modal-card"
             onClick={e => e.stopPropagation()}
-            style={{ maxWidth: 640, backgroundColor: 'var(--bg-surface-solid)' }}
+            style={{ maxWidth: 840, backgroundColor: 'var(--bg-surface-solid)' }}
           >
             <div className="modal-header-fixed">
               <div>
                 <h3 style={{ fontSize: 20, fontWeight: 800 }}>
-                  Customize Hero Banner: {editingShowcaseProject.title}
+                  Hero Banner Studio: {editingShowcaseProject.title}
                 </h3>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  Slot #{editingShowcaseProject.showcaseOrder ?? 1} on Homescreen
+                  Customize all visual elements, fonts, colors, links, and stage cards for this banner
                 </span>
               </div>
               <button
@@ -3290,53 +4290,515 @@ export default function AdminPortalClient() {
             </div>
 
             <form onSubmit={handleSaveShowcaseBanner} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-              <div className="modal-body-scrollable">
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                  Banner Headline Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editingShowcaseProject.title}
-                  onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, title: e.target.value })}
-                  className="material-input"
-                  style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
-                />
+              <div className="modal-body-scrollable" style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+
+                {/* 1. Interactive Live Preview */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
+                    Live Banner Interactive Preview
+                  </span>
+                  <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    backgroundColor: '#000000',
+                    minHeight: 200,
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    boxShadow: '0 16px 36px rgba(0,0,0,0.45)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '24px 28px',
+                    boxSizing: 'border-box'
+                  }}>
+                    {/* Backdrop Cover Art */}
+                    {editingShowcaseProject.coverFile && (
+                      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+                        <img
+                          src={getCoverUrl(editingShowcaseProject.coverFile)}
+                          alt=""
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            objectPosition: 'center 30%',
+                            filter: 'brightness(0.92) contrast(1.05) saturate(1.1)'
+                          }}
+                        />
+                      </div>
+                    )}
+                    {/* Dark theatrical horizontal wash */}
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(90deg, rgba(9, 9, 11, 0.92) 0%, rgba(9, 9, 11, 0.68) 42%, rgba(9, 9, 11, 0.2) 75%, rgba(9, 9, 11, 0.04) 100%)',
+                      pointerEvents: 'none'
+                    }} />
+
+                    {/* Aesthetic Project-Specific Color Gradient: From bottom to transparent at the top */}
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      pointerEvents: 'none',
+                      background: `
+                        linear-gradient(to top, 
+                          ${hexToRgba(editingShowcaseProject.accentColor || '#38bdf8', 0.62)} 0%, 
+                          ${hexToRgba(editingShowcaseProject.accentColor || '#38bdf8', 0.38)} 14%, 
+                          ${hexToRgba(editingShowcaseProject.accentColor || '#38bdf8', 0.16)} 32%, 
+                          ${hexToRgba(editingShowcaseProject.accentColor || '#38bdf8', 0.04)} 52%, 
+                          rgba(0, 0, 0, 0) 70%
+                        ),
+                        radial-gradient(ellipse 120% 50% at 50% 100%, ${hexToRgba(editingShowcaseProject.accentColor || '#38bdf8', 0.38)} 0%, ${hexToRgba(editingShowcaseProject.accentColor || '#38bdf8', 0.12)} 42%, rgba(0, 0, 0, 0) 72%)
+                      `
+                    }} />
+
+                    {/* Preview Content Grid */}
+                    <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', width: '100%', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div style={{ maxWidth: 420, minWidth: 260, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, marginBottom: 6 }}>
+                          <span style={{ color: editingShowcaseProject.accentColor || '#38bdf8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            {editingShowcaseProject.subtitle || 'Featured Release'}
+                          </span>
+                          <span style={{ color: 'rgba(255,255,255,0.4)' }}>·</span>
+                          <span style={{ color: 'rgba(255,255,255,0.7)' }}>
+                            {editingShowcaseProject.showcaseLabel || editingShowcaseProject.releaseLabel || 'Released'}
+                          </span>
+                        </div>
+
+                        {/* Dynamic Custom Font Stylesheet in Preview */}
+                        {editingShowcaseProject.bannerConfig?.customFontUrl && (
+                          <link rel="stylesheet" href={cleanFontUrl(editingShowcaseProject.bannerConfig.customFontUrl)} />
+                        )}
+
+                        {editingShowcaseProject.bannerConfig?.titleMode === 'logo' && editingShowcaseProject.bannerConfig.titleLogoUrl ? (
+                          <div style={{ marginBottom: 8 }}>
+                            <img
+                              src={getCoverUrl(editingShowcaseProject.bannerConfig.titleLogoUrl)}
+                              alt={editingShowcaseProject.title}
+                              style={{
+                                maxHeight: `${Math.min(editingShowcaseProject.bannerConfig.logoHeight || 60, 75)}px`,
+                                maxWidth: '100%',
+                                objectFit: 'contain',
+                                display: 'block',
+                                filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.8))'
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <h3 style={{
+                            color: '#ffffff',
+                            fontSize: 22,
+                            margin: '0 0 6px 0',
+                            lineHeight: 1.25,
+                            ...getAdminBannerFontStyle(editingShowcaseProject)
+                          }}>
+                            {editingShowcaseProject.title}
+                          </h3>
+                        )}
+
+                        <p style={{
+                          color: 'rgba(255,255,255,0.78)',
+                          fontSize: 12,
+                          lineHeight: 1.45,
+                          margin: 0,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {editingShowcaseProject.description || 'Compelling project description...'}
+                        </p>
+
+                        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                          <span style={{
+                            background: editingShowcaseProject.accentColor || '#38bdf8',
+                            color: '#090d16',
+                            fontSize: 11,
+                            fontWeight: 800,
+                            padding: '4px 14px',
+                            borderRadius: 99
+                          }}>
+                            Explore Release ↗
+                          </span>
+                          {editingShowcaseProject.spotifyUrl && (
+                            <span style={{
+                              background: 'rgba(255,255,255,0.12)',
+                              color: '#fff',
+                              fontSize: 11,
+                              fontWeight: 600,
+                              padding: '4px 12px',
+                              borderRadius: 99,
+                              border: '1px solid rgba(255,255,255,0.2)'
+                            }}>
+                              Spotify
+                            </span>
+                          )}
+                          {editingShowcaseProject.youtubeUrl && (
+                            <span style={{
+                              background: 'rgba(255,255,255,0.12)',
+                              color: '#fff',
+                              fontSize: 11,
+                              fontWeight: 600,
+                              padding: '4px 12px',
+                              borderRadius: 99,
+                              border: '1px solid rgba(255,255,255,0.2)'
+                            }}>
+                              Listen
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right Stage Preview Card */}
+                      <div style={{
+                        background: 'rgba(10, 10, 12, 0.72)',
+                        border: `1px solid ${editingShowcaseProject.accentColor ? `${editingShowcaseProject.accentColor}33` : 'rgba(255, 255, 255, 0.12)'}`,
+                        borderRadius: 14,
+                        padding: '12px 16px',
+                        width: 180,
+                        boxShadow: `0 10px 24px rgba(0,0,0,0.5), 0 0 20px ${editingShowcaseProject.accentColor ? `${editingShowcaseProject.accentColor}18` : 'transparent'}`,
+                        flexShrink: 0
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, fontWeight: 700, marginBottom: 6 }}>
+                          <span style={{ color: 'rgba(255,255,255,0.6)' }}>
+                            {editingShowcaseProject.bannerConfig?.cardLabel || 'SELECTIONS'}
+                          </span>
+                          <span style={{ color: editingShowcaseProject.accentColor || '#38bdf8' }}>
+                            {editingShowcaseProject.bannerConfig?.cardTag || (editingShowcaseProject.leadTrack ? `Lead · ${editingShowcaseProject.leadTrack}` : 'Highlights')}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11, color: '#fff' }}>
+                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            01 {editingShowcaseProject.tracks?.[0]?.title || 'Track 1'}
+                          </div>
+                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            02 {editingShowcaseProject.tracks?.[1]?.title || 'Track 2'}
+                          </div>
+                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            03 {editingShowcaseProject.tracks?.[2]?.title || 'Track 3'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Slot Assignment Controls */}
+                <div style={{
+                  padding: '14px 18px',
+                  borderRadius: 18,
+                  background: 'var(--bg-surface-variant)',
+                  border: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 16,
+                  flexWrap: 'wrap'
+                }}>
+                  <div>
+                    <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', display: 'block' }}>
+                      Homepage Hero Slot
+                    </label>
+                    <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                      Choose which of the 2 homescreen hero banner slots this project occupies.
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditingShowcaseProject({ ...editingShowcaseProject, featured: true, showcaseOrder: 1 })}
+                      className="material-btn material-pill-sm"
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 800,
+                        padding: '6px 14px',
+                        background: (editingShowcaseProject.featured && editingShowcaseProject.showcaseOrder === 1) ? '#38bdf8' : 'var(--bg-surface)',
+                        color: (editingShowcaseProject.featured && editingShowcaseProject.showcaseOrder === 1) ? '#000' : 'var(--text-main)'
+                      }}
+                    >
+                      Slot #1 (Lead)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingShowcaseProject({ ...editingShowcaseProject, featured: true, showcaseOrder: 2 })}
+                      className="material-btn material-pill-sm"
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 800,
+                        padding: '6px 14px',
+                        background: (editingShowcaseProject.featured && editingShowcaseProject.showcaseOrder === 2) ? '#a855f7' : 'var(--bg-surface)',
+                        color: (editingShowcaseProject.featured && editingShowcaseProject.showcaseOrder === 2) ? '#fff' : 'var(--text-main)'
+                      }}
+                    >
+                      Slot #2 (Feature)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingShowcaseProject({ ...editingShowcaseProject, featured: false, showcaseOrder: 999 })}
+                      className="material-btn material-pill-sm"
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        padding: '6px 14px',
+                        background: !editingShowcaseProject.featured ? 'var(--text-main)' : 'var(--bg-surface)',
+                        color: !editingShowcaseProject.featured ? 'var(--bg-base)' : 'var(--text-muted)'
+                      }}
+                    >
+                      Off (Not in Hero)
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. Core Typography & Copy Fields */}
+                <div className="admin-form-grid-2">
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                      Banner Headline Title *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editingShowcaseProject.title}
+                      onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, title: e.target.value })}
+                      className="material-input"
+                      style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
+                      placeholder="e.g. What Do You Know?"
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                      Release Subtitle / Classification
+                    </label>
+                    <input
+                      type="text"
+                      value={editingShowcaseProject.subtitle || ''}
+                      onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, subtitle: e.target.value })}
+                      className="material-input"
+                      style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
+                      placeholder="e.g. THE 7TH PROJECT or OFFICIAL SOUNDTRACK"
+                    />
+                  </div>
+                </div>
+
+                {/* 4. Banner Typography Studio & Tagline */}
+                <div>
+                  <BannerTypographyEditor
+                    config={editingShowcaseProject.bannerConfig}
+                    onChange={updatedConfig => setEditingShowcaseProject({
+                      ...editingShowcaseProject,
+                      bannerConfig: updatedConfig
+                    })}
+                    accentColor={editingShowcaseProject.accentColor}
+                  />
+                </div>
+
+                <div style={{ marginTop: 12 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                    Release Tagline / Date Label
+                  </label>
+                  <input
+                    type="text"
+                    value={editingShowcaseProject.showcaseLabel || ''}
+                    onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, showcaseLabel: e.target.value })}
+                    className="material-input"
+                    style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
+                    placeholder="e.g. Released Apr 8, 2026 or TO BE RELEASED..."
+                  />
+                </div>
+
+                {/* 5. Accent Color & Preset Swatches */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                    Banner Accent Color (Buttons, Badges, Highlights)
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input
+                        type="color"
+                        value={editingShowcaseProject.accentColor || '#38bdf8'}
+                        onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, accentColor: e.target.value, accentSoft: `${e.target.value}44` })}
+                        style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: 'transparent', cursor: 'pointer' }}
+                      />
+                      <input
+                        type="text"
+                        value={editingShowcaseProject.accentColor || '#38bdf8'}
+                        onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, accentColor: e.target.value, accentSoft: `${e.target.value}44` })}
+                        className="material-input"
+                        style={{ width: 110, padding: '8px 14px', borderRadius: 999, fontSize: 13 }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                      {[
+                        { label: 'Sky', hex: '#38bdf8' },
+                        { label: 'Rose', hex: '#f43f5e' },
+                        { label: 'Violet', hex: '#a855f7' },
+                        { label: 'Emerald', hex: '#34d399' },
+                        { label: 'Amber', hex: '#f59e0b' },
+                        { label: 'White', hex: '#ffffff' },
+                      ].map(swatch => (
+                        <button
+                          key={swatch.hex}
+                          type="button"
+                          onClick={() => setEditingShowcaseProject({ ...editingShowcaseProject, accentColor: swatch.hex, accentSoft: `${swatch.hex}44` })}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            padding: '4px 10px',
+                            borderRadius: 99,
+                            background: 'var(--bg-surface-variant)',
+                            border: editingShowcaseProject.accentColor === swatch.hex ? `2px solid ${swatch.hex}` : '1px solid var(--border-subtle)',
+                            cursor: 'pointer',
+                            fontSize: 11.5
+                          }}
+                        >
+                          <span style={{ width: 12, height: 12, borderRadius: '50%', background: swatch.hex, display: 'inline-block', border: '1px solid rgba(0,0,0,0.2)' }} />
+                          <span>{swatch.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 6. Cover Art File / URL */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                    Cover Art Image (Backdrop)
+                  </label>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      required
+                      value={editingShowcaseProject.coverFile}
+                      onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, coverFile: e.target.value })}
+                      className="material-input"
+                      style={{ flex: 1, padding: '10px 18px', borderRadius: 999 }}
+                      placeholder="Filename or full image URL..."
+                    />
+                    <div style={{ width: 44, height: 44, borderRadius: 12, overflow: 'hidden', backgroundColor: 'var(--bg-surface-solid)', flexShrink: 0, border: '1px solid var(--border-subtle)' }}>
+                      <img src={getCoverUrl(editingShowcaseProject.coverFile)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 7. Banner Description */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                    Hero Banner Description (shown on homepage)
+                  </label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={editingShowcaseProject.description || ''}
+                    onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, description: e.target.value })}
+                    className="material-input"
+                    style={{ width: '100%', borderRadius: 18, padding: '12px 16px', lineHeight: 1.55 }}
+                    placeholder="Write the atmospheric, compelling banner description..."
+                  />
+                </div>
+
+                {/* 8. Right Stage Card Settings */}
+                <div style={{
+                  padding: '16px 20px',
+                  borderRadius: 20,
+                  background: 'var(--bg-surface-variant)',
+                  border: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 14
+                }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-main)' }}>
+                    Right Stage Card Configuration
+                  </span>
+
+                  <div className="admin-form-grid-3">
+                    <div>
+                      <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                        Card Header Label
+                      </label>
+                      <input
+                        type="text"
+                        value={editingShowcaseProject.bannerConfig?.cardLabel || ''}
+                        onChange={e => setEditingShowcaseProject({
+                          ...editingShowcaseProject,
+                          bannerConfig: { ...editingShowcaseProject.bannerConfig, cardLabel: e.target.value }
+                        })}
+                        className="material-input"
+                        style={{ width: '100%', padding: '8px 14px', borderRadius: 999, fontSize: 12.5 }}
+                        placeholder="e.g. SELECTIONS, ORIGINAL SCORE"
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                        Stage Card Tag
+                      </label>
+                      <input
+                        type="text"
+                        value={editingShowcaseProject.bannerConfig?.cardTag || ''}
+                        onChange={e => setEditingShowcaseProject({
+                          ...editingShowcaseProject,
+                          bannerConfig: { ...editingShowcaseProject.bannerConfig, cardTag: e.target.value }
+                        })}
+                        className="material-input"
+                        style={{ width: '100%', padding: '8px 14px', borderRadius: 999, fontSize: 12.5 }}
+                        placeholder="e.g. Lead · The Video"
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                        Lead Track Name
+                      </label>
+                      <input
+                        type="text"
+                        value={editingShowcaseProject.leadTrack || ''}
+                        onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, leadTrack: e.target.value })}
+                        className="material-input"
+                        style={{ width: '100%', padding: '8px 14px', borderRadius: 999, fontSize: 12.5 }}
+                        placeholder="e.g. The Video"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 9. Streaming Links */}
+                <div className="admin-form-grid-2">
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                      Spotify Streaming URL
+                    </label>
+                    <input
+                      type="url"
+                      value={editingShowcaseProject.spotifyUrl || ''}
+                      onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, spotifyUrl: e.target.value })}
+                      className="material-input"
+                      style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
+                      placeholder="https://open.spotify.com/..."
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                      YouTube / Listen URL
+                    </label>
+                    <input
+                      type="url"
+                      value={editingShowcaseProject.youtubeUrl || ''}
+                      onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, youtubeUrl: e.target.value })}
+                      className="material-input"
+                      style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
+                      placeholder="https://www.youtube.com/..."
+                    />
+                  </div>
+                </div>
+
               </div>
 
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                  Top Tagline / Subtitle
-                </label>
-                <input
-                  type="text"
-                  value={editingShowcaseProject.showcaseLabel || ''}
-                  onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, showcaseLabel: e.target.value })}
-                  className="material-input"
-                  style={{ width: '100%', padding: '10px 18px', borderRadius: 999 }}
-                  placeholder="e.g. RELEASED JAN 21, 2026 or OFFICIAL SOUNDTRACK"
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                  Hero Banner Description (shown on homepage)
-                </label>
-                <textarea
-                  required
-                  rows={4}
-                  value={editingShowcaseProject.description || ''}
-                  onChange={e => setEditingShowcaseProject({ ...editingShowcaseProject, description: e.target.value })}
-                  className="material-input"
-                  style={{ width: '100%', borderRadius: 18, padding: '12px 16px', lineHeight: 1.55 }}
-                  placeholder="Write the atmospheric, compelling banner description..."
-                />
-              </div>
-
-              </div>
-
-              <div className="modal-footer-fixed">
+              <div className="modal-footer-fixed" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <button
                   type="button"
                   onClick={() => setEditingShowcaseProject(null)}
@@ -3350,7 +4812,7 @@ export default function AdminPortalClient() {
                   className="material-btn material-pill"
                   style={{ background: 'var(--text-main)', color: 'var(--bg-base)', fontWeight: 700 }}
                 >
-                  {savingShowcase ? 'Saving...' : 'Update Hero Banner'}
+                  {savingShowcase ? 'Saving...' : 'Save Banner to Supabase'}
                 </button>
               </div>
             </form>
@@ -3484,7 +4946,7 @@ export default function AdminPortalClient() {
                     className="material-btn material-pill"
                     style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.45)', background: 'rgba(239, 68, 68, 0.08)', fontWeight: 700, fontSize: 12.5 }}
                   >
-                    🗑️ Delete Creator
+                    Delete Creator
                   </button>
                 )}
                 <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
@@ -3538,7 +5000,7 @@ export default function AdminPortalClient() {
                   fontSize: 22,
                   flexShrink: 0
                 }}>
-                  ⚠️
+                  <span style={{ fontWeight: 800, fontSize: 18, color: '#ef4444' }}>!</span>
                 </div>
                 <div>
                   <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
@@ -3621,7 +5083,7 @@ export default function AdminPortalClient() {
                   cursor: deleting ? 'not-allowed' : 'pointer'
                 }}
               >
-                {deleting ? 'Deleting...' : '🗑️ Yes, Delete Permanently'}
+                {deleting ? 'Deleting...' : 'Yes, Delete Permanently'}
               </button>
             </div>
           </div>

@@ -22,7 +22,7 @@ const NAV_LINKS = [
 
 function SunIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="5"/>
       <line x1="12" y1="1" x2="12" y2="3"/>
       <line x1="12" y1="21" x2="12" y2="23"/>
@@ -38,7 +38,7 @@ function SunIcon() {
 
 function MoonIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
     </svg>
   )
@@ -46,7 +46,7 @@ function MoonIcon() {
 
 function ArrowLeftIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
       <line x1="19" y1="12" x2="5" y2="12"></line>
       <polyline points="12 19 5 12 12 5"></polyline>
     </svg>
@@ -55,7 +55,7 @@ function ArrowLeftIcon() {
 
 function MenuIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="4" y1="7" x2="20" y2="7"></line>
       <line x1="4" y1="12" x2="20" y2="12"></line>
       <line x1="4" y1="17" x2="20" y2="17"></line>
@@ -65,7 +65,7 @@ function MenuIcon() {
 
 function CloseIcon() {
   return (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
       <line x1="18" y1="6" x2="6" y2="18"></line>
       <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
@@ -74,7 +74,7 @@ function CloseIcon() {
 
 function HomeIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
       <polyline points="9 22 9 12 15 12 15 22"/>
     </svg>
@@ -83,7 +83,7 @@ function HomeIcon() {
 
 function NewsIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Z"/>
       <path d="M18 14h-8"/>
       <path d="M15 18h-5"/>
@@ -94,7 +94,7 @@ function NewsIcon() {
 
 function DiscIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10"/>
       <circle cx="12" cy="12" r="3"/>
     </svg>
@@ -103,7 +103,7 @@ function DiscIcon() {
 
 function UserIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
       <circle cx="12" cy="7" r="4"/>
     </svg>
@@ -114,12 +114,28 @@ export default function Navbar({ currentView = 'home', setCurrentView, backTo }:
   const router = useRouter()
   const { startLoading } = useNavigationLoading()
   const [isLight, setIsLight] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileMenuClosing, setMobileMenuClosing] = useState(false)
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuClosing(true)
+    setTimeout(() => {
+      setMobileMenuOpen(false)
+      setMobileMenuClosing(false)
+    }, 200)
+  }, [])
+
+  const openMobileMenu = useCallback(() => {
+    setMobileMenuClosing(false)
+    setMobileMenuOpen(true)
+  }, [])
 
   const handleBackClick = (e: React.MouseEvent) => {
     e.preventDefault()
     startLoading()
     if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
       if (window.history.length > 1) {
         window.history.back()
         return
@@ -134,6 +150,12 @@ export default function Navbar({ currentView = 'home', setCurrentView, backTo }:
 
   useEffect(() => {
     setIsLight(document.body.classList.contains('light-mode'))
+
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const toggleTheme = () => {
@@ -147,13 +169,15 @@ export default function Navbar({ currentView = 'home', setCurrentView, backTo }:
   }
 
   const handleNavClick = (id: 'home' | 'projects' | 'artists' | 'newsroom' | 'about') => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }
     if (setCurrentView) {
       setCurrentView(id)
     }
     setMobileMenuOpen(false)
   }
 
-  // Close drawer on Escape
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') setMobileMenuOpen(false)
   }, [])
@@ -183,27 +207,18 @@ export default function Navbar({ currentView = 'home', setCurrentView, backTo }:
 
   return (
     <>
-      <header className="navbar-wrapper">
-        
-        {/* Left Side: Back button (if provided) and Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <header className={`navbar-wrapper ${isScrolled ? 'scrolled' : ''}`}>
+        {/* Left: Back button (if present) and Brand Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           {backTo && (
             <button
               type="button"
               onClick={handleBackClick}
-              className="material-btn material-pill-sm"
-              style={{
-                gap: 6,
-                textDecoration: 'none',
-                padding: '6px 14px',
-                fontSize: 12.5,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-              title="Back to previous page"
+              className="navbar-back-btn"
+              title="Back"
             >
               <ArrowLeftIcon />
-              <span className="back-btn-text">Back</span>
+              <span>Back</span>
             </button>
           )}
 
@@ -216,8 +231,8 @@ export default function Navbar({ currentView = 'home', setCurrentView, backTo }:
           </Link>
         </div>
 
-        {/* Desktop Navigation Dock (Hidden on mobile) */}
-        <nav className="nav-dock nav-links-desktop">
+        {/* Center: Clean Apple-grade Text Navigation */}
+        <nav className="nav-links-desktop" aria-label="Main Navigation">
           {NAV_LINKS.map(link => {
             const isActive = currentView === link.id
             if (setCurrentView) {
@@ -225,12 +240,7 @@ export default function Navbar({ currentView = 'home', setCurrentView, backTo }:
                 <button
                   key={link.id}
                   onClick={() => handleNavClick(link.id)}
-                  className={`material-btn material-pill-sm ${isActive ? 'active' : ''}`}
-                  style={{
-                    border: 'none',
-                    boxShadow: isActive ? 'var(--elevation-1)' : 'none',
-                    fontSize: 12.5,
-                  }}
+                  className={`nav-link-item ${isActive ? 'active' : ''}`}
                 >
                   {link.label}
                 </button>
@@ -241,13 +251,7 @@ export default function Navbar({ currentView = 'home', setCurrentView, backTo }:
               <Link
                 key={link.id}
                 href={link.href}
-                className={`material-btn material-pill-sm ${isActive ? 'active' : ''}`}
-                style={{
-                  border: 'none',
-                  textDecoration: 'none',
-                  boxShadow: isActive ? 'var(--elevation-1)' : 'none',
-                  fontSize: 12.5,
-                }}
+                className={`nav-link-item ${isActive ? 'active' : ''}`}
               >
                 {link.label}
               </Link>
@@ -255,73 +259,78 @@ export default function Navbar({ currentView = 'home', setCurrentView, backTo }:
           })}
         </nav>
 
-        {/* Right Side: Theme Toggle + Mobile Menu Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* Right: Theme Toggle + Mobile Menu Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
             onClick={toggleTheme}
-            className="material-btn material-icon-sm"
+            className="navbar-icon-btn"
             title={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
             aria-label="Toggle theme"
           >
             {isLight ? <MoonIcon /> : <SunIcon />}
           </button>
 
-          {/* Menu Button for Mobile Viewports */}
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="material-btn material-icon-sm mobile-menu-btn"
+            onClick={() => {
+              if (mobileMenuOpen) {
+                closeMobileMenu()
+              } else {
+                openMobileMenu()
+              }
+            }}
+            className="navbar-icon-btn mobile-menu-btn"
             title="Navigation Menu"
             aria-label="Open navigation menu"
             aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+            {mobileMenuOpen && !mobileMenuClosing ? <CloseIcon /> : <MenuIcon />}
           </button>
         </div>
-
       </header>
 
       {/* Mobile Navigation Drawer & Scrim */}
       {mobileMenuOpen && (
         <>
           <div
-            className="mobile-nav-scrim"
-            onClick={() => setMobileMenuOpen(false)}
+            className={`mobile-nav-scrim ${mobileMenuClosing ? 'closing' : ''}`}
+            onClick={closeMobileMenu}
             aria-hidden="true"
           />
 
-          <aside className="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation Menu">
-            {/* Drawer Header */}
+          <aside className={`mobile-nav-drawer ${mobileMenuClosing ? 'closing' : ''}`} role="dialog" aria-modal="true" aria-label="Navigation Menu">
             <div className="mobile-drawer-header">
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <img
                   src={LOGO_URL}
-                  alt="logo"
+                  alt="studioseven"
                   className="brand-logo-img"
                   style={{ height: 22 }}
                 />
               </div>
               <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="material-btn material-icon-sm"
+                onClick={closeMobileMenu}
+                className="navbar-icon-btn"
                 aria-label="Close menu"
-                style={{ border: 'none', background: 'transparent', boxShadow: 'none' }}
+                style={{ border: 'none', background: 'transparent' }}
               >
                 <CloseIcon />
               </button>
             </div>
 
-            {/* Navigation List — Styled as Rounded Pills matching dock */}
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
               {NAV_LINKS.map(link => {
                 const isActive = currentView === link.id
                 if (setCurrentView) {
                   return (
                     <button
                       key={link.id}
-                      onClick={() => handleNavClick(link.id)}
+                      onClick={() => {
+                        closeMobileMenu()
+                        handleNavClick(link.id)
+                      }}
                       className={`mobile-drawer-link ${isActive ? 'active' : ''}`}
                     >
-                      <span style={{ display: 'flex', alignItems: 'center', opacity: isActive ? 1 : 0.7 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', opacity: isActive ? 1 : 0.65 }}>
                         {renderNavIcon(link.id)}
                       </span>
                       <span>{link.label}</span>
@@ -333,10 +342,10 @@ export default function Navbar({ currentView = 'home', setCurrentView, backTo }:
                   <Link
                     key={link.id}
                     href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={closeMobileMenu}
                     className={`mobile-drawer-link ${isActive ? 'active' : ''}`}
                   >
-                    <span style={{ display: 'flex', alignItems: 'center', opacity: isActive ? 1 : 0.7 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', opacity: isActive ? 1 : 0.65 }}>
                       {renderNavIcon(link.id)}
                     </span>
                     <span>{link.label}</span>
@@ -345,7 +354,6 @@ export default function Navbar({ currentView = 'home', setCurrentView, backTo }:
               })}
             </nav>
 
-            {/* Drawer Footer with Theme Toggle */}
             <div className="mobile-drawer-footer">
               <button
                 onClick={toggleTheme}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Project, Track, TrackBadge, getCoverUrl, ProjectRating, ARTISTS, getReadableAccent, getDefaultProjectCredits, getDefaultTrackCredits, formatTrackCreditsSummary, isProjectScheduled, getProjectDisplayRelease } from '@/data/projects'
+import { getProjectFontStyle, cleanFontUrl, formatDisplayTitle } from '@/utils/projectTypography'
 import { supabase } from '@/utils/supabase'
 import Navbar from '@/components/Navbar'
 import CollectibleWizard from '@/components/CollectibleWizard'
@@ -139,6 +140,12 @@ export default function ProjectPageClient({ project }: { project: Project }) {
   const projectCredits = project.credits || getDefaultProjectCredits(project)
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }
+  }, [])
+
+  useEffect(() => {
     const fetchRatings = async () => {
       const { data, error } = await supabase.from('ratings')
         .select('*')
@@ -196,8 +203,15 @@ export default function ProjectPageClient({ project }: { project: Project }) {
   )
   const avgRating = currentRatings.length ? currentRatings.reduce((a, b) => a + b.rating, 0) / currentRatings.length : 0
 
+  const customFontUrl = cleanFontUrl(project.bannerConfig?.customFontUrl)
+  const fontStyle = getProjectFontStyle(project, { isDetailHero: true })
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-base)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column' }}>
+      {/* Dynamic Custom Font Stylesheet */}
+      {customFontUrl && (
+        <link rel="stylesheet" href={customFontUrl} />
+      )}
       
       {/* Top Navigation Bar with Mobile Drawer */}
       <Navbar currentView="projects" backTo={{ href: '/#projects', label: 'Projects' }} />
@@ -218,9 +232,9 @@ export default function ProjectPageClient({ project }: { project: Project }) {
             gap: 40,
             alignItems: 'center',
             borderRadius: 34,
-            background: `linear-gradient(165deg, ${readableAccent}20 0%, var(--bg-surface) 65%)`,
-            borderColor: `${readableAccent}40`,
-            boxShadow: `0 8px 32px ${readableAccent}15, var(--elevation-2)`
+            background: 'var(--bg-surface-solid)',
+            borderColor: `${readableAccent}35`,
+            boxShadow: `0 16px 40px rgba(0, 0, 0, 0.65), 0 0 24px ${readableAccent}15`
           }}
         >
           {/* Cover Art */}
@@ -240,47 +254,67 @@ export default function ProjectPageClient({ project }: { project: Project }) {
           </div>
 
           {/* Details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-              {projectSubtitle ? (
-                <span
-                  className="liquid-badge"
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {project.bannerConfig?.titleMode === 'logo' && project.bannerConfig.titleLogoUrl ? (
+              <div style={{ marginBottom: 4 }}>
+                <img
+                  src={getCoverUrl(project.bannerConfig.titleLogoUrl)}
+                  alt={project.title}
+                  className={`project-title-logo-img ${project.bannerConfig.invertInLightMode === false ? 'no-invert' : ''}`}
                   style={{
-                    background: `${readableAccent}20`,
-                    color: readableAccent,
-                    borderColor: `${readableAccent}40`,
-                    fontWeight: 700,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    fontSize: 11.5,
-                    padding: '4px 12px'
+                    maxHeight: `${(project.bannerConfig.logoHeight || 80) * 1.15}px`,
+                    maxWidth: 'min(500px, 100%)',
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain',
+                    display: 'block',
+                  }}
+                  onError={(e) => {
+                    const target = e.currentTarget
+                    target.style.display = 'none'
+                    const fallbackEl = document.getElementById(`fallback-title-${project.id}`)
+                    if (fallbackEl) fallbackEl.style.display = 'block'
+                  }}
+                />
+                <h1
+                  id={`fallback-title-${project.id}`}
+                  style={{
+                    ...fontStyle,
+                    display: 'none',
+                    margin: 0
                   }}
                 >
-                  {projectSubtitle}
-                </span>
-              ) : (
-                <span className="liquid-badge" style={{ background: 'var(--bg-surface-variant)', color: 'var(--text-muted)', border: '1px solid var(--border-default)' }}>
-                  {project.type ? project.type.toUpperCase() : 'PROJECT'}
-                </span>
+                  {formatDisplayTitle(project.title)}
+                </h1>
+              </div>
+            ) : (
+              <h1
+                style={{
+                  ...fontStyle,
+                  margin: 0
+                }}
+              >
+                {formatDisplayTitle(project.title)}
+              </h1>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', fontSize: 14.5, color: 'var(--text-muted)' }}>
+              {artist && (
+                <>
+                  <span>A project by <Link href={`/artists/${artist.id}`} style={{ color: 'var(--text-main)', fontWeight: 600, textDecoration: 'none' }}>{artist.name}</Link></span>
+                  <span>·</span>
+                </>
+              )}
+              <span>{getProjectDisplayRelease(project)}</span>
+              {projectSubtitle && (
+                <>
+                  <span>·</span>
+                  <span style={{ color: readableAccent, fontWeight: 600 }}>
+                    {projectSubtitle}
+                  </span>
+                </>
               )}
             </div>
-
-            <h1 style={{
-              fontSize: 'clamp(28px, 4.5vw, 44px)',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.15,
-              color: 'var(--text-main)'
-            }}>
-              {project.title}
-            </h1>
-
-            <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
-              {artist && (
-                <>A project by <Link href={`/artists/${artist.id}`} style={{ color: 'var(--text-main)', fontWeight: 600, textDecoration: 'none' }}>{artist.name}</Link> · </>
-              )}
-              {getProjectDisplayRelease(project)}
-            </p>
 
             {isProjectScheduled(project) && (
               <div style={{
@@ -288,9 +322,9 @@ export default function ProjectPageClient({ project }: { project: Project }) {
                 alignItems: 'center',
                 padding: '4px 12px',
                 borderRadius: 99,
-                background: 'rgba(56, 189, 248, 0.12)',
-                border: '1px solid rgba(56, 189, 248, 0.35)',
-                color: '#38bdf8',
+                background: `${readableAccent}18`,
+                border: `1px solid ${readableAccent}40`,
+                color: readableAccent,
                 fontSize: 11.5,
                 fontWeight: 700,
                 letterSpacing: '0.04em',

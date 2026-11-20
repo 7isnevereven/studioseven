@@ -42,6 +42,12 @@ export default function ArtistPageClient({ artist }: { artist: Artist }) {
   }
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }
+  }, [])
+
+  useEffect(() => {
     loadProjects()
   }, [])
 
@@ -51,6 +57,10 @@ export default function ArtistPageClient({ artist }: { artist: Artist }) {
     : artist.id === '13'
     ? liveProjects.filter(p => p.id === 'cicatrix')
     : liveProjects.filter(p => p.artistId === artist.id)
+
+  const isFeatured = artist.id === 'jhuzz' || artist.id === '13'
+  const roleTitle = isFeatured ? 'Featured Artist Profile' : 'studioseven Creator Profile'
+  const roleLabel = isFeatured ? 'Featured Artist' : 'Lead Composer, Lyricist & Creator'
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-base)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column' }}>
@@ -91,23 +101,47 @@ export default function ArtistPageClient({ artist }: { artist: Artist }) {
             )}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
-              studioseven Creator Profile
-            </span>
-
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <h1 style={{
               fontSize: 'clamp(32px, 5vw, 48px)',
               fontWeight: 800,
               letterSpacing: '-0.035em',
               lineHeight: 1.1,
-              color: 'var(--text-main)'
+              color: 'var(--text-main)',
+              margin: 0
             }}>
               {artist.name}
             </h1>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={{
+                fontSize: 13.5,
+                fontWeight: 600,
+                color: 'var(--text-muted)',
+                letterSpacing: '0.02em'
+              }}>
+                {roleTitle}
+              </span>
+              {roleLabel && (
+                <>
+                  <span style={{ color: 'var(--text-muted)' }}>·</span>
+                  <span style={{
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: isFeatured ? 'var(--accent-color)' : 'var(--text-muted)',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase'
+                  }}>
+                    {roleLabel}
+                  </span>
+                </>
+              )}
+            </div>
+
             <p style={{ fontSize: 15, color: 'var(--text-muted)' }}>
-              {artistProjects.length} {artistProjects.length === 1 ? 'Curated Project' : 'Curated Projects'} in the studioseven discography
+              {isFeatured
+                ? `Featured artist on ${artistProjects.length} ${artistProjects.length === 1 ? 'studioseven release' : 'studioseven releases'}`
+                : `${artistProjects.length} ${artistProjects.length === 1 ? 'Curated Project' : 'Curated Projects'} in the studioseven discography`}
             </p>
 
             {/* Social / Streaming Links */}
@@ -179,7 +213,13 @@ export default function ArtistPageClient({ artist }: { artist: Artist }) {
                 gap: 12,
               }}
             >
-              <div style={{ fontSize: 28 }}>⚠️</div>
+              <div style={{ color: '#ef4444' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
               <h3 style={{ fontSize: 17, fontWeight: 700, color: '#ef4444' }}>
                 Database Connection Error
               </h3>

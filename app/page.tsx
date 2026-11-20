@@ -48,6 +48,7 @@ export default function Page() {
   const handleSetView = (v: View) => {
     setCurrentView(v)
     if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
       sessionStorage.setItem('ss7_active_view', v)
       if (v === 'home') {
         window.history.replaceState(null, '', '/')

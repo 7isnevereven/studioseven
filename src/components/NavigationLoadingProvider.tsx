@@ -34,6 +34,9 @@ function RouteWatcher({ onComplete }: { onComplete: () => void }) {
 
   useEffect(() => {
     onComplete()
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }
   }, [pathname, searchParams, onComplete])
 
   return null
@@ -47,6 +50,13 @@ export default function NavigationLoadingProvider({
   const [isLoading, setIsLoading] = useState(false)
   const currentPathnameRef = useRef<string>('')
   const currentSearchRef = useRef<string>('')
+
+  // Enforce manual scroll restoration across the entire app
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
+  }, [])
 
   const startLoading = useCallback(() => {
     setIsLoading(true)
