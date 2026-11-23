@@ -321,8 +321,26 @@ function BespokeShowcaseBanner({
   const cardLabel = project.bannerConfig?.cardLabel || defaultCardLabel
   const cardTag = project.bannerConfig?.cardTag || defaultCardTag
 
-  const poems = (project.tracks || []).filter(t => t.badges?.includes('POEM')).slice(0, 3)
-  const highlightTracks = poems.length > 0 ? poems : (project.tracks || []).slice(0, 3)
+  // Highlight tracks for the showcase card:
+  // If the project has 4 or fewer tracks, show all of them so all contents (songs, poems, letters) appear.
+  // If more than 4, show up to 3 key highlight tracks (prioritizing leadTrack if specified).
+  const allTracks = project.tracks || []
+  let highlightTracks: typeof allTracks = []
+
+  if (allTracks.length <= 4) {
+    highlightTracks = allTracks
+  } else if (project.leadTrack) {
+    const leadTrack = allTracks.find(
+      t => t.title.toLowerCase().trim() === project.leadTrack?.toLowerCase().trim()
+    )
+    if (leadTrack && !allTracks.slice(0, 3).some(t => t.title === leadTrack.title)) {
+      highlightTracks = [leadTrack, allTracks[0], allTracks[1]]
+    } else {
+      highlightTracks = allTracks.slice(0, 3)
+    }
+  } else {
+    highlightTracks = allTracks.slice(0, 3)
+  }
 
   const ctaLabel = project.id === 'saccharin'
     ? 'Explore Soundtrack'
@@ -516,28 +534,34 @@ function BespokeShowcaseBanner({
               </div>
 
               <div className="tracklist-card-items">
-                {highlightTracks.map((track, idx) => (
-                  <Link
-                    key={idx}
-                    href={`/projects/${project.id}`}
-                    className="banner-track-row"
-                  >
-                    <span
-                      className="track-row-num"
-                      style={{
-                        color: 'rgba(255, 255, 255, 0.72)',
-                        fontWeight: 600,
-                        letterSpacing: '0.04em'
-                      }}
+                {highlightTracks.map((track, idx) => {
+                  const originalIndex = (project.tracks || []).findIndex(t => t.title === track.title)
+                  const trackNum = originalIndex !== -1 ? originalIndex + 1 : idx + 1
+                  const formattedNum = trackNum < 10 ? `0${trackNum}` : `${trackNum}`
+
+                  return (
+                    <Link
+                      key={idx}
+                      href={`/projects/${project.id}`}
+                      className="banner-track-row"
                     >
-                      0{idx + 1}
-                    </span>
-                    <span className="track-row-title" style={{ color: '#ffffff', fontWeight: 600 }}>{track.title}</span>
-                    {track.badges?.[0] && (
-                      <TypographicTrackBadge type={track.badges[0]} />
-                    )}
-                  </Link>
-                ))}
+                      <span
+                        className="track-row-num"
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.72)',
+                          fontWeight: 600,
+                          letterSpacing: '0.04em'
+                        }}
+                      >
+                        {formattedNum}
+                      </span>
+                      <span className="track-row-title" style={{ color: '#ffffff', fontWeight: 600 }}>{track.title}</span>
+                      {track.badges?.[0] && (
+                        <TypographicTrackBadge type={track.badges[0]} />
+                      )}
+                    </Link>
+                  )
+                })}
               </div>
 
               <Link

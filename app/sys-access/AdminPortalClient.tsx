@@ -4468,15 +4468,18 @@ export default function AdminPortalClient() {
                           </span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11, color: '#fff' }}>
-                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            01 {editingShowcaseProject.tracks?.[0]?.title || 'Track 1'}
-                          </div>
-                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            02 {editingShowcaseProject.tracks?.[1]?.title || 'Track 2'}
-                          </div>
-                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            03 {editingShowcaseProject.tracks?.[2]?.title || 'Track 3'}
-                          </div>
+                          {(editingShowcaseProject.tracks?.length && editingShowcaseProject.tracks.length <= 4
+                            ? editingShowcaseProject.tracks
+                            : (editingShowcaseProject.tracks || []).slice(0, 3)
+                          ).map((t, idx) => {
+                            const origIdx = (editingShowcaseProject.tracks || []).findIndex(x => x.title === t?.title)
+                            const num = origIdx !== -1 ? origIdx + 1 : idx + 1
+                            return (
+                              <div key={idx} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {num < 10 ? `0${num}` : num} {t?.title || `Track ${num}`}
+                              </div>
+                            )
+                          })}
                         </div>
                       </div>
                     </div>
